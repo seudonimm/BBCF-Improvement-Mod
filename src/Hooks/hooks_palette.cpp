@@ -189,8 +189,8 @@ bool placeHooks_palette()
 	restoredForceBloomOffAddr = ForceBloomOnJmpBackAddr + HookManager::GetBytesFromAddr("ForceBloomOn", 4, 1);
 	HookManager::ActivateHook("ForceBloomOn");
 
-	GetIsP1CPUJmpBackAddr = HookManager::SetHook("GetIsP1CPU", "\x89\xb8\x88\x16\x00\x00\x8b\x83\xa4\x64\x40\x00",
-		"xxxxxxxxxxxx", 6, GetIsP1CPU);
+	GetIsP1CPUJmpBackAddr = HookManager::SetHook("GetIsP1CPU", "\x89\xB8\x00\x00\x00\x00\x8B\x83",
+		"xx????xx", 6, GetIsP1CPU);
 
 	return true;
 }
