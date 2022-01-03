@@ -10,7 +10,6 @@ Join the [BB Improvement Mod Discord Server](https://discord.gg/j2mCX9s) to disc
 - Adds hitbox overlay
 - Create and load custom palettes and effects without file modifications
 - See each other's custom palettes in online matches
-- Options to improve the performance of the game even further
 - More flexibility to change the graphics options
 - Change avatars and accessories in online rooms/lobbies without going back into menu
 - Freely adjustable ingame currency value
