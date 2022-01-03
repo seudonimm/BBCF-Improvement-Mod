@@ -1,12 +1,11 @@
 # BBCF-Improvement-Mod
 Additional features and tweaks for BlazBlue Centralfiction
 
-The goal is to extend the game with community-created content, provide additional graphical options, and improve performance for players with computer specs below the minimal system requirements.
+The goal is to extend the game with community-created content and provide additional graphical options.
 
 Join the [BB Improvement Mod Discord Server](https://discord.gg/j2mCX9s) to discuss about the development and the game itself!
 
 ## What this mod provides
-- Unlocks the game's region restricted multiplayer
 - Adds extra game modes
 - Adds hitbox overlay
 - Create and load custom palettes and effects without file modifications
@@ -25,6 +24,7 @@ Copy the compiled binary, settings.ini, and palettes.ini files from the bin/ fol
 - Visual Studio 2019 (toolset v142) (Windows SDK 10)
 
 ## Thanks to the people who have helped the mod along the way
+* KoviDomi
 * Neptune
 * Rouzel
 * Dormin
@@ -44,5 +44,5 @@ BBCF Improvement Mod is NOT intended to unlock unreleased / unpurchased contents
 BBCF Improvement Mod should only be used on the official version that you legally purchased and own.
 
 Use BBCF Improvement Mod at your own risk.
-I, KoviDomi, am not responsible for what happens while using BBCF Improvement Mod. You take full reponsibility for any outcome that happens to you while using this application.
+I, GrimFlash, am not responsible for what happens while using BBCF Improvement Mod. You take full reponsibility for any outcome that happens to you while using this application.
 ```
