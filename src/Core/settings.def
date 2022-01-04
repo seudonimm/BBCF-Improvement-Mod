@@ -12,6 +12,5 @@ SETTING(int, viewport, "Viewport", "1");
 SETTING(int, antialiasing, "AntiAliasing", "-1");
 SETTING(bool, vsync, "V-sync", "0");
 SETTING(int, menusize, "MenuSize", "2");
-SETTING(int, regionlock, "Regionlock", "3");
 SETTING(bool, notifications, "Notifications", "1");
 SETTING(bool, checkupdates, "CheckUpdates", "1");
