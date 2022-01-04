@@ -75,27 +75,6 @@ void SteamMatchmakingWrapper::AddRequestLobbyListFilterSlotsAvailable(int nSlots
 
 void SteamMatchmakingWrapper::AddRequestLobbyListDistanceFilter(ELobbyDistanceFilter eLobbyDistanceFilter)
 {
-	LOG(7, "SteamMatchmakingWrapper AddRequestLobbyListDistanceFilter\n");
-
-	ELobbyDistanceFilter filter;
-	switch (Settings::settingsIni.regionlock)
-	{
-	case 2:
-		filter = k_ELobbyDistanceFilterFar;
-		break;
-	case 3:
-		filter = k_ELobbyDistanceFilterWorldwide;
-		break;
-	case 1:
-	default:
-		filter = k_ELobbyDistanceFilterDefault;
-		break;
-	}
-
-	if (eLobbyDistanceFilter != filter)
-		LOG(2, "\teLobbyDistanceFilter modified from %d to %d\n", (int)eLobbyDistanceFilter, (int)filter);
-
-	return m_SteamMatchmaking->AddRequestLobbyListDistanceFilter(filter);
 }
 
 void SteamMatchmakingWrapper::AddRequestLobbyListResultCountFilter(int cMaxResults)
