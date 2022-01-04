@@ -75,6 +75,8 @@ void SteamMatchmakingWrapper::AddRequestLobbyListFilterSlotsAvailable(int nSlots
 
 void SteamMatchmakingWrapper::AddRequestLobbyListDistanceFilter(ELobbyDistanceFilter eLobbyDistanceFilter)
 {
+	LOG(7, "SteamMatchmakingWrapper AddRequestLobbyListDistanceFilter\n");
+	return m_SteamMatchmaking->AddRequestLobbyListDistanceFilter(eLobbyDistanceFilter);
 }
 
 void SteamMatchmakingWrapper::AddRequestLobbyListResultCountFilter(int cMaxResults)
