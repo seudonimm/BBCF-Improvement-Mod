@@ -677,7 +677,7 @@ bool placeHooks_bbcf()
 		"xxxxxx", 6, OverwriteStagesList);
 
 	GetEntityListAddrJmpBackAddr = HookManager::SetHook("GetEntityListAddr", "\x68\x00\x00\x00\x00\x89\x86\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x68",
-		"x????xx????x????x", 5, GetEntityListAddr);
+		"x????xx????x????x", 11, GetEntityListAddr);
 	entityListSize = HookManager::GetOriginalBytes("GetEntityListAddr", 1, 4);
 	g_gameVals.entityCount = entityListSize / 4;
 
