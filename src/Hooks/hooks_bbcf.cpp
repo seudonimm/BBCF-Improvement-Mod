@@ -577,11 +577,11 @@ void __declspec(naked)GetRoomTwo()
 	_asm
 	{
 		mov esi, edi
-		add esi, 22CF0h
+		add esi, 22D10h
 		mov[g_gameVals.pRoom], esi
 
 		// original code
-		mov dword ptr[edi + 22CF0h], 2
+		mov dword ptr[edi + 22D10h], 2
 	}
 
 	__asm pushad
@@ -684,8 +684,8 @@ bool placeHooks_bbcf()
 	GetEntityListDeleteAddrJmpBackAddr = HookManager::SetHook("GetEntityListDeleteAddr", "\x89\x8E\x00\x00\x00\x00\x89\x8E\x00\x00\x00\x00\x89\x8E\x00\x00\x00\x00\x89\x8E\x00\x00\x00\x00\x89\x86",
 		"xx????xx????xx????xx????xx", 6, GetEntityListDeleteAddr);
 
-	GetIsHUDHiddenJmpBackAddr = HookManager::SetHook("GetIsHUDHidden", "\x83\x88\x78\x27\x00\x00\x00\x8B\x06\x8B\xCE\xFF\x50\x00\x5F\xB8\x00\x00\x00\x00\x5E\xC3\x8B\x06\x8B\xCE\xFF\x50\x00\x5F\xB8\x00\x00\x00\x00\x5E\xC3\x8B\x06",
-		"xxxxxx?xxxxxx?xx????xxxxxxxx?xx????xxxx", 7, GetIsHUDHidden);
+	GetIsHUDHiddenJmpBackAddr = HookManager::SetHook("GetIsHUDHidden", "\x83\x88\x78\x27\x00\x00\x00\x8B\x07\x8B\xCF\xFF\x50\x00\xB9\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x5F\xB8\x00\x00\x00\x00\x5B\xC3\x8B\x07\x8B\xCF\xFF\x50\x00\xB9\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x5F\xB8\x00\x00\x00\x00\x5B\xC3\x8B\x07",
+		"xxxxxx?xxxxxx?x????x????xx????xxxxxxxx?x????x????xx????xxxx", 7, GetIsHUDHidden);
 
 	GetViewAndProjMatrixesJmpBackAddr = HookManager::SetHook("GetViewAndProjMatrixes", "\xf3\x0f\x11\x45\xe0\xc7\x45\xe4\x00\x00\x80\x3f",
 		"xxxxxxxxxxxx", 12, GetViewAndProjMatrixes);
@@ -701,8 +701,8 @@ bool placeHooks_bbcf()
 	GetRoomOneJmpBackAddr = HookManager::SetHook("GetRoomOne", "\x0f\xb7\x06\x50\x8b\xcb",
 		"xxxxxx", 6, GetRoomOne);
 	
-	GetRoomTwoJmpBackAddr = HookManager::SetHook("GetRoomTwo", "\xc7\x87\xf0\x2c\x02\x00\x02\x00\x00\x00\x5f",
-		"xxxxxxxxxxx", 11, GetRoomTwo);
+	GetRoomTwoJmpBackAddr = HookManager::SetHook("GetRoomTwo", "\xC7\x87\x10\x2D\x02\x00",
+		"xxxxxx", 11, GetRoomTwo);
 
 	GetFFAMatchThisPlayerIndexJmpBackAddr = HookManager::SetHook("GetFFAMatchThisPlayerIndex", "\xc7\x83\x04\x07\x00\x00\x00\x00\x00\x00\xc7\x83\xd8\x06\x00\x00\x00\x00\x00\x00",
 		"xxxxxxxxxxxxxxxxxxxx", 10, GetFFAMatchThisPlayerIndex);
