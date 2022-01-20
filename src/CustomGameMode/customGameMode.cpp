@@ -66,7 +66,7 @@ void InitOnePunchMode()
 	CharData& player1 = *g_interfaces.player1.GetData();
 	CharData& player2 = *g_interfaces.player2.GetData();
 
-	*g_gameVals.pMatchRounds = 5;
+	*g_gameVals.pMatchRounds = 3; //Changed to 3 until fix is found for when rounds are set to 5
 	*g_gameVals.pMatchTimer = 60 * 15;
 
 	// New round, recharge 50% of the burst
@@ -87,7 +87,7 @@ void InitTwoPunchMode()
 	CharData& player1 = *g_interfaces.player1.GetData();
 	CharData& player2 = *g_interfaces.player2.GetData();
 
-	*g_gameVals.pMatchRounds = 5;
+	*g_gameVals.pMatchRounds = 3; //Changed to 3 until fix is found for when rounds are set to 5
 	*g_gameVals.pMatchTimer = 60 * 15;
 
 	// New round, recharge 50% of the burst
@@ -108,7 +108,7 @@ void InitFivePunchMode()
 	CharData& player1 = *g_interfaces.player1.GetData();
 	CharData& player2 = *g_interfaces.player2.GetData();
 
-	*g_gameVals.pMatchRounds = 5;
+	*g_gameVals.pMatchRounds = 3; //Changed to 3 until fix is found for when rounds are set to 5
 	*g_gameVals.pMatchTimer = 60 * 60;
 
 	// New round, recharge 50% of the burst
@@ -129,7 +129,7 @@ void InitTugOfWar()
 	CharData& player1 = *g_interfaces.player1.GetData();
 	CharData& player2 = *g_interfaces.player2.GetData();
 
-	*g_gameVals.pMatchRounds = 5;
+	*g_gameVals.pMatchRounds = 3; //Changed to 3 until fix is found for when rounds are set to 5
 	*g_gameVals.pMatchTimer = 60 * 60;
 
 	// New round, recharge 50% of the burst
@@ -190,7 +190,7 @@ std::vector<GameMode_t> CreateGameModesVector()
 			"One Punch",
 			CustomGameMode_OnePunch,
 			"- Any damage results in instakill, unless blocked with barrier\n" \
-			"- Each round 50% of the Burst Gauge is regenerated\n- Each round lasts 15 seconds\n- 5 rounds",
+			"- Each round 50% of the Burst Gauge is regenerated\n- Each round lasts 15 seconds\n- 3 rounds",
 			InitOnePunchMode,
 			{"onepunch_HealthModify", "training_healthModifyFix"}
 		},
@@ -198,7 +198,7 @@ std::vector<GameMode_t> CreateGameModesVector()
 			"Two Punch",
 			CustomGameMode_TwoPunch,
 			"- Taking damage twice results in death, unless blocked with barrier\n" \
-			"- Each round 50% of the Burst Gauge is regenerated\n- Each round lasts 15 seconds\n- 5 rounds",
+			"- Each round 50% of the Burst Gauge is regenerated\n- Each round lasts 15 seconds\n- 3 rounds",
 			InitTwoPunchMode,
 			{"twopunch_HealthModify", "training_healthModifyFix"}
 		},
@@ -206,7 +206,7 @@ std::vector<GameMode_t> CreateGameModesVector()
 			"Five Punch",
 			CustomGameMode_FivePunch,
 			"- Taking damage five times results in death, unless blocked with barrier\n" \
-			"- Each round 50% of the Burst Gauge is regenerated\n- Each round lasts 60 seconds\n- 5 rounds",
+			"- Each round 50% of the Burst Gauge is regenerated\n- Each round lasts 60 seconds\n- 3 rounds",
 			InitFivePunchMode,
 			{"fivepunch_HealthModify", "training_healthModifyFix"}
 		},
@@ -214,7 +214,7 @@ std::vector<GameMode_t> CreateGameModesVector()
 			"Tug of War",
 			CustomGameMode_TugOfWar,
 			"- All damages hurt/heal 10% HP, unless blocked with barrier\n" \
-			"- Each round 50% of the Burst Gauge is regenerated\n- Each round lasts 60 seconds\n- 5 rounds",
+			"- Each round 50% of the Burst Gauge is regenerated\n- Each round lasts 60 seconds\n- 3 rounds",
 			InitTugOfWar,
 			{"tugofwar_HealthModify", "training_healthModifyFix"}
 		},
