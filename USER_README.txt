@@ -74,11 +74,18 @@ For legacy .hpl formats:
 
 Known issues
 ==========================
-1. Platinum keeps swapping between her default and the selected custom palette whenever she has her drive active.
+1. Vampire and Extreme Vampire desync online. Avoid using these two custom game modes when online.
+
+2. Platinum keeps swapping between her default and the selected custom palette whenever she has her drive active.
 	- To prevent this, assign her custom palette in palettes.ini before the match starts, and do not switch it during match.
 
-2. Hitbox overlay is not aligned properly or is off-screen when the game's window resolution mismatches the rendering resolution.
+3. Hitbox overlay is not aligned properly or is off-screen when the game's window resolution mismatches the rendering resolution.
 	- To prevent this, open up the settings.ini file, and set Viewport to 2, while setting the RenderingWidth and RenderingHeight to the resolution values you have in the ingame display options.
+
+4. Hitbox overlay shows phantom hitboxes that are disabled by the engine (shoutout to Shtkn for discovering this)
+
+5. Screen not displaying properly when Viewport in settings.ini is set to 2 or 3 with keep aspect ratio enabled in in-game settings. This is still being investigated. For now, either
+disable keep aspect ratio or keep the Viewport option set to 1. 
 
 Troubleshooting
 ==========================
@@ -108,6 +115,19 @@ Keep in mind that the mod may partially, or completely stop working whenever a n
 
 Changelog
 ==========================
+
+20-01-2022 -- version 3.02
+===============================
+- Implemented fix for crashes when rematching in lobbies
+
+20-01-2022 -- version 3.01
+===============================
+- Updated to be compatible with beta branch
+- All FT5 modes have been set to FT3. This is to avoid a crash that happens with FT5 game modes online. Once it's fixed they will be reverted back to FT5
+- Vsync is now set to off by default. You can turn it on in the settings.ini file
+- Removed CpuUsageFix, fix for CPU usage is already in publictest builds officially
+- Removed Region lock settings as they are no longer needed
+- With the aformentioned changes, it is highly reccomended to replace your existing settings.ini file if you have a previous version of the mod
 
 11-01-2021 -- version 3.00
 ===============================
@@ -286,6 +306,7 @@ Changelog
 
 Special thanks to
 ==========================
+KoviDomi
 corpse warblade
 Dormin
 Euchre
