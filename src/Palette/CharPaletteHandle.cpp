@@ -28,7 +28,7 @@ char* CharPaletteHandle::GetPalFileAddr(const char* base, int palIndex, int file
 	//DWORD* finalAddr = (DWORD*)*deref2Offset + 7;
 
 	DWORD* paletteAddress = (DWORD*)*((DWORD*)*((DWORD*)base + 1) + (palIndex * 8) + fileID) + 7;
-
+	
 	return (char*)paletteAddress;
 }
 
@@ -98,7 +98,7 @@ void CharPaletteHandle::OnMatchInit()
 	m_selectedCustomPalIndex = 0;
 
 	m_switchPalIndex1 = *m_pCurPalIndex;
-
+	
 	m_switchPalIndex2 = m_switchPalIndex1 == MAX_PAL_INDEX
 		? m_switchPalIndex1 - 1
 		: m_switchPalIndex1 + 1;
