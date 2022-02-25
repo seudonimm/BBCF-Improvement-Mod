@@ -596,14 +596,12 @@ void PaletteManager::OnMatchInit(Player& playerOne, Player& playerTwo)
 
 void PaletteManager::OnMatchRematch(Player& playerOne, Player& playerTwo)
 {
-	playerOne.GetPalHandle().OnMatchRematch();
-	playerTwo.GetPalHandle().OnMatchRematch();
+	playerOne.GetPalHandle().SetPointerBasePal(nullptr);
+	playerTwo.GetPalHandle().SetPointerBasePal(nullptr);
 }
 
 void PaletteManager::OnMatchEnd(CharPaletteHandle& playerOne, CharPaletteHandle& playerTwo)
 {
-	playerOne.SetPointerBasePal(nullptr);
-	playerTwo.SetPointerBasePal(nullptr);
 }
 
 std::vector<std::vector<IMPL_data_t>>& PaletteManager::GetCustomPalettesVector()
