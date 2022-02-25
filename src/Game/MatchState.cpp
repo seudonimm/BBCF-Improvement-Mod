@@ -60,6 +60,8 @@ void MatchState::OnMatchRematch()
 		g_interfaces.player1,
 		g_interfaces.player2
 	);
+
+	g_interfaces.pOnlinePaletteManager->ClearSavedPalettePacketQueues();
 }
 
 void MatchState::OnMatchEnd()
@@ -73,7 +75,6 @@ void MatchState::OnMatchEnd()
 		g_interfaces.player2.GetPalHandle()
 	);
 
-	g_interfaces.pOnlinePaletteManager->ClearSavedPalettePacketQueues();
 	g_interfaces.pOnlineGameModeManager->ClearPlayerGameModeChoices();
 }
 
