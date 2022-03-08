@@ -116,6 +116,10 @@ Keep in mind that the mod may partially, or completely stop working whenever a n
 Changelog
 ==========================
 
+08-03-2022 -- version 3.03
+===============================
+- Implemented fix for additional rare rematch crash
+
 25-02-2022 -- version 3.02
 ===============================
 - Implemented fix for crashes when rematching in lobbies
