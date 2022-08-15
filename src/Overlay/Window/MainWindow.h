@@ -21,7 +21,7 @@ private:
 	void DrawLinkButtons() const;
 	void DrawLoadedSettingsValuesSection() const;
 	void DrawCustomPalettesSection() const;
-	void DrawTrainingToolsSection() const;
+	void DrawHitboxOverlaySection() const;
 	void DrawGameplaySettingSection() const;
 	void DrawAvatarSection() const;
 
