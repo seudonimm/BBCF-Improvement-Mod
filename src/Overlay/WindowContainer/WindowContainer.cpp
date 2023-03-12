@@ -7,6 +7,7 @@
 #include "Overlay/Window/PaletteEditorWindow.h"
 #include "Overlay/Window/RoomWindow.h"
 #include "Overlay/Window/UpdateNotifierWindow.h"
+#include "Overlay/Window/ScrWindow.h"
 
 #include "Core/info.h"
 #include "Core/logger.h"
@@ -36,4 +37,7 @@ WindowContainer::WindowContainer()
 
 	AddWindow(WindowType_Room,
 		new RoomWindow("Online###Room", true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse));
+
+	AddWindow(WindowType_Scr,
+		new ScrWindow("States", true));
 }

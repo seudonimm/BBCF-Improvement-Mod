@@ -99,6 +99,10 @@ void MainWindow::DrawUtilButtons() const
 	{
 		m_pWindowContainer->GetWindow(WindowType_Log)->ToggleOpen();
 	}
+	if (ImGui::Button("States", BTN_SIZE))
+	{
+		m_pWindowContainer->GetWindow(WindowType_Scr)->ToggleOpen();
+	}
 }
 
 void MainWindow::DrawCurrentPlayersCount() const
