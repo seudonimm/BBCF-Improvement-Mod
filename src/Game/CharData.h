@@ -55,7 +55,9 @@ public:
 	int32_t previousHP; //0x09D0
 	int32_t currentHP; //0x09D4
 	int32_t maxHP; //0x09D8
-	char pad_09DC[5656]; //0x09DC
+	char pad_09DC[2372]; //0x09DC
+	char* currentScriptActionLocationInMemory; //0x01320
+	char pad_1324[3280]; //0x01324
 	char lastAction[20]; //0x1FF4
 	char pad_2008[104]; //0x2008
 	char currentAction[20]; //0x2070

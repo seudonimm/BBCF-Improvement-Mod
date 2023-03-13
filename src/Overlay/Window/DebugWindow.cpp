@@ -80,9 +80,14 @@ void DebugWindow::DrawGameValuesSection()
 	{
 		if (!g_interfaces.player1.IsCharDataNullPtr())
 			ImGui::Text("pP1CharData 0x%p", g_interfaces.player1.GetData());
+		if (!g_interfaces.player1.IsCharDataNullPtr())
+			ImGui::Text("pP1CurrentScriptActionLocationInMemory 0x%p", g_interfaces.player1.GetData()->currentScriptActionLocationInMemory);
 
 		if (!g_interfaces.player2.IsCharDataNullPtr())
 			ImGui::Text("pP2CharData 0x%p", g_interfaces.player2.GetData());
+		
+		if (!g_interfaces.player2.IsCharDataNullPtr())
+			ImGui::Text("pP2CurrentScriptActionLocationInMemory 0x%p", g_interfaces.player2.GetData()->currentScriptActionLocationInMemory);
 
 		if (!g_interfaces.player1.IsCharDataNullPtr())
 			ImGui::Text("P1CharIndex %d", g_interfaces.player1.GetData()->charIndex);

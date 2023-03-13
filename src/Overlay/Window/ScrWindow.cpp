@@ -106,11 +106,10 @@ void ScrWindow::DrawStatesSection()
             }
         }
         ImGui::SameLine();
-        if (ImGui::Button("Reset actions(nao funciona por enq, trocar o boneco no menu e dar load dnv)")) {
-            char* bbcf_base_adress = GetBbcfBaseAdress();
-            std::vector<scrState*> states = parse_scr(bbcf_base_adress, 2);
-            g_interfaces.player2.SetScrStates(states);
-            g_interfaces.player2.states = states;
+        if (ImGui::Button("Use")) {
+            states = g_interfaces.player2.states;
+            auto selected_state = states[selected];
+            memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(selected_state->addr),4);
         }
         ImGui::EndGroup(); 
     
