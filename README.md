@@ -8,6 +8,9 @@ Join the [BB Improvement Mod Discord Server](https://discord.gg/j2mCX9s) to disc
 ## What this mod provides
 - Adds extra game modes
 - Adds hitbox overlay
+- Adds Wakeup action
+- Adds Gap action
+- Adds janky P2 state library
 - Create and load custom palettes and effects without file modifications
 - See each other's custom palettes in online matches
 - More flexibility to change the graphics options
@@ -23,6 +26,7 @@ Copy the compiled binary, settings.ini, and palettes.ini files from the bin/ fol
 - Visual Studio 2019 (toolset v142) (Windows SDK 10)
 
 ## Thanks to the people who have helped the mod along the way
+* GrimFlash
 * KoviDomi
 * Neptune
 * Rouzel
@@ -43,5 +47,5 @@ BBCF Improvement Mod is NOT intended to unlock unreleased / unpurchased contents
 BBCF Improvement Mod should only be used on the official version that you legally purchased and own.
 
 Use BBCF Improvement Mod at your own risk.
-I, GrimFlash, am not responsible for what happens while using BBCF Improvement Mod. You take full reponsibility for any outcome that happens to you while using this application.
+I, Microsoft Excel/libreofficecalc, am not responsible for what happens while using BBCF Improvement Mod. You take full reponsibility for any outcome that happens to you while using this application.
 ```
