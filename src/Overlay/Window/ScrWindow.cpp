@@ -46,6 +46,10 @@ void ScrWindow::DrawStatesSection()
     // Right
     {
         ImGui::BeginGroup();
+        static bool isOpen = false;
+        if (ImGui::Checkbox("Naoto enhanced specials toggle", &isOpen)) {
+            memset(&g_interfaces.player2.GetData()->slot2_or_slot4, 24, 4);
+        }
         ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing())); // Leave room for 1 line below us
         if (states.size()>0){
             auto selected_state = states[selected];
@@ -76,6 +80,10 @@ void ScrWindow::DrawStatesSection()
  
         }
         ImGui::EndChild();
+
+
+        
+
         if (ImGui::Button("Set as wakeup action")) {
             states = g_interfaces.player2.states;
             auto selected_state = states[selected];

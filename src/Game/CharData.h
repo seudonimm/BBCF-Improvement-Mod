@@ -73,7 +73,9 @@ public:
 	int32_t overdriveMaxtime; //0x5AF8
 	char pad_5AFC[8]; //0x5AFC
 	int32_t barrier; //0x5B04
-	char pad_5B08[108036]; //0x5B08
+	char pad_5B08[102072]; //0x5b08
+	int32_t slot2_or_slot4; //0x1E9C0 naoto only for now until i figure out more about this shit 
+	char pad_1E9C4[5960]; //0x1E9C4 108036
 	int32_t Drive1; //0x2010C
 	char pad_20110[12]; //0x20110
 	int32_t Drive1_type; //0x2011C
