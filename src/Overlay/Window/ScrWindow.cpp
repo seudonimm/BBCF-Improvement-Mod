@@ -103,6 +103,9 @@ void ScrWindow::DrawStatesSection()
             for (auto state : states) {
                 std::string name = state->name;
                 if (name.find(substr) != std::string::npos) {
+                    if (!state->replaced_state_script[0]) {
+                        memcpy(state->replaced_state_script, state->addr + 36, 36);
+                    }
                     override_state(state->addr, &selected_state->name[0]);
                     ImGui::Text("found:", name);
                     matches.push_back(name);
@@ -118,6 +121,9 @@ void ScrWindow::DrawStatesSection()
             for (auto state : states) {
                 std::string name = state->name;
                 if (name.find(substr) != std::string::npos) {
+                    if (!state->replaced_state_script[0]) {
+                        memcpy(state->replaced_state_script, state->addr + 36, 36);
+                    }
                     override_state(state->addr, &selected_state->name[0]);
                     ImGui::Text("found:", name);
                     matches.push_back(name);
@@ -129,6 +135,17 @@ void ScrWindow::DrawStatesSection()
             states = g_interfaces.player2.states;
             auto selected_state = states[selected];
             memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(selected_state->addr),4);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Reset")) {
+            states = g_interfaces.player2.states;
+            for (auto state : states) {
+                if (state->replaced_state_script[0]) {
+                    memcpy(state->addr + 36, state->replaced_state_script, 36);
+                    state->replaced_state_script[0] = "";
+                
+                }
+            }
         }
         ImGui::EndGroup(); 
     

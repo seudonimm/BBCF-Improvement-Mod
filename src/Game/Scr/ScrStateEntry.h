@@ -22,4 +22,5 @@ struct scrState {
 	unsigned int fatal_counter = 0;
 	std::vector<std::string> whiff_cancel = {};
 	std::vector<std::string> hit_or_block_cancel = {};
+	char* replaced_state_script[36]{};
 };
