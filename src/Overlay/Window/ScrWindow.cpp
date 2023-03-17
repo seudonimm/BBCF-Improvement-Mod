@@ -7,8 +7,10 @@
 #include "Overlay/NotificationBar/NotificationBar.h"
 #include "Overlay/WindowManager.h"
 #include "Overlay/Window/HitboxOverlay.h"
-#include "Game/Scr/ScrStateReader.h"
+
 #include "Psapi.h"
+#include <ctime>
+#include <cstdlib>
 
 void ScrWindow::Draw()
 {
@@ -61,7 +63,7 @@ void ScrWindow::DrawStatesSection()
         }
         isActive_old = isActive;
 
-        ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing())); // Leave room for 1 line below us
+        ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 100)); // Leave room for 1 line below us
         if (states.size()>0){
             auto selected_state = states[selected];
             ImGui::Text("%s", selected_state->name.c_str());
@@ -107,8 +109,7 @@ void ScrWindow::DrawStatesSection()
                         memcpy(state->replaced_state_script, state->addr + 36, 36);
                     }
                     override_state(state->addr, &selected_state->name[0]);
-                    ImGui::Text("found:", name);
-                    matches.push_back(name);
+
                 }
             }
         }
@@ -125,8 +126,7 @@ void ScrWindow::DrawStatesSection()
                         memcpy(state->replaced_state_script, state->addr + 36, 36);
                     }
                     override_state(state->addr, &selected_state->name[0]);
-                    ImGui::Text("found:", name);
-                    matches.push_back(name);
+
                 }
             }
         }
@@ -142,8 +142,70 @@ void ScrWindow::DrawStatesSection()
             for (auto state : states) {
                 if (state->replaced_state_script[0]) {
                     memcpy(state->addr + 36, state->replaced_state_script, 36);
-                    state->replaced_state_script[0] = "";
+                    state->replaced_state_script[0] = 0;
                 
+                }
+            }
+            gap_register = {};
+            wakeup_register = {};
+        }
+
+    
+        if (ImGui::CollapsingHeader("Gap/wakeup random actions")) {
+            ImGui::Columns(2);
+            if (ImGui::Button("Add to wakeup action register")) {
+                states = g_interfaces.player2.states;
+                wakeup_register.push_back(states[selected]);
+            }
+            ImGui::BeginChild("wakeup_register_display");
+            for (auto e : wakeup_register) {
+                ImGui::Text(e->name.c_str());
+            }
+            ImGui::EndChild();
+            ImGui::NextColumn();
+            if (ImGui::Button("Add to gap action register")) {
+                states = g_interfaces.player2.states;
+                gap_register.push_back(states[selected]);
+            }
+        
+            ImGui::BeginChild("gap_register_display");
+            for (auto e : gap_register) {
+                ImGui::Text(e->name.c_str());
+            }
+            ImGui::EndChild();
+            if (!wakeup_register.empty()) {
+                states = g_interfaces.player2.states;
+                auto selected_state = states[selected];
+                std::srand(std::time(0));
+                int random_pos = std::rand() % wakeup_register.size();
+                std::string substr = "CmnActUkemiLandNLanding";
+                for (auto state : states) {
+                    std::string name = state->name;
+                    if (name.find(substr) != std::string::npos) {
+                        if (!state->replaced_state_script[0]) {
+                            memcpy(state->replaced_state_script, state->addr + 36, 36);
+                        }
+                        override_state(state->addr, &wakeup_register[random_pos]->name[0]);
+
+                    }
+                }
+            }
+
+
+            if (!gap_register.empty()) {
+                states = g_interfaces.player2.states;
+                auto selected_state = states[selected];
+                std::srand(std::time(0));
+                int random_pos = std::rand() % gap_register.size();
+                std::string substr = "GuardEnd";
+                for (auto state : states) {
+                    std::string name = state->name;
+                    if (name.find(substr) != std::string::npos) {
+                        if (!state->replaced_state_script[0]) {
+                            memcpy(state->replaced_state_script, state->addr + 36, 36);
+                        }
+                        override_state(state->addr, &gap_register[random_pos]->name[0]);
+                    }
                 }
             }
         }
