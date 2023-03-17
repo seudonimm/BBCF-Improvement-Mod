@@ -34,6 +34,7 @@ void ScrWindow::DrawStatesSection()
     }
     auto states = g_interfaces.player2.states;
     static int selected = 0;
+    //std::srand(std::time(0));
     {
         ImGui::BeginChild("left pane", ImVec2(200, 0), true);
         for (int i = 0; i < g_interfaces.player2.states.size(); i++)
@@ -153,7 +154,7 @@ void ScrWindow::DrawStatesSection()
     
         if (ImGui::CollapsingHeader("Gap/wakeup random actions")) {
             ImGui::Columns(2);
-            if (ImGui::Button("Add to wakeup action register")) {
+            if (ImGui::Button("Add to wakeup action")) {
                 states = g_interfaces.player2.states;
                 wakeup_register.push_back(states[selected]);
             }
@@ -163,7 +164,7 @@ void ScrWindow::DrawStatesSection()
             }
             ImGui::EndChild();
             ImGui::NextColumn();
-            if (ImGui::Button("Add to gap action register")) {
+            if (ImGui::Button("Add to gap action")) {
                 states = g_interfaces.player2.states;
                 gap_register.push_back(states[selected]);
             }
@@ -176,7 +177,6 @@ void ScrWindow::DrawStatesSection()
             if (!wakeup_register.empty()) {
                 states = g_interfaces.player2.states;
                 auto selected_state = states[selected];
-                std::srand(std::time(0));
                 int random_pos = std::rand() % wakeup_register.size();
                 std::string substr = "CmnActUkemiLandNLanding";
                 for (auto state : states) {
@@ -195,7 +195,6 @@ void ScrWindow::DrawStatesSection()
             if (!gap_register.empty()) {
                 states = g_interfaces.player2.states;
                 auto selected_state = states[selected];
-                std::srand(std::time(0));
                 int random_pos = std::rand() % gap_register.size();
                 std::string substr = "GuardEnd";
                 for (auto state : states) {
