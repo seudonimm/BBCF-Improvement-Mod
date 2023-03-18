@@ -2,6 +2,7 @@
 #include "IWindow.h"
 #include <vector>
 #include "Game/Scr/ScrStateReader.h"
+
 class ScrWindow : public IWindow
 {
 public:
@@ -18,6 +19,7 @@ private:
 
 
 	bool m_showDemoWindow = false;
+	void* p2_old_char_data = NULL;
 	std::vector<scrState*> gap_register{};
 	std::vector<scrState*> wakeup_register{};
 };

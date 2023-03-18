@@ -24,17 +24,41 @@ void ScrWindow::Draw()
 
 void ScrWindow::DrawStatesSection()
 {
+    
     if (!ImGui::CollapsingHeader("States"))
         return;
-    if (ImGui::Button("Load P2 Script")) {
+    if (*g_gameVals.pGameMode != GameMode_Training) {
+        ImGui::Text("Only works in training mode");
+        return;
+    }
+    if (g_interfaces.player2.IsCharDataNullPtr()) {
+        ImGui::TextWrapped("Something invalid, you are in training mode char select, have 2 of the same characters or some other shit i haven't figured out yet that you should tell me so i can fix");
+        return;
+    }
+    static int selected = 0;
+    //Code for auto loading script upon character switch, prob move it to OnMatchInit() or smth
+   if (p2_old_char_data == NULL || p2_old_char_data != (void*)g_interfaces.player2.GetData()){
         char* bbcf_base_adress = GetBbcfBaseAdress();
         std::vector<scrState*> states = parse_scr(bbcf_base_adress, 2);
         g_interfaces.player2.SetScrStates(states);
         g_interfaces.player2.states = states;
+        p2_old_char_data = (void*)g_interfaces.player2.GetData();
+        gap_register = {};
+        wakeup_register = {};
+        selected = 0;
+    }
+
+
+    if (ImGui::Button("Force Load P2 Script")) {
+        char* bbcf_base_adress = GetBbcfBaseAdress();
+        std::vector<scrState*> states = parse_scr(bbcf_base_adress, 2);
+        g_interfaces.player2.SetScrStates(states);
+        g_interfaces.player2.states = states;
+        gap_register = {};
+        wakeup_register = {};
+        selected = 0;
     }
     auto states = g_interfaces.player2.states;
-    static int selected = 0;
-    //std::srand(std::time(0));
     {
         ImGui::BeginChild("left pane", ImVec2(200, 0), true);
         for (int i = 0; i < g_interfaces.player2.states.size(); i++)
@@ -63,13 +87,13 @@ void ScrWindow::DrawStatesSection()
             }
         }
         isActive_old = isActive;
-
-        ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 100)); // Leave room for 1 line below us
+        //ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 100)); // Leave room for 1 line below us
+        ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 150)); // Leave room for 1 line below us
         if (states.size()>0){
             auto selected_state = states[selected];
             ImGui::Text("%s", selected_state->name.c_str());
             ImGui::Separator();
-            ImGui::Text("Addr: %d", selected_state->addr);
+            ImGui::Text("Addr: 0x%x", selected_state->addr);
             ImGui::Text("Frames: %d", selected_state->frames);
             ImGui::Text("Damage: %d",  selected_state->damage);
             ImGui::Text("Atk_level: %d", selected_state->atk_level);
@@ -88,16 +112,23 @@ void ScrWindow::DrawStatesSection()
                 ImGui::Text("    %s", name.c_str());
             }
             ImGui::Text("Hit_or_block_cancels(gatlings):", selected_state->fatal_counter);
+            int item_view_len;
+            if (selected_state->hit_or_block_cancel.size() > 5){
+               item_view_len = 100; }
+            else {
+               item_view_len = selected_state->hit_or_block_cancel.size() * 20;
+            }
+            ImGui::BeginChild("item view", ImVec2(0, item_view_len));
             for (std::string name : selected_state->hit_or_block_cancel) {
                 ImGui::Text("    %s", name.c_str());
             }
- 
+            ImGui::EndChild();
         }
         ImGui::EndChild();
 
 
         
-
+        ImGui::Separator();
         if (ImGui::Button("Set as wakeup action")) {
             states = g_interfaces.player2.states;
             auto selected_state = states[selected];
@@ -150,7 +181,7 @@ void ScrWindow::DrawStatesSection()
             gap_register = {};
             wakeup_register = {};
         }
-
+        
     
         if (ImGui::CollapsingHeader("Gap/wakeup random actions")) {
             ImGui::Columns(2);
@@ -208,6 +239,7 @@ void ScrWindow::DrawStatesSection()
                 }
             }
         }
+        //ImGui::EndChild();
         ImGui::EndGroup(); 
     
     }
