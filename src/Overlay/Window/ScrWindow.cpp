@@ -334,11 +334,12 @@ std::string interpret_move(char move) {
 
     return move_t;
 }
-void save_to_file(std::vector<char> slot_buffer, char* fname) {
+void save_to_file(std::vector<char> slot_buffer, char facing_direction, char* fname) {
     CreateDirectory(L"slots", NULL);
     std::string fpath = "./slots/";
     fpath += fname;
     std::ofstream out(fpath);
+    out << facing_direction;
     for (const auto& e : slot_buffer) out << e;
     out.close();
 }
@@ -372,21 +373,36 @@ void ScrWindow::DrawPlaybackSection() {
         if (ImGui::CollapsingHeader("SLOT_1")) {
             
             char* bbcf_base_adress = GetBbcfBaseAdress();
+
             int time_count_slot_1_addr_offset = 0x9075E8;
             char* frame_len_slot_p = bbcf_base_adress + 0x9075E8;
             int frame_len_slot;
             memcpy(&frame_len_slot, frame_len_slot_p, 4);
+
+
+            int facing_direction_slot_1_addr_offset = 0x9075D8;
+            char* facing_direction_p = bbcf_base_adress + facing_direction_slot_1_addr_offset;
+            int facing_direction;
+            memcpy(&facing_direction, facing_direction_p, 4);
+            
+            
+            
             char* start_of_slot_inputs = bbcf_base_adress + 0x9075E8 + 0x10;
             std::vector<char> slot1_recording_frames{};
             for (int i = 0; i < frame_len_slot; i++) {
                 slot1_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
             }
             if (ImGui::Button("Save")) {
-                save_to_file(slot1_recording_frames,fpath);
+                save_to_file(slot1_recording_frames,facing_direction, fpath);
             }
             ImGui::SameLine();
             if (ImGui::Button("Load")) {
                 auto loaded_file = load_from_file(fpath);
+                if (!loaded_file.empty()) {
+                    char facing_direction = loaded_file[0];
+                    loaded_file.erase(loaded_file.begin());
+                    memcpy(facing_direction_p, &(facing_direction), sizeof(char));
+                }
                 int frame_len_loaded_file = loaded_file.size();
                 memcpy(frame_len_slot_p, &(frame_len_loaded_file), 4);
                 int iter = 0;
