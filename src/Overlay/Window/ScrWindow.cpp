@@ -11,6 +11,9 @@
 #include "Psapi.h"
 #include <ctime>
 #include <cstdlib>
+#include <iostream>
+#include <fstream>
+#include <windows.h>
 
 void ScrWindow::Draw()
 {
@@ -20,6 +23,7 @@ void ScrWindow::Draw()
     }
 
     DrawStatesSection();
+    DrawPlaybackSection();
 }
 
 void ScrWindow::DrawStatesSection()
@@ -31,7 +35,7 @@ void ScrWindow::DrawStatesSection()
         ImGui::Text("Only works in training mode");
         return;
     }
-    if (g_interfaces.player2.IsCharDataNullPtr()) {
+    if (g_interfaces.player2.IsCharDataNullPtr()  || g_interfaces.player2.GetData()->charIndex == g_interfaces.player1.GetData()->charIndex) {
         ImGui::TextWrapped("Something invalid, you are in training mode char select, have 2 of the same characters or some other shit i haven't figured out yet that you should tell me so i can fix");
         return;
     }
@@ -244,4 +248,171 @@ void ScrWindow::DrawStatesSection()
     
     }
 
+}
+std::string interpret_move(char move) {
+    //auto button_bits = move & ((4 << 1) - 1);
+    auto button_bits = move & 0xf0;
+    auto direction_bits = move & 0x0f;
+    //auto direction_bits = move & ((8 << 1) - 1);
+    std::string move_t{ "" };
+    switch (direction_bits) {
+    case 0x5:
+        move_t += "Neutral";
+        break;
+    case 0x4:
+        move_t += "Left";
+        break;
+    case 0x1:
+        move_t += "DownLeft";
+        break;
+    case 0x2:
+        move_t += "Down";
+        break;
+    case 0x3:
+        move_t += "DownRight";
+        break;
+    case 0x6:
+        move_t += "Right";
+        break;
+    case 0x9:
+        move_t += "UpRight";
+        break;
+    case 0x8:
+        move_t += "Up";
+        break;
+    case 0x7:
+        move_t += "UpLeft";
+        break;
+    }
+    switch (button_bits) {
+    case 0x10:
+        move_t += "+A";
+        break;
+    case 0x20:
+        move_t += "+B";
+        break;
+    case 0x40:
+        move_t += "+C";
+        break;
+    case 0x80:
+        move_t += "+D";
+        break;
+    case 0x30:
+        move_t += "+A+B";
+        break;
+    case 0x50:
+        move_t += "+A+C";
+        break;
+    case 0x90:
+        move_t += "+A+D";
+        break;
+    case 0x60:
+        move_t += "+B+C";
+        break;
+    case 0xA0:
+        move_t += "+B+D";
+        break;
+    case 0xC0:
+        move_t += "+C+D";
+        break;
+    case 0xB0:
+        move_t += "+A+B+D";
+        break;
+    case 0x70:
+        move_t += "+A+B+D";
+        break;
+    case 0xD0:
+        move_t += "+A+C+D";
+        break;
+    case 0xE0:
+        move_t += "+B+C+D";
+        break;
+    case 0xF0:
+        move_t += "+A+B+C+D";
+        break;
+    }
+
+    return move_t;
+}
+void save_to_file(std::vector<char> slot_buffer, char* fname) {
+    CreateDirectory(L"slots", NULL);
+    std::string fpath = "./slots/";
+    fpath += fname;
+    std::ofstream out(fpath);
+    for (const auto& e : slot_buffer) out << e;
+    out.close();
+}
+std::vector<char> load_from_file(char* fname) {
+    std::string fpath = "./slots/";
+    fpath +=fname;
+    //char* filename = "./slots/" + fpath;
+    std::streampos fileSize;
+    std::ifstream file(fpath, std::ios::binary);
+    if (file.good()) {
+        file.seekg(0, std::ios::end);
+        fileSize = file.tellg();
+        file.seekg(0, std::ios::beg);
+
+
+        std::vector<char> fileData(fileSize);
+        file.read((char*)&fileData[0], fileSize);
+        return fileData;
+    }
+
+    else {
+        std::vector<char> fd{};
+        return fd;
+    }
+ 
+
+}
+void ScrWindow::DrawPlaybackSection() {
+    if (ImGui::CollapsingHeader("Playback")) {
+
+        if (ImGui::CollapsingHeader("SLOT_1")) {
+            
+            char* bbcf_base_adress = GetBbcfBaseAdress();
+            int time_count_slot_1_addr_offset = 0x9075E8;
+            char* frame_len_slot_p = bbcf_base_adress + 0x9075E8;
+            int frame_len_slot;
+            memcpy(&frame_len_slot, frame_len_slot_p, 4);
+            char* start_of_slot_inputs = bbcf_base_adress + 0x9075E8 + 0x10;
+            std::vector<char> slot1_recording_frames{};
+            for (int i = 0; i < frame_len_slot; i++) {
+                slot1_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
+            }
+            if (ImGui::Button("Save")) {
+                save_to_file(slot1_recording_frames,fpath);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Load")) {
+                auto loaded_file = load_from_file(fpath);
+                int frame_len_loaded_file = loaded_file.size();
+                memcpy(frame_len_slot_p, &(frame_len_loaded_file), 4);
+                int iter = 0;
+
+                if (!loaded_file.empty()) {
+                    for (auto input : loaded_file) {
+                        memcpy(start_of_slot_inputs + (iter * 2), &input, 2);
+                        iter++;
+                    }
+                }
+
+
+                std::cout << "oi" << std::endl;
+            }
+            
+            ImGui::InputText("File Path", fpath, IM_ARRAYSIZE(fpath));
+            ImGui::Separator();
+            auto old_val = 0; auto frame_counter = 0;
+            for (auto el : slot1_recording_frames) {
+                frame_counter++;
+                if (old_val != el) {
+                    std::string move_string = interpret_move(el);
+                    ImGui::Text("frame %d: %s (0x%x)", frame_counter, move_string.c_str(), el);
+                    old_val = el;
+                }
+            }
+        }
+    }
 }

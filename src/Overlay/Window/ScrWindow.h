@@ -16,10 +16,12 @@ protected:
 
 private:
 	void DrawStatesSection();
+	void DrawPlaybackSection();
 
 
 	bool m_showDemoWindow = false;
 	void* p2_old_char_data = NULL;
+	char fpath[1200] = "fpath";
 	std::vector<scrState*> gap_register{};
 	std::vector<scrState*> wakeup_register{};
 };
