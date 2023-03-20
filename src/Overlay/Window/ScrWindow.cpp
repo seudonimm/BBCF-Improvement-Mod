@@ -368,11 +368,13 @@ std::vector<char> load_from_file(char* fname) {
 
 }
 void ScrWindow::DrawPlaybackSection() {
+    char* bbcf_base_adress = GetBbcfBaseAdress();
     if (ImGui::CollapsingHeader("Playback")) {
 
         if (ImGui::CollapsingHeader("SLOT_1")) {
-            
-            char* bbcf_base_adress = GetBbcfBaseAdress();
+
+
+
 
             int time_count_slot_1_addr_offset = 0x9075E8;
             char* frame_len_slot_p = bbcf_base_adress + 0x9075E8;
@@ -384,16 +386,16 @@ void ScrWindow::DrawPlaybackSection() {
             char* facing_direction_p = bbcf_base_adress + facing_direction_slot_1_addr_offset;
             int facing_direction;
             memcpy(&facing_direction, facing_direction_p, 4);
-            
-            
-            
-            char* start_of_slot_inputs = bbcf_base_adress + 0x9075E8 + 0x10;
+
+
+
+            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_1_addr_offset + 0x10;
             std::vector<char> slot1_recording_frames{};
             for (int i = 0; i < frame_len_slot; i++) {
                 slot1_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
             }
             if (ImGui::Button("Save")) {
-                save_to_file(slot1_recording_frames,facing_direction, fpath);
+                save_to_file(slot1_recording_frames, facing_direction, fpath);
             }
             ImGui::SameLine();
             if (ImGui::Button("Load")) {
@@ -417,8 +419,9 @@ void ScrWindow::DrawPlaybackSection() {
 
                 std::cout << "oi" << std::endl;
             }
-            
+
             ImGui::InputText("File Path", fpath, IM_ARRAYSIZE(fpath));
+            ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
             for (auto el : slot1_recording_frames) {
@@ -430,5 +433,197 @@ void ScrWindow::DrawPlaybackSection() {
                 }
             }
         }
-    }
+
+        if (ImGui::CollapsingHeader("SLOT_2")) {
+
+
+
+
+            int time_count_slot_2_addr_offset = 0x9075EC;
+            char* frame_len_slot_p = bbcf_base_adress + time_count_slot_2_addr_offset;
+            int frame_len_slot;
+            memcpy(&frame_len_slot, frame_len_slot_p, 4);
+
+
+            int facing_direction_slot_2_addr_offset = 0x9075DC;
+            char* facing_direction_p = bbcf_base_adress + facing_direction_slot_2_addr_offset;
+            int facing_direction;
+            memcpy(&facing_direction, facing_direction_p, 4);
+
+
+            //0x960 is 2400 which is the size of the recording slot_1, recording slot_2 has this offset + 0x10 relative to start of slot_1
+            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_2_addr_offset + 0x960+ 0x10;
+            std::vector<char> slot2_recording_frames{};
+            for (int i = 0; i < frame_len_slot; i++) {
+                slot2_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
+            }
+            if (ImGui::Button("Save")) {
+                save_to_file(slot2_recording_frames, facing_direction, fpath);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Load")) {
+                auto loaded_file = load_from_file(fpath);
+                if (!loaded_file.empty()) {
+                    char facing_direction = loaded_file[0];
+                    loaded_file.erase(loaded_file.begin());
+                    memcpy(facing_direction_p, &(facing_direction), sizeof(char));
+                }
+                int frame_len_loaded_file = loaded_file.size();
+                memcpy(frame_len_slot_p, &(frame_len_loaded_file), 4);
+                int iter = 0;
+
+                if (!loaded_file.empty()) {
+                    for (auto input : loaded_file) {
+                        memcpy(start_of_slot_inputs + (iter * 2), &input, 2);
+                        iter++;
+                    }
+                }
+
+
+                std::cout << "oi" << std::endl;
+            }
+
+            ImGui::InputText("File Path", fpath, IM_ARRAYSIZE(fpath));
+            ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
+            ImGui::Separator();
+            auto old_val = 0; auto frame_counter = 0;
+            for (auto el : slot2_recording_frames) {
+                frame_counter++;
+                if (old_val != el) {
+                    std::string move_string = interpret_move(el);
+                    ImGui::Text("frame %d: %s (0x%x)", frame_counter, move_string.c_str(), el);
+                    old_val = el;
+                }
+            }
+
+        }
+        
+        if (ImGui::CollapsingHeader("SLOT_3")) {
+
+
+
+
+            int time_count_slot_3_addr_offset = 0x9075F0;
+            char* frame_len_slot_p = bbcf_base_adress + time_count_slot_3_addr_offset;
+            int frame_len_slot;
+            memcpy(&frame_len_slot, frame_len_slot_p, 4);
+
+
+            int facing_direction_slot_3_addr_offset = 0x9075E0;
+            char* facing_direction_p = bbcf_base_adress + facing_direction_slot_3_addr_offset;
+            int facing_direction;
+            memcpy(&facing_direction, facing_direction_p, 4);
+
+
+            //similar to slot_2
+            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_3_addr_offset + (0x960 * 2) + 0x10;
+            std::vector<char> slot3_recording_frames{};
+            for (int i = 0; i < frame_len_slot; i++) {
+                slot3_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
+            }
+            if (ImGui::Button("Save")) {
+                save_to_file(slot3_recording_frames, facing_direction, fpath);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Load")) {
+                auto loaded_file = load_from_file(fpath);
+                if (!loaded_file.empty()) {
+                    char facing_direction = loaded_file[0];
+                    loaded_file.erase(loaded_file.begin());
+                    memcpy(facing_direction_p, &(facing_direction), sizeof(char));
+                }
+                int frame_len_loaded_file = loaded_file.size();
+                memcpy(frame_len_slot_p, &(frame_len_loaded_file), 4);
+                int iter = 0;
+
+                if (!loaded_file.empty()) {
+                    for (auto input : loaded_file) {
+                        memcpy(start_of_slot_inputs + (iter * 2), &input, 2);
+                        iter++;
+                    }
+                }
+
+
+                std::cout << "oi" << std::endl;
+            }
+
+            ImGui::InputText("File Path", fpath, IM_ARRAYSIZE(fpath));
+            ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
+            ImGui::Separator();
+            auto old_val = 0; auto frame_counter = 0;
+            for (auto el : slot3_recording_frames) {
+                frame_counter++;
+                if (old_val != el) {
+                    std::string move_string = interpret_move(el);
+                    ImGui::Text("frame %d: %s (0x%x)", frame_counter, move_string.c_str(), el);
+                    old_val = el;
+                }
+            }
+
+        }
+
+        if (ImGui::CollapsingHeader("SLOT_4")) {
+
+
+
+
+            int time_count_slot_4_addr_offset = 0x9075F4;
+            char* frame_len_slot_p = bbcf_base_adress + time_count_slot_4_addr_offset;
+            int frame_len_slot;
+            memcpy(&frame_len_slot, frame_len_slot_p, 4);
+
+
+            int facing_direction_slot_4_addr_offset = 0x9075E4;
+            char* facing_direction_p = bbcf_base_adress + facing_direction_slot_4_addr_offset;
+            int facing_direction;
+            memcpy(&facing_direction, facing_direction_p, 4);
+
+
+            //similar to slot_2 and slot_3
+            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_4_addr_offset + (0x960 * 3) + 0x10;
+            std::vector<char> slot4_recording_frames{};
+            for (int i = 0; i < frame_len_slot; i++) {
+                slot4_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
+            }
+            if (ImGui::Button("Save")) {
+                save_to_file(slot4_recording_frames, facing_direction, fpath);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Load")) {
+                auto loaded_file = load_from_file(fpath);
+                if (!loaded_file.empty()) {
+                    char facing_direction = loaded_file[0];
+                    loaded_file.erase(loaded_file.begin());
+                    memcpy(facing_direction_p, &(facing_direction), sizeof(char));
+                }
+                int frame_len_loaded_file = loaded_file.size();
+                memcpy(frame_len_slot_p, &(frame_len_loaded_file), 4);
+                int iter = 0;
+
+                if (!loaded_file.empty()) {
+                    for (auto input : loaded_file) {
+                        memcpy(start_of_slot_inputs + (iter * 2), &input, 2);
+                        iter++;
+                    }
+                }
+
+
+                std::cout << "oi" << std::endl;
+            }
+
+            ImGui::InputText("File Path", fpath, IM_ARRAYSIZE(fpath));
+            ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
+            ImGui::Separator();
+            auto old_val = 0; auto frame_counter = 0;
+            for (auto el : slot4_recording_frames) {
+                frame_counter++;
+                if (old_val != el) {
+                    std::string move_string = interpret_move(el);
+                    ImGui::Text("frame %d: %s (0x%x)", frame_counter, move_string.c_str(), el);
+                    old_val = el;
+                }
+            }
+
+        }
+}
 }
