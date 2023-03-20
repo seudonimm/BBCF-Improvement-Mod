@@ -395,11 +395,11 @@ void ScrWindow::DrawPlaybackSection() {
                 slot1_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
             }
             if (ImGui::Button("Save")) {
-                save_to_file(slot1_recording_frames, facing_direction, fpath);
+                save_to_file(slot1_recording_frames, facing_direction, fpath_s1);
             }
             ImGui::SameLine();
             if (ImGui::Button("Load")) {
-                auto loaded_file = load_from_file(fpath);
+                auto loaded_file = load_from_file(fpath_s1);
                 if (!loaded_file.empty()) {
                     char facing_direction = loaded_file[0];
                     loaded_file.erase(loaded_file.begin());
@@ -420,7 +420,7 @@ void ScrWindow::DrawPlaybackSection() {
                 std::cout << "oi" << std::endl;
             }
 
-            ImGui::InputText("File Path", fpath, IM_ARRAYSIZE(fpath));
+            ImGui::InputText("File Path Slot 1", fpath_s1, IM_ARRAYSIZE(fpath_s1));
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
@@ -458,11 +458,11 @@ void ScrWindow::DrawPlaybackSection() {
                 slot2_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
             }
             if (ImGui::Button("Save")) {
-                save_to_file(slot2_recording_frames, facing_direction, fpath);
+                save_to_file(slot2_recording_frames, facing_direction, fpath_s2);
             }
             ImGui::SameLine();
             if (ImGui::Button("Load")) {
-                auto loaded_file = load_from_file(fpath);
+                auto loaded_file = load_from_file(fpath_s2);
                 if (!loaded_file.empty()) {
                     char facing_direction = loaded_file[0];
                     loaded_file.erase(loaded_file.begin());
@@ -483,7 +483,7 @@ void ScrWindow::DrawPlaybackSection() {
                 std::cout << "oi" << std::endl;
             }
 
-            ImGui::InputText("File Path", fpath, IM_ARRAYSIZE(fpath));
+            ImGui::InputText("File Path Slot 2", fpath_s2, IM_ARRAYSIZE(fpath_s2));
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
@@ -522,11 +522,11 @@ void ScrWindow::DrawPlaybackSection() {
                 slot3_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
             }
             if (ImGui::Button("Save")) {
-                save_to_file(slot3_recording_frames, facing_direction, fpath);
+                save_to_file(slot3_recording_frames, facing_direction, fpath_s3);
             }
             ImGui::SameLine();
             if (ImGui::Button("Load")) {
-                auto loaded_file = load_from_file(fpath);
+                auto loaded_file = load_from_file(fpath_s3);
                 if (!loaded_file.empty()) {
                     char facing_direction = loaded_file[0];
                     loaded_file.erase(loaded_file.begin());
@@ -547,7 +547,7 @@ void ScrWindow::DrawPlaybackSection() {
                 std::cout << "oi" << std::endl;
             }
 
-            ImGui::InputText("File Path", fpath, IM_ARRAYSIZE(fpath));
+            ImGui::InputText("File Path Slot 3", fpath_s3, IM_ARRAYSIZE(fpath_s3));
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
@@ -586,11 +586,11 @@ void ScrWindow::DrawPlaybackSection() {
                 slot4_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
             }
             if (ImGui::Button("Save")) {
-                save_to_file(slot4_recording_frames, facing_direction, fpath);
+                save_to_file(slot4_recording_frames, facing_direction, fpath_s4);
             }
             ImGui::SameLine();
             if (ImGui::Button("Load")) {
-                auto loaded_file = load_from_file(fpath);
+                auto loaded_file = load_from_file(fpath_s4);
                 if (!loaded_file.empty()) {
                     char facing_direction = loaded_file[0];
                     loaded_file.erase(loaded_file.begin());
@@ -611,7 +611,7 @@ void ScrWindow::DrawPlaybackSection() {
                 std::cout << "oi" << std::endl;
             }
 
-            ImGui::InputText("File Path", fpath, IM_ARRAYSIZE(fpath));
+            ImGui::InputText("File Path Slot 4", fpath_s4, IM_ARRAYSIZE(fpath_s4));
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;

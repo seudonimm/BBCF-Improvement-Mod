@@ -21,7 +21,10 @@ private:
 
 	bool m_showDemoWindow = false;
 	void* p2_old_char_data = NULL;
-	char fpath[1200] = "fpath";
+	char fpath_s1[1200] = "fpath";
+	char fpath_s2[1200] = "fpath";
+	char fpath_s3[1200] = "fpath";
+	char fpath_s4[1200] = "fpath";
 	std::vector<scrState*> gap_register{};
 	std::vector<scrState*> wakeup_register{};
 };
