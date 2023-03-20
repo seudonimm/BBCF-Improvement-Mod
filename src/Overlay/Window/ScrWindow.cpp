@@ -370,17 +370,17 @@ std::vector<char> load_from_file(char* fname) {
 std::vector<char> trim_playback(std::vector<char> slot_buffer) {
     int i = 0;
     //trim the start
-    while (i < slot_buffer.size() && slot_buffer[i] == 5) {
+    while (i < slot_buffer.size() && slot_buffer[0] == 5) {
         slot_buffer.erase(slot_buffer.begin());
         i++;
     }
     return slot_buffer;
 }
-void load_trimmed_playback(std::vector<char> slot_buffer,char* frame_len_slot_p, char* start_of_slot_inputs) {
+void load_trimmed_playback(std::vector<char> trimmed_playback,char* frame_len_slot_p, char* start_of_slot_inputs) {
     //trim the start
-    auto trimmed_playback = trim_playback(slot_buffer);
+    //auto trimmed_playback = trim_playback(slot_buffer);
     int frame_len_loaded_file = trimmed_playback.size();
-    memcpy(frame_len_slot_p, &(trimmed_playback), 4);
+    memcpy(frame_len_slot_p, &(frame_len_loaded_file), 4);
     int iter = 0;
     for (auto input : trimmed_playback) {
         memcpy(start_of_slot_inputs + (iter * 2), &input, 2);
@@ -440,7 +440,11 @@ void ScrWindow::DrawPlaybackSection() {
 
                 std::cout << "oi" << std::endl;
             }
-
+            ImGui::SameLine();
+            if (ImGui::Button("Trim Playback##slot1")) {
+                slot1_recording_frames = trim_playback(slot1_recording_frames);
+                load_trimmed_playback(slot1_recording_frames, frame_len_slot_p, start_of_slot_inputs);
+            }
             ImGui::InputText("File Path##slot1", fpath_s1, IM_ARRAYSIZE(fpath_s1));
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
             ImGui::Separator();
@@ -503,7 +507,11 @@ void ScrWindow::DrawPlaybackSection() {
 
                 std::cout << "oi" << std::endl;
             }
-
+            ImGui::SameLine();
+            if (ImGui::Button("Trim Playback##slot2")) {
+                slot2_recording_frames = trim_playback(slot2_recording_frames);
+                load_trimmed_playback(slot2_recording_frames, frame_len_slot_p, start_of_slot_inputs);
+            }
             ImGui::InputText("File Path##slot2", fpath_s2, IM_ARRAYSIZE(fpath_s2));
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
             ImGui::Separator();
@@ -567,7 +575,11 @@ void ScrWindow::DrawPlaybackSection() {
 
                 std::cout << "oi" << std::endl;
             }
-
+            ImGui::SameLine();
+            if (ImGui::Button("Trim Playback##slot3")) {
+                slot3_recording_frames = trim_playback(slot3_recording_frames);
+                load_trimmed_playback(slot3_recording_frames, frame_len_slot_p, start_of_slot_inputs);
+            }
             ImGui::InputText("File Path##slot3", fpath_s3, IM_ARRAYSIZE(fpath_s3));
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
             ImGui::Separator();
@@ -631,7 +643,11 @@ void ScrWindow::DrawPlaybackSection() {
 
                 std::cout << "oi" << std::endl;
             }
-
+            ImGui::SameLine();
+            if (ImGui::Button("Trim Playback##slot4")) {
+                slot4_recording_frames = trim_playback(slot4_recording_frames);
+                load_trimmed_playback(slot4_recording_frames, frame_len_slot_p, start_of_slot_inputs);
+            }
             ImGui::InputText("File Path##slot4", fpath_s4, IM_ARRAYSIZE(fpath_s4));
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
             ImGui::Separator();
