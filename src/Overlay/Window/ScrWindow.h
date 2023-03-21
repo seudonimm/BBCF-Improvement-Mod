@@ -25,6 +25,8 @@ private:
 	char fpath_s2[1200] = "fpath";
 	char fpath_s3[1200] = "fpath";
 	char fpath_s4[1200] = "fpath";
+	int slot_gap = 0; //0 for disabled, 1 for slot 1, 2 for slot 2, etc
+	int slot_wakeup = 0; //0 for disabled, 1 for slot 1, 2 for slot 2, etc
 	std::vector<scrState*> gap_register{};
 	std::vector<scrState*> wakeup_register{};
 };

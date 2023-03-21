@@ -98,6 +98,9 @@ void DebugWindow::DrawGameValuesSection()
 		if (!g_interfaces.player2.IsCharDataNullPtr())
 			ImGui::Text("P2CharIndex %d", g_interfaces.player2.GetData()->charIndex);
 
+		
+			ImGui::Text("g_gameVals.isP1CPU: %d", g_gameVals.isP1CPU);
+
 		ImGui::Separator();
 		ImGui::Text("pP1PalIndex 0x%p", &(g_interfaces.player1.GetPalHandle().GetPalIndexRef()));
 		ImGui::Text("pP2PalIndex 0x%p", &(g_interfaces.player2.GetPalHandle().GetPalIndexRef()));

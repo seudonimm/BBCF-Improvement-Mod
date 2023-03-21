@@ -368,12 +368,19 @@ std::vector<char> load_from_file(char* fname) {
 
 }
 std::vector<char> trim_playback(std::vector<char> slot_buffer) {
-    int i = 0;
-    //trim the start
-    while (i < slot_buffer.size() && slot_buffer[0] == 5) {
-        slot_buffer.erase(slot_buffer.begin());
-        i++;
+
+    if (!slot_buffer.empty()) {
+        //trim the start
+        while (!slot_buffer.empty() && slot_buffer[0] == 5) {
+            slot_buffer.erase(slot_buffer.begin());
+ 
+        }
+        //trim the end
+        while (!slot_buffer.empty() && slot_buffer.back() == 5) {
+            slot_buffer.pop_back();
+        }
     }
+
     return slot_buffer;
 }
 void load_trimmed_playback(std::vector<char> trimmed_playback,char* frame_len_slot_p, char* start_of_slot_inputs) {
@@ -387,9 +394,9 @@ void load_trimmed_playback(std::vector<char> trimmed_playback,char* frame_len_sl
         iter++;
     }
     }
-
 void ScrWindow::DrawPlaybackSection() {
     char* bbcf_base_adress = GetBbcfBaseAdress();
+    char* active_slot = bbcf_base_adress + 0x902C3C;
     if (ImGui::CollapsingHeader("Playback")) {
 
         if (ImGui::CollapsingHeader("SLOT_1")) {
@@ -398,7 +405,7 @@ void ScrWindow::DrawPlaybackSection() {
 
 
             int time_count_slot_1_addr_offset = 0x9075E8;
-            char* frame_len_slot_p = bbcf_base_adress + 0x9075E8;
+            char* frame_len_slot_p = bbcf_base_adress + time_count_slot_1_addr_offset;
             int frame_len_slot;
             memcpy(&frame_len_slot, frame_len_slot_p, 4);
 
@@ -437,16 +444,27 @@ void ScrWindow::DrawPlaybackSection() {
                     }
                 }
 
-
-                std::cout << "oi" << std::endl;
             }
             ImGui::SameLine();
             if (ImGui::Button("Trim Playback##slot1")) {
                 slot1_recording_frames = trim_playback(slot1_recording_frames);
                 load_trimmed_playback(slot1_recording_frames, frame_len_slot_p, start_of_slot_inputs);
             }
+            
             ImGui::InputText("File Path##slot1", fpath_s1, IM_ARRAYSIZE(fpath_s1));
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
+            if (ImGui::Button("Set as gap action##slot1")) {
+                slot_gap = 1;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Set as wakeup action##slot1")) {
+                slot_wakeup = 1;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Reset##slot1")) {
+                slot_gap = 0;
+                slot_wakeup = 0;
+            }
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
             for (auto el : slot1_recording_frames) {
@@ -457,7 +475,41 @@ void ScrWindow::DrawPlaybackSection() {
                     old_val = el;
                 }
             }
+
+            //does gap action for recorded slot
+            //can optimize later by checking for same memory address
+            if (!g_interfaces.player2.IsCharDataNullPtr()) {
+                if (slot_gap == 1) {
+                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
+                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
+                    int val_set = 3;
+
+
+                    std::string substr = "GuardEnd";
+                    if (current_action.find(substr) != std::string::npos) {
+                        int slot = 0;
+                        memcpy(active_slot, &slot, 4);
+                        memcpy(playback_control_ptr, &val_set, 2);
+
+                    }
+                }
+                if (slot_wakeup == 1) {
+
+                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
+                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
+                    int val_set = 3;
+
+
+                    std::string substr = "CmnActUkemiLandNLanding";
+                    if (current_action.find(substr) != std::string::npos) {
+                        int slot = 0;
+                        memcpy(active_slot, &slot, 4);
+                        memcpy(playback_control_ptr, &val_set, 2);
+                    }
+                }
+            }
         }
+        
 
         if (ImGui::CollapsingHeader("SLOT_2")) {
 
@@ -476,8 +528,8 @@ void ScrWindow::DrawPlaybackSection() {
             memcpy(&facing_direction, facing_direction_p, 4);
 
 
-            //0x960 is 2400 which is the size of the recording slot_1, recording slot_2 has this offset + 0x10 relative to start of slot_1
-            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_2_addr_offset + 0x960+ 0x10;
+            //0x960 is 2400 which is the size of the recording slot_1, recording slot_2 has this offset + 0xC relative to start of slot_1
+            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_2_addr_offset + 0x960+ 0xC;
             std::vector<char> slot2_recording_frames{};
             for (int i = 0; i < frame_len_slot; i++) {
                 slot2_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
@@ -503,9 +555,6 @@ void ScrWindow::DrawPlaybackSection() {
                         iter++;
                     }
                 }
-
-
-                std::cout << "oi" << std::endl;
             }
             ImGui::SameLine();
             if (ImGui::Button("Trim Playback##slot2")) {
@@ -514,6 +563,18 @@ void ScrWindow::DrawPlaybackSection() {
             }
             ImGui::InputText("File Path##slot2", fpath_s2, IM_ARRAYSIZE(fpath_s2));
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
+            if (ImGui::Button("Set as gap action##slot2")) {
+                slot_gap = 2;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Set as wakeup action##slot2")) {
+                slot_wakeup= 2;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Reset##slot2")) {
+                slot_gap = 0;
+                slot_wakeup = 0;
+            }
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
             for (auto el : slot2_recording_frames) {
@@ -525,6 +586,36 @@ void ScrWindow::DrawPlaybackSection() {
                 }
             }
 
+            if (!g_interfaces.player2.IsCharDataNullPtr()) {
+                //does gap action for recorded slot
+                //can optimize later by checking for same memory address
+                if (slot_gap == 2) {
+                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
+                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
+                    int val_set = 3;
+
+
+                    std::string substr = "GuardEnd";
+                    if (current_action.find(substr) != std::string::npos) {
+                        int slot = 1;
+                        memcpy(active_slot, &slot, 4);
+                        memcpy(playback_control_ptr, &val_set, 2);
+                    }
+                }
+                if (slot_wakeup == 2) {
+                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
+                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
+                    int val_set = 3;
+
+
+                    std::string substr = "CmnActUkemiLandNLanding";
+                    if (current_action.find(substr) != std::string::npos) {
+                        int slot = 1;
+                        memcpy(active_slot, &slot, 4);
+                        memcpy(playback_control_ptr, &val_set, 2);
+                    }
+                }
+            }
         }
         
         if (ImGui::CollapsingHeader("SLOT_3")) {
@@ -544,8 +635,8 @@ void ScrWindow::DrawPlaybackSection() {
             memcpy(&facing_direction, facing_direction_p, 4);
 
 
-            //similar to slot_2
-            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_3_addr_offset + (0x960 * 2) + 0x10;
+            //similar to slot_2 but with 0x8
+            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_3_addr_offset + (0x960 * 2) + 0x8;
             std::vector<char> slot3_recording_frames{};
             for (int i = 0; i < frame_len_slot; i++) {
                 slot3_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
@@ -571,9 +662,6 @@ void ScrWindow::DrawPlaybackSection() {
                         iter++;
                     }
                 }
-
-
-                std::cout << "oi" << std::endl;
             }
             ImGui::SameLine();
             if (ImGui::Button("Trim Playback##slot3")) {
@@ -582,6 +670,18 @@ void ScrWindow::DrawPlaybackSection() {
             }
             ImGui::InputText("File Path##slot3", fpath_s3, IM_ARRAYSIZE(fpath_s3));
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
+            if (ImGui::Button("Set as gap action##slot3")) {
+                slot_gap = 3;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Set as wakeup action##slot3")) {
+                slot_wakeup = 3;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Reset##slot3")) {
+                slot_gap = 0;
+                slot_wakeup = 0;
+            }
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
             for (auto el : slot3_recording_frames) {
@@ -592,7 +692,36 @@ void ScrWindow::DrawPlaybackSection() {
                     old_val = el;
                 }
             }
+            if (!g_interfaces.player2.IsCharDataNullPtr()) {
+                //does gap action for recorded slot
+                //can optimize later by checking for same memory address
+                if (slot_gap == 3) {
+                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
+                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
+                    int val_set = 3;
 
+
+                    std::string substr = "GuardEnd";
+                    if (current_action.find(substr) != std::string::npos) {
+                        int slot = 2;
+                        memcpy(active_slot, &slot, 4);
+                        memcpy(playback_control_ptr, &val_set, 2);
+                    }
+                }
+                if (slot_wakeup == 3) {
+                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
+                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
+                    int val_set = 3;
+
+
+                    std::string substr = "CmnActUkemiLandNLanding";
+                    if (current_action.find(substr) != std::string::npos) {
+                        int slot = 2;
+                        memcpy(active_slot, &slot, 4);
+                        memcpy(playback_control_ptr, &val_set, 2);
+                    }
+                }
+            }
         }
 
         if (ImGui::CollapsingHeader("SLOT_4")) {
@@ -612,8 +741,8 @@ void ScrWindow::DrawPlaybackSection() {
             memcpy(&facing_direction, facing_direction_p, 4);
 
 
-            //similar to slot_2 and slot_3
-            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_4_addr_offset + (0x960 * 3) + 0x10;
+            //similar to slot_2 and slot_3 but with 0x4
+            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_4_addr_offset + (0x960 * 3) + 0x4;
             std::vector<char> slot4_recording_frames{};
             for (int i = 0; i < frame_len_slot; i++) {
                 slot4_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
@@ -640,8 +769,6 @@ void ScrWindow::DrawPlaybackSection() {
                     }
                 }
 
-
-                std::cout << "oi" << std::endl;
             }
             ImGui::SameLine();
             if (ImGui::Button("Trim Playback##slot4")) {
@@ -650,6 +777,18 @@ void ScrWindow::DrawPlaybackSection() {
             }
             ImGui::InputText("File Path##slot4", fpath_s4, IM_ARRAYSIZE(fpath_s4));
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
+            if (ImGui::Button("Set as gap action##slot4")) {
+                slot_gap = 4;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Set as wakeup action##slot4")) {
+                slot_wakeup = 4;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Reset##slot4")) {
+                slot_gap = 0;
+                slot_wakeup = 0;
+            }
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
             for (auto el : slot4_recording_frames) {
@@ -660,7 +799,37 @@ void ScrWindow::DrawPlaybackSection() {
                     old_val = el;
                 }
             }
+            if (!g_interfaces.player2.IsCharDataNullPtr()) {
 
+                //does gap action for recorded slot
+                //can optimize later by checking for same memory address
+                if (slot_gap == 4) {
+                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
+                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
+                    int val_set = 3;
+
+
+                    std::string substr = "GuardEnd";
+                    if (current_action.find(substr) != std::string::npos) {
+                        int slot = 3;
+                        memcpy(active_slot, &slot, 4);
+                        memcpy(playback_control_ptr, &val_set, 2);
+                    }
+                }
+                if (slot_wakeup == 4) {
+                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
+                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
+                    int val_set = 3;
+
+
+                    std::string substr = "CmnActUkemiLandNLanding";
+                    if (current_action.find(substr) != std::string::npos) {
+                        int slot = 3;
+                        memcpy(active_slot, &slot, 4);
+                        memcpy(playback_control_ptr, &val_set, 2);
+                    }
+                }
+            }
         }
 }
 }
