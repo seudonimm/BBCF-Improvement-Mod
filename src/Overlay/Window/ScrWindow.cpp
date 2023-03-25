@@ -394,6 +394,17 @@ void load_trimmed_playback(std::vector<char> trimmed_playback,char* frame_len_sl
         iter++;
     }
     }
+void treat_random_slot_checkbox(std::vector<int> &slot_vec, bool slot_toggle, int slot_num) {
+    if (slot_toggle) {
+        slot_vec.push_back(slot_num);
+    }
+    else {
+        auto iterator = std::find(slot_vec.begin(), slot_vec.end(), slot_num);
+        if (iterator != slot_vec.end()) {
+            slot_vec.erase(std::find(slot_vec.begin(), slot_vec.end(), slot_num));
+        }
+    }
+};
 void ScrWindow::DrawPlaybackSection() {
     char* bbcf_base_adress = GetBbcfBaseAdress();
     char* active_slot = bbcf_base_adress + 0x902C3C;
@@ -476,41 +487,8 @@ void ScrWindow::DrawPlaybackSection() {
                 }
             }
 
-            //does gap action for recorded slot
-            //can optimize later by checking for same memory address
-            if (!g_interfaces.player2.IsCharDataNullPtr()) {
-                if (slot_gap == 1) {
-                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
-                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
-                    int val_set = 3;
-
-
-                    std::string substr = "GuardEnd";
-                    if (current_action.find(substr) != std::string::npos) {
-                        int slot = 0;
-                        memcpy(active_slot, &slot, 4);
-                        memcpy(playback_control_ptr, &val_set, 2);
-
-                    }
-                }
-                if (slot_wakeup == 1) {
-
-                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
-                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
-                    int val_set = 3;
-
-
-                    std::string substr = "CmnActUkemiLandNLanding";
-                    if (current_action.find(substr) != std::string::npos) {
-                        int slot = 0;
-                        memcpy(active_slot, &slot, 4);
-                        memcpy(playback_control_ptr, &val_set, 2);
-                    }
-                }
-            }
         }
         
-
         if (ImGui::CollapsingHeader("SLOT_2")) {
 
 
@@ -586,36 +564,7 @@ void ScrWindow::DrawPlaybackSection() {
                 }
             }
 
-            if (!g_interfaces.player2.IsCharDataNullPtr()) {
-                //does gap action for recorded slot
-                //can optimize later by checking for same memory address
-                if (slot_gap == 2) {
-                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
-                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
-                    int val_set = 3;
-
-
-                    std::string substr = "GuardEnd";
-                    if (current_action.find(substr) != std::string::npos) {
-                        int slot = 1;
-                        memcpy(active_slot, &slot, 4);
-                        memcpy(playback_control_ptr, &val_set, 2);
-                    }
-                }
-                if (slot_wakeup == 2) {
-                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
-                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
-                    int val_set = 3;
-
-
-                    std::string substr = "CmnActUkemiLandNLanding";
-                    if (current_action.find(substr) != std::string::npos) {
-                        int slot = 1;
-                        memcpy(active_slot, &slot, 4);
-                        memcpy(playback_control_ptr, &val_set, 2);
-                    }
-                }
-            }
+        
         }
         
         if (ImGui::CollapsingHeader("SLOT_3")) {
@@ -692,36 +641,7 @@ void ScrWindow::DrawPlaybackSection() {
                     old_val = el;
                 }
             }
-            if (!g_interfaces.player2.IsCharDataNullPtr()) {
-                //does gap action for recorded slot
-                //can optimize later by checking for same memory address
-                if (slot_gap == 3) {
-                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
-                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
-                    int val_set = 3;
-
-
-                    std::string substr = "GuardEnd";
-                    if (current_action.find(substr) != std::string::npos) {
-                        int slot = 2;
-                        memcpy(active_slot, &slot, 4);
-                        memcpy(playback_control_ptr, &val_set, 2);
-                    }
-                }
-                if (slot_wakeup == 3) {
-                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
-                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
-                    int val_set = 3;
-
-
-                    std::string substr = "CmnActUkemiLandNLanding";
-                    if (current_action.find(substr) != std::string::npos) {
-                        int slot = 2;
-                        memcpy(active_slot, &slot, 4);
-                        memcpy(playback_control_ptr, &val_set, 2);
-                    }
-                }
-            }
+          
         }
 
         if (ImGui::CollapsingHeader("SLOT_4")) {
@@ -799,37 +719,98 @@ void ScrWindow::DrawPlaybackSection() {
                     old_val = el;
                 }
             }
-            if (!g_interfaces.player2.IsCharDataNullPtr()) {
+          
+        }
+        
 
-                //does gap action for recorded slot
-                //can optimize later by checking for same memory address
-                if (slot_gap == 4) {
-                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
-                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
-                    int val_set = 3;
-
-
-                    std::string substr = "GuardEnd";
-                    if (current_action.find(substr) != std::string::npos) {
-                        int slot = 3;
-                        memcpy(active_slot, &slot, 4);
-                        memcpy(playback_control_ptr, &val_set, 2);
-                    }
-                }
-                if (slot_wakeup == 4) {
-                    std::string current_action = g_interfaces.player2.GetData()->currentAction;
-                    char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment
-                    int val_set = 3;
-
-
-                    std::string substr = "CmnActUkemiLandNLanding";
-                    if (current_action.find(substr) != std::string::npos) {
-                        int slot = 3;
-                        memcpy(active_slot, &slot, 4);
-                        memcpy(playback_control_ptr, &val_set, 2);
-                    }
-                }
+        //setup for randomized slots
+        static bool random_wakeup_slot_toggle = false;
+        static bool random_gap_slot_toggle = false;
+      
+        ImGui::Columns(2);
+        ImGui::Checkbox("Gap random slots##gap_random_slots", &random_gap_slot_toggle);
+        if (random_gap_slot_toggle){
+            if (ImGui::Checkbox("Slot1##gap_random_slots", &random_gap_slot1)) {
+                treat_random_slot_checkbox(random_gap, random_gap_slot1, 1);
             }
+        
+            if(ImGui::Checkbox("Slot2##gap_random_slots", &random_gap_slot2)) {
+                treat_random_slot_checkbox(random_gap, random_gap_slot2, 2);
+
+            }
+           
+            if(ImGui::Checkbox("Slot3##gap_random_slots", &random_gap_slot3)) {
+                treat_random_slot_checkbox(random_gap, random_gap_slot3, 3);
+            }
+           
+            if (ImGui::Checkbox("Slot4##gap_random_slots", &random_gap_slot4)) {
+                treat_random_slot_checkbox(random_gap, random_gap_slot4, 4);
+            }
+          
+        
+        }
+        ImGui::NextColumn();
+        ImGui::Checkbox("Wakeup random slots##wakeup_random_slots", &random_wakeup_slot_toggle);
+        if (random_wakeup_slot_toggle) {
+            if (ImGui::Checkbox("Slot1##wakeup_random_slots", &random_wakeup_slot1)) {
+                treat_random_slot_checkbox(random_wakeup, random_wakeup_slot1, 1);
+            }
+           
+            if(ImGui::Checkbox("Slot2##wakeup_random_slots", &random_wakeup_slot2)) {
+                treat_random_slot_checkbox(random_wakeup, random_wakeup_slot2, 2);
+            }
+           
+            if(ImGui::Checkbox("Slot3##wakeup_random_slots", &random_wakeup_slot3)) {
+                treat_random_slot_checkbox(random_wakeup, random_wakeup_slot3, 3);
+            }
+            
+            if(ImGui::Checkbox("Slot4##wakeup_random_slots", &random_wakeup_slot4)) {
+                treat_random_slot_checkbox(random_wakeup, random_wakeup_slot4, 4);
+            }
+            
+        }
+
+        if (!g_interfaces.player2.IsCharDataNullPtr()) {
+
+            //does gap action for recorded slot
+            //can optimize later by checking for same memory address
+            std::string current_action = g_interfaces.player2.GetData()->currentAction;
+            char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment, 0 for dummy, 1 for recording standby, 2 for bugged recording, 3 for playback, 4 for controller, 5 for cpu, 6 for continuous playback
+            int val_set = 3;
+            int slot = 0;
+
+            //checking for gap action
+            ///std::string substr = "GuardEnd";
+            auto gap_action_trigger_find = current_action.find("GuardEnd");
+            if (random_gap_slot_toggle && !random_gap.empty() && gap_action_trigger_find != std::string::npos) {
+                int random_pos = std::rand() % random_gap.size();
+                slot = random_gap[random_pos] -1;
+                memcpy(active_slot, &slot, 4);
+                memcpy(playback_control_ptr, &val_set, 2);
+
+            }
+            else if (slot_gap != 0 && gap_action_trigger_find != std::string::npos) {
+                slot = slot_gap - 1;
+                memcpy(active_slot, &slot, 4);
+                memcpy(playback_control_ptr, &val_set, 2);
+            }
+
+            //checking for wakeup action
+            //std::string substr = "CmnActUkemiLandNLanding";
+            auto wakeup_action_trigger_find = current_action.find("CmnActUkemiLandNLanding");
+            if (random_wakeup_slot_toggle && !random_wakeup.empty() && wakeup_action_trigger_find != std::string::npos) {
+                int random_pos = std::rand() % random_gap.size();
+                slot = random_wakeup[random_pos] - 1;
+                memcpy(active_slot, &slot, 4);
+                memcpy(playback_control_ptr, &val_set, 2);
+
+            }
+            else if (slot_wakeup != 0 && wakeup_action_trigger_find != std::string::npos) {
+                slot = slot_wakeup - 1;
+                memcpy(active_slot, &slot, 4);
+                memcpy(playback_control_ptr, &val_set, 2);
+            }
+            
         }
 }
 }
