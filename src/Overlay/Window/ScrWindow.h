@@ -18,7 +18,6 @@ private:
 	void DrawStatesSection();
 	void DrawPlaybackSection();
 	void DrawReplayTheaterSection();
-	void set_slot_frames_to_buffer(int slot_num, int frames);
 
 	bool m_showDemoWindow = false;
 	void* p2_old_char_data = NULL;

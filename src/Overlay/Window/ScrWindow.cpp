@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include <windows.h>
 
 void ScrWindow::Draw()
@@ -885,10 +886,127 @@ void ScrWindow::DrawPlaybackSection() {
         }
 }
 }
-void ScrWindow::set_slot_frames_to_buffer(int slot_num, int frames) {
-    slot_buffer[slot_num] = frames;
-    if (g_interfaces.player2.IsCharDataNullPtr() || g_interfaces.player2.GetData()->charIndex == g_interfaces.player1.GetData()->charIndex) {
-        ImGui::TextWrapped("Something invalid, you are in training mode char select, have 2 of the same characters or some other shit i haven't figured out yet that you should tell me so i can fix");
+//void get_files_in_directory(char** items) {
+//    std::string path = "./Save/Replay/locals";
+//    //char items[500] = {};
+//    items = {}; int i = 0;
+//    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+//        if (i >= 500) {
+//            break;
+//        }
+//        //items.push_back(&(entry.path().string())[0]);
+//        items[i] = entry.path().string().data();
+//    }
+//}
+
+bool compareFiles(const std::string& p1, const std::string& p2) {
+    std::ifstream f1(p1, std::ifstream::binary | std::ifstream::ate);
+    std::ifstream f2(p2, std::ifstream::binary | std::ifstream::ate);
+
+    if (f1.fail() || f2.fail()) {
+        return false; //file problem
+    }
+
+    if (f1.tellg() != f2.tellg()) {
+        return false; //size mismatch
+    }
+
+    //seek back to beginning and use std::equal to compare contents
+    f1.seekg(0, std::ifstream::beg);
+    f2.seekg(0, std::ifstream::beg);
+    return std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
+        std::istreambuf_iterator<char>(),
+        std::istreambuf_iterator<char>(f2.rdbuf()));
+}
+std::string find_latest_backup_file() {
+    std::string backup_path = "./Save/Replay/backup";
+    auto latest_file_time = std::filesystem::last_write_time("BBCF.exe");
+    std::string fname = "BBCF.exe";
+    for (const auto& entry : std::filesystem::directory_iterator(backup_path)) {
+        auto time = entry.last_write_time();
+        if (entry.is_regular_file() && time > latest_file_time) {
+            latest_file_time = time;
+            fname = std::filesystem::path(entry.path()).filename().string();
+
+        }
+    }
+    if (fname == "BBCF.exe") { return ""; }
+    return fname;
+}
+std::string find_and_backup_latest_replay() {
+    std::string replay_path = "./Save/Replay";
+    auto latest_file_time = std::filesystem::last_write_time("BBCF.exe");
+    std::string fname = "BBCF.exe";
+    for (const auto& entry : std::filesystem::directory_iterator(replay_path)) {
+        auto time = entry.last_write_time();
+        if (entry.is_regular_file() && time > latest_file_time) {
+            latest_file_time = time;
+            fname = std::filesystem::path(entry.path()).filename().string();
+
+        }
+    }
+
+    auto src_fpath = "./Save/Replay/" + fname;
+    std::filesystem::path sourceFile = "./Save/Replay/" + fname;
+    std::filesystem::path targetParent = "./Save/Replay/locals/backup";
+    std::filesystem::path target = "./Save/Replay/locals/backup/" + fname;
+
+    //must add exceptions later
+    std::filesystem::create_directories(targetParent); // Recursively create target directory if not existing.
+    //checks if the files are different
+    if (std::filesystem::exists(target)) {
+        if (!compareFiles(sourceFile.string(), target.string())) {
+            std::filesystem::path target2 = target.string()+ "_1";
+            std::filesystem::copy_file(sourceFile, target2, std::filesystem::copy_options::overwrite_existing);
+        }
+
+    }
+    else {
+        std::filesystem::copy_file(sourceFile, target, std::filesystem::copy_options::overwrite_existing);
+    }
+
+    return fname;
+}
+void replace_with_local_replay(std::string fsourcename, std::string ftargetname) {
+    std::string replay_path = "./Save/Replay";
+    std::filesystem::path sourceFile = "./Save/Replay/locals/" + fsourcename;
+    std::filesystem::path target = "./Save/Replay/" + ftargetname;
+
+    //must add exceptions later
+
+    if (std::filesystem::exists(sourceFile)) {
+        std::filesystem::copy_file(sourceFile, target, std::filesystem::copy_options::overwrite_existing);
+
+    }
+
+    return;
+}
+void restore_original_replay(std::string latest_backup_file) {
+    //finish this later
+    //auto latest_backup_file = find_latest_backup_file();
+    
+    if (latest_backup_file == "") {
         return;
+    }
+    std::filesystem::path sourceFile = "./Save/Replay/locals/backup/" + latest_backup_file;
+    std::filesystem::path target = "./Save/Replay/" + latest_backup_file;
+    std::filesystem::copy_file(sourceFile, target, std::filesystem::copy_options::overwrite_existing);
+    }
+
+void ScrWindow::DrawReplayTheaterSection() {
+    if (ImGui::CollapsingHeader("Local Replays")) {
+        static std::vector<char*> items{ "" };
+        static char local_replay_name[128] = "fname";
+        static std::string latest_backup = "";
+        ImGui::InputText("File Path##replay_theater", local_replay_name, IM_ARRAYSIZE(local_replay_name));
+        if (ImGui::Button("Load##replay_theater")) {
+            auto latest_replay_name = find_and_backup_latest_replay();
+            latest_backup = latest_replay_name;
+            replace_with_local_replay(local_replay_name, latest_replay_name);
+        }
+        if (ImGui::Button("Restore original replay##replay_theater")) {
+            restore_original_replay(latest_backup);
+        
+        }
     }
 }
