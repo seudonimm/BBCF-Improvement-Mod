@@ -24,6 +24,7 @@ void ScrWindow::Draw()
 
     DrawStatesSection();
     DrawPlaybackSection();
+    DrawReplayTheaterSection();
 }
 
 void ScrWindow::DrawStatesSection()
@@ -336,6 +337,7 @@ std::string interpret_move(char move) {
 }
 void save_to_file(std::vector<char> slot_buffer, char facing_direction, char* fname) {
     CreateDirectory(L"slots", NULL);
+    
     std::string fpath = "./slots/";
     fpath += fname;
     std::ofstream out(fpath);
@@ -471,11 +473,14 @@ void ScrWindow::DrawPlaybackSection() {
             if (ImGui::Button("Set as wakeup action##slot1")) {
                 slot_wakeup = 1;
             }
+            
+
             ImGui::SameLine();
             if (ImGui::Button("Reset##slot1")) {
                 slot_gap = 0;
                 slot_wakeup = 0;
             }
+            ImGui::InputInt("Buffer frames##slot1", &slot_buffer[0]);
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
             for (auto el : slot1_recording_frames) {
@@ -534,6 +539,7 @@ void ScrWindow::DrawPlaybackSection() {
                     }
                 }
             }
+            
             ImGui::SameLine();
             if (ImGui::Button("Trim Playback##slot2")) {
                 slot2_recording_frames = trim_playback(slot2_recording_frames);
@@ -548,11 +554,13 @@ void ScrWindow::DrawPlaybackSection() {
             if (ImGui::Button("Set as wakeup action##slot2")) {
                 slot_wakeup= 2;
             }
+            
             ImGui::SameLine();
             if (ImGui::Button("Reset##slot2")) {
                 slot_gap = 0;
                 slot_wakeup = 0;
             }
+            ImGui::InputInt("Buffer frames ##slot2", &slot_buffer[1]);
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
             for (auto el : slot2_recording_frames) {
@@ -612,6 +620,7 @@ void ScrWindow::DrawPlaybackSection() {
                     }
                 }
             }
+
             ImGui::SameLine();
             if (ImGui::Button("Trim Playback##slot3")) {
                 slot3_recording_frames = trim_playback(slot3_recording_frames);
@@ -626,11 +635,13 @@ void ScrWindow::DrawPlaybackSection() {
             if (ImGui::Button("Set as wakeup action##slot3")) {
                 slot_wakeup = 3;
             }
+            
             ImGui::SameLine();
             if (ImGui::Button("Reset##slot3")) {
                 slot_gap = 0;
                 slot_wakeup = 0;
             }
+            ImGui::InputInt("Buffer frames ##slot3", &slot_buffer[2]);
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
             for (auto el : slot3_recording_frames) {
@@ -690,6 +701,7 @@ void ScrWindow::DrawPlaybackSection() {
                 }
 
             }
+           
             ImGui::SameLine();
             if (ImGui::Button("Trim Playback##slot4")) {
                 slot4_recording_frames = trim_playback(slot4_recording_frames);
@@ -704,11 +716,13 @@ void ScrWindow::DrawPlaybackSection() {
             if (ImGui::Button("Set as wakeup action##slot4")) {
                 slot_wakeup = 4;
             }
+         
             ImGui::SameLine();
             if (ImGui::Button("Reset##slot4")) {
                 slot_gap = 0;
                 slot_wakeup = 0;
             }
+            ImGui::InputInt("Buffer frames ##slot4", &slot_buffer[3]);
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
             for (auto el : slot4_recording_frames) {
@@ -769,6 +783,7 @@ void ScrWindow::DrawPlaybackSection() {
             }
             
         }
+        
 
         if (!g_interfaces.player2.IsCharDataNullPtr()) {
 
@@ -779,26 +794,78 @@ void ScrWindow::DrawPlaybackSection() {
             int val_set = 3;
             int slot = 0;
 
+
+
+
+
+
+
             //checking for gap action
             ///std::string substr = "GuardEnd";
             auto gap_action_trigger_find = current_action.find("GuardEnd");
             if (random_gap_slot_toggle && !random_gap.empty() && gap_action_trigger_find != std::string::npos) {
+                //does randomized
                 int random_pos = std::rand() % random_gap.size();
-                slot = random_gap[random_pos] -1;
+                slot = random_gap[random_pos] - 1;
                 memcpy(active_slot, &slot, 4);
                 memcpy(playback_control_ptr, &val_set, 2);
 
             }
             else if (slot_gap != 0 && gap_action_trigger_find != std::string::npos) {
+                //does pre-defined
                 slot = slot_gap - 1;
                 memcpy(active_slot, &slot, 4);
                 memcpy(playback_control_ptr, &val_set, 2);
             }
 
+
+            //change to const later?
+            //states that happen immediately before CmnActUkemiLandNLanding that I know of, not an exhaustive list
+            //static std::vector<std::tuple<std::string, int>> wakeup_buffer_actions{ {"ActFDownDown", 9} ,  //lasts 9 frames
+            //                {"ActVDownDown", 18}, //lasts 18 frames
+            //                {"ActBDownDown", 20}, //lasts 20 frames
+            //                {"ActWallBoundDown", 15}
+            //}; //lasts 15 frames
+            static std::vector<std::tuple<std::string, int>> wakeup_buffer_actions{ {"ActUkemiLandN",30 } };
+            
+            //checks if 
+
+ 
+            static int base_frame_count_triggered = 0; // hold the pFrameCount a certain action started
+            static int frame_count_to_activate = 0; // will start the recording when pFrameCount reaches this number
+            static std::string prev_action;
+            //will run buffered for non random wakeup slot
+            if (slot_wakeup != 0 && slot_buffer[slot_wakeup - 1] != 0) {
+                if (prev_action != current_action) {
+                    //sets the internal frame count to trigger shit
+                    for (auto pair : wakeup_buffer_actions) {
+                        if (base_frame_count_triggered == 0 && current_action.find(std::get<0>(pair)) != std::string::npos) {
+                            //auto tst = current_action.find(std::get<0>(pair));
+                            base_frame_count_triggered = *g_gameVals.pFrameCount;
+                            frame_count_to_activate = base_frame_count_triggered + std::get<1>(pair) - slot_buffer[slot_wakeup - 1]; //sets the frame count to activate to base + (len of action- buffer)
+                            break;
+                        }
+                        // if not in listed states reset the internal frame counts
+                        base_frame_count_triggered = 0;
+                        frame_count_to_activate = 0;
+                    }
+
+                }
+                else if (frame_count_to_activate !=0 && *g_gameVals.pFrameCount == frame_count_to_activate) {
+                    slot = slot_wakeup - 1;
+                    memcpy(active_slot, &slot, 4);
+                    memcpy(playback_control_ptr, &val_set, 2);
+                }
+            }
+
+
+
+
             //checking for wakeup action
             //std::string substr = "CmnActUkemiLandNLanding";
             auto wakeup_action_trigger_find = current_action.find("CmnActUkemiLandNLanding");
             if (random_wakeup_slot_toggle && !random_wakeup.empty() && wakeup_action_trigger_find != std::string::npos) {
+                //does randomized
                 int random_pos = std::rand() % random_gap.size();
                 slot = random_wakeup[random_pos] - 1;
                 memcpy(active_slot, &slot, 4);
@@ -806,11 +873,22 @@ void ScrWindow::DrawPlaybackSection() {
 
             }
             else if (slot_wakeup != 0 && wakeup_action_trigger_find != std::string::npos) {
+                //does pre-defined
                 slot = slot_wakeup - 1;
                 memcpy(active_slot, &slot, 4);
                 memcpy(playback_control_ptr, &val_set, 2);
             }
+
+
+            prev_action = current_action;
             
         }
 }
+}
+void ScrWindow::set_slot_frames_to_buffer(int slot_num, int frames) {
+    slot_buffer[slot_num] = frames;
+    if (g_interfaces.player2.IsCharDataNullPtr() || g_interfaces.player2.GetData()->charIndex == g_interfaces.player1.GetData()->charIndex) {
+        ImGui::TextWrapped("Something invalid, you are in training mode char select, have 2 of the same characters or some other shit i haven't figured out yet that you should tell me so i can fix");
+        return;
+    }
 }

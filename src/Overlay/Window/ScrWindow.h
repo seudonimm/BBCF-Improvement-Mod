@@ -17,7 +17,8 @@ protected:
 private:
 	void DrawStatesSection();
 	void DrawPlaybackSection();
-
+	void DrawReplayTheaterSection();
+	void set_slot_frames_to_buffer(int slot_num, int frames);
 
 	bool m_showDemoWindow = false;
 	void* p2_old_char_data = NULL;
@@ -40,6 +41,9 @@ private:
 	bool random_wakeup_slot2 = false;
 	bool random_wakeup_slot3 = false;
 	bool random_wakeup_slot4 = false;
+	std::vector<int> slot_buffer{ 0,0,0,0 }; //holds the amount of frames each slot should buffer their actions for before coming out of hitstun(not implemented) or being able to act after waking up
 	std::vector<int> random_gap{}; //holds the slots to be random for gap
 	std::vector<int> random_wakeup{}; //holds the slots to be random for wakeup
+
+	std::string prev_action;
 };
