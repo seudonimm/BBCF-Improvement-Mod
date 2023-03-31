@@ -173,6 +173,7 @@ void ScrWindow::DrawStatesSection()
         if (ImGui::Button("Use")) {
             states = g_interfaces.player2.states;
             auto selected_state = states[selected];
+            //auto tst = g_interfaces.player2.GetData();
             memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(selected_state->addr),4);
         }
         ImGui::SameLine();
@@ -774,7 +775,7 @@ void ScrWindow::DrawPlaybackSection() {
             if(ImGui::Checkbox("Slot2##wakeup_random_slots", &random_wakeup_slot2)) {
                 treat_random_slot_checkbox(random_wakeup, random_wakeup_slot2, 2);
             }
-           
+             
             if(ImGui::Checkbox("Slot3##wakeup_random_slots", &random_wakeup_slot3)) {
                 treat_random_slot_checkbox(random_wakeup, random_wakeup_slot3, 3);
             }
@@ -1025,6 +1026,7 @@ void ScrWindow::DrawVeryExperimentalSection() {
         ImGui::Text("Only works during a running replay");
         return;
     }
+    const int FRAME_STEP = 60;
     static std::vector<CharData> p1_prev_states;
     static std::vector<CharData> p2_prev_states;
     char* bbcf_base_adress = GetBbcfBaseAdress();
@@ -1054,7 +1056,7 @@ void ScrWindow::DrawVeryExperimentalSection() {
         p2_prev_states = {};
         frames_recorded = 0;
     }
-    ImGui::Text("Frames recorded: %d", frames_recorded);
+    ImGui::Text("Frame stack: +%d", frames_recorded * FRAME_STEP);
     if (ImGui::Button("rewind frame::experimental")) {
         if (!p1_prev_states.empty()) {
             CharData* pP1_char_data = g_interfaces.player1.GetData();
@@ -1066,7 +1068,7 @@ void ScrWindow::DrawVeryExperimentalSection() {
             p2_prev_states.pop_back();
 
 
-            *g_gameVals.pFrameCount = *g_gameVals.pFrameCount - 60;
+            *g_gameVals.pFrameCount = *g_gameVals.pFrameCount - FRAME_STEP;
             //*ptr_replay_theater_current_frame = *ptr_replay_theater_current_frame - 60;
             frames_recorded -= 1;
         }
