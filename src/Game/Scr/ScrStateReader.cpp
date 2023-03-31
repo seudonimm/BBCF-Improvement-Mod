@@ -229,7 +229,6 @@ int parse_state(char* addr, std::vector<scrState*>& states_parsed) {
 		else if (std::find(size_32.begin(), size_32.end(), CMD) != size_32.end()) {
 			offset += 28;
 		}
-
 		else if (std::find(size_36.begin(), size_36.end(), CMD) != size_36.end()) {
 			offset += 32;
 		}

@@ -26,6 +26,7 @@ void ScrWindow::Draw()
     DrawStatesSection();
     DrawPlaybackSection();
     DrawReplayTheaterSection();
+    DrawVeryExperimentalSection();
 }
 
 void ScrWindow::DrawStatesSection()
@@ -741,7 +742,6 @@ void ScrWindow::DrawPlaybackSection() {
         //setup for randomized slots
         static bool random_wakeup_slot_toggle = false;
         static bool random_gap_slot_toggle = false;
-      
         ImGui::Columns(2);
         ImGui::Checkbox("Gap random slots##gap_random_slots", &random_gap_slot_toggle);
         if (random_gap_slot_toggle){
@@ -784,7 +784,6 @@ void ScrWindow::DrawPlaybackSection() {
             }
             
         }
-        
 
         if (!g_interfaces.player2.IsCharDataNullPtr()) {
 
@@ -994,6 +993,9 @@ void restore_original_replay(std::string latest_backup_file) {
     }
 
 void ScrWindow::DrawReplayTheaterSection() {
+    std::filesystem::path targetParent = "./Save/Replay/locals";
+    std::filesystem::create_directories(targetParent);
+
     if (ImGui::CollapsingHeader("Local Replays")) {
         static std::vector<char*> items{ "" };
         static char local_replay_name[128] = "fname";
@@ -1009,4 +1011,98 @@ void ScrWindow::DrawReplayTheaterSection() {
         
         }
     }
+}
+
+struct gameStates {
+    CharData chardata;
+    unsigned int pFrameCount;
+};
+
+void ScrWindow::DrawVeryExperimentalSection() {
+    if (!ImGui::CollapsingHeader("Replay Rewind::experimental"))
+        return;
+    if (*g_gameVals.pGameMode != GameMode_ReplayTheater || *g_gameVals.pMatchState != MatchState_Fight) {
+        ImGui::Text("Only works during a running replay");
+        return;
+    }
+    static std::vector<CharData> p1_prev_states;
+    static std::vector<CharData> p2_prev_states;
+    char* bbcf_base_adress = GetBbcfBaseAdress();
+    char* ptr_replay_theater_current_frame = bbcf_base_adress + 0x11C0348;
+    static bool rec = false;
+    static bool playing = false;
+    static int curr_frame = *g_gameVals.pFrameCount;
+    static int prev_frame;
+    static int frames_recorded = 0;
+    curr_frame = *g_gameVals.pFrameCount;
+
+    //*ptr_replay_theater_current_frame = *g_gameVals.pFrameCount;
+    memcpy(ptr_replay_theater_current_frame, g_gameVals.pFrameCount, sizeof(unsigned int));
+    if (ImGui::Button("start_recording::experimental")) {
+        rec = true;
+        p1_prev_states.push_back(*g_interfaces.player1.GetData());
+        p2_prev_states.push_back(*g_interfaces.player2.GetData());
+        frames_recorded += 1;
+        prev_frame = *g_gameVals.pFrameCount;
+        
+    }
+    if (ImGui::Button("stop recording::experimental")) {
+        rec = false;
+    }
+    if (ImGui::Button("clear vectors::experimental")) {
+        p1_prev_states = {};
+        p2_prev_states = {};
+        frames_recorded = 0;
+    }
+    ImGui::Text("Frames recorded: %d", frames_recorded);
+    if (ImGui::Button("rewind frame::experimental")) {
+        if (!p1_prev_states.empty()) {
+            CharData* pP1_char_data = g_interfaces.player1.GetData();
+            memcpy(pP1_char_data, &(p1_prev_states.back()), sizeof(CharData));
+            p1_prev_states.pop_back();
+
+            CharData* pP2_char_data = g_interfaces.player2.GetData();
+            memcpy(pP2_char_data, &(p2_prev_states.back()), sizeof(CharData));
+            p2_prev_states.pop_back();
+
+
+            *g_gameVals.pFrameCount = *g_gameVals.pFrameCount - 60;
+            //*ptr_replay_theater_current_frame = *ptr_replay_theater_current_frame - 60;
+            frames_recorded -= 1;
+        }
+    }
+    if (ImGui::Button("rewind 10 frames::experimental")) {
+        if (p1_prev_states.size() > 10) {
+            for (int i = 0; i < 10; i++) {
+                if (!p1_prev_states.empty()) {
+                    CharData* pP1_char_data = g_interfaces.player1.GetData();
+                    memcpy(pP1_char_data, &(p1_prev_states.back()), sizeof(CharData));
+                    p1_prev_states.pop_back();
+
+                    CharData* pP2_char_data = g_interfaces.player2.GetData();
+                    memcpy(pP2_char_data, &(p2_prev_states.back()), sizeof(CharData));
+                    p2_prev_states.pop_back();
+
+
+                    *g_gameVals.pFrameCount = *g_gameVals.pFrameCount - 1;
+                    //*ptr_replay_theater_current_frame = *ptr_replay_theater_current_frame - 1;
+                    frames_recorded -= 1;
+                }
+            }
+        }
+    }
+
+
+
+
+    if (rec && p1_prev_states.size() < 1200) {
+        if (curr_frame == prev_frame + 60) {
+            p1_prev_states.push_back(*g_interfaces.player1.GetData());
+            p2_prev_states.push_back(*g_interfaces.player2.GetData());
+            frames_recorded += 1;
+            prev_frame = curr_frame;
+        }
+    }
+    //prev_frame = curr_frame;
+    return;
 }
