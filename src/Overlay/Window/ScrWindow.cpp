@@ -7,7 +7,6 @@
 #include "Overlay/NotificationBar/NotificationBar.h"
 #include "Overlay/WindowManager.h"
 #include "Overlay/Window/HitboxOverlay.h"
-
 #include "Psapi.h"
 #include <ctime>
 #include <cstdlib>
@@ -918,98 +917,45 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
         std::istreambuf_iterator<char>(),
         std::istreambuf_iterator<char>(f2.rdbuf()));
 }
-std::string find_latest_backup_file() {
-    std::string backup_path = "./Save/Replay/backup";
-    auto latest_file_time = std::filesystem::last_write_time("BBCF.exe");
-    std::string fname = "BBCF.exe";
-    for (const auto& entry : std::filesystem::directory_iterator(backup_path)) {
-        auto time = entry.last_write_time();
-        if (entry.is_regular_file() && time > latest_file_time) {
-            latest_file_time = time;
-            fname = std::filesystem::path(entry.path()).filename().string();
 
-        }
-    }
-    if (fname == "BBCF.exe") { return ""; }
-    return fname;
+void set_local_replay(char* replayname, int fname_size_max) {
+    int bbcf_base = (int)GetBbcfBaseAdress();
+    uintptr_t replay_file_template = bbcf_base + 0x4AA66C;
+    WriteToProtectedMemory(replay_file_template, replayname, fname_size_max);
+
 }
-std::string find_and_backup_latest_replay() {
-    std::string replay_path = "./Save/Replay";
-    auto latest_file_time = std::filesystem::last_write_time("BBCF.exe");
-    std::string fname = "BBCF.exe";
-    for (const auto& entry : std::filesystem::directory_iterator(replay_path)) {
-        auto time = entry.last_write_time();
-        if (entry.is_regular_file() && time > latest_file_time) {
-            latest_file_time = time;
-            fname = std::filesystem::path(entry.path()).filename().string();
+void restore_replays(int fname_size_max) {
+    int bbcf_base = (int)GetBbcfBaseAdress();
+    uintptr_t replay_file_template = bbcf_base + 0x4AA66C;
+    char* original_name = "replay%02d.dat\0\0replay_list.dat";
 
-        }
-    }
+    WriteToProtectedMemory(replay_file_template, original_name, fname_size_max);
 
-    auto src_fpath = "./Save/Replay/" + fname;
-    std::filesystem::path sourceFile = "./Save/Replay/" + fname;
-    std::filesystem::path targetParent = "./Save/Replay/locals/backup";
-    std::filesystem::path target = "./Save/Replay/locals/backup/" + fname;
-
-    //must add exceptions later
-    std::filesystem::create_directories(targetParent); // Recursively create target directory if not existing.
-    //checks if the files are different
-    if (std::filesystem::exists(target)) {
-        if (!compareFiles(sourceFile.string(), target.string())) {
-            std::filesystem::path target2 = target.string()+ "_1";
-            std::filesystem::copy_file(sourceFile, target2, std::filesystem::copy_options::overwrite_existing);
-        }
-
-    }
-    else {
-        std::filesystem::copy_file(sourceFile, target, std::filesystem::copy_options::overwrite_existing);
-    }
-
-    return fname;
 }
-void replace_with_local_replay(std::string fsourcename, std::string ftargetname) {
-    std::string replay_path = "./Save/Replay";
-    std::filesystem::path sourceFile = "./Save/Replay/locals/" + fsourcename;
-    std::filesystem::path target = "./Save/Replay/" + ftargetname;
-
-    //must add exceptions later
-
-    if (std::filesystem::exists(sourceFile)) {
-        std::filesystem::copy_file(sourceFile, target, std::filesystem::copy_options::overwrite_existing);
-
-    }
-
-    return;
-}
-void restore_original_replay(std::string latest_backup_file) {
-    //finish this later
-    //auto latest_backup_file = find_latest_backup_file();
-    
-    if (latest_backup_file == "") {
-        return;
-    }
-    std::filesystem::path sourceFile = "./Save/Replay/locals/backup/" + latest_backup_file;
-    std::filesystem::path target = "./Save/Replay/" + latest_backup_file;
-    std::filesystem::copy_file(sourceFile, target, std::filesystem::copy_options::overwrite_existing);
-    }
-
 void ScrWindow::DrawReplayTheaterSection() {
-    std::filesystem::path targetParent = "./Save/Replay/locals";
-    std::filesystem::create_directories(targetParent);
-
+    /*std::filesystem::path targetParent = "./Save/Replay/locals";
+    std::filesystem::create_directories(targetParent);*/
+    const int FNAME_SIZE_MAX = 31;
+    static bool local_replay_loaded = false;
+    static std::string local_replay_loaded_name = "";
+    if (*g_gameVals.pGameMode != GameMode_ReplayTheater && local_replay_loaded) {
+        restore_replays(FNAME_SIZE_MAX);
+    }
+    if (*g_gameVals.pGameMode == GameMode_ReplayTheater && local_replay_loaded) {
+        set_local_replay(&local_replay_loaded_name[0], FNAME_SIZE_MAX);
+    }
     if (ImGui::CollapsingHeader("Local Replays")) {
-        static std::vector<char*> items{ "" };
-        static char local_replay_name[128] = "fname";
-        static std::string latest_backup = "";
-        ImGui::InputText("File Path##replay_theater", local_replay_name, IM_ARRAYSIZE(local_replay_name));
+        static char local_replay_name[FNAME_SIZE_MAX] = "fname";
+        ImGui::InputText("File Name##replay_theater", local_replay_name, IM_ARRAYSIZE(local_replay_name));
         if (ImGui::Button("Load##replay_theater")) {
-            auto latest_replay_name = find_and_backup_latest_replay();
-            latest_backup = latest_replay_name;
-            replace_with_local_replay(local_replay_name, latest_replay_name);
+            set_local_replay(local_replay_name, FNAME_SIZE_MAX);
+            local_replay_loaded = true;
+            local_replay_loaded_name = local_replay_name;
         }
-        if (ImGui::Button("Restore original replay##replay_theater")) {
-            restore_original_replay(latest_backup);
-        
+        ImGui::SameLine();
+        if (ImGui::Button("Restore original replays##replay_theater")) {
+            restore_replays(FNAME_SIZE_MAX);
+            local_replay_loaded = false;
         }
     }
 }
