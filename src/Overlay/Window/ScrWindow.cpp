@@ -998,7 +998,27 @@ void ScrWindow::DrawVeryExperimentalSection() {
         return;
     static int prev_match_state;
     static bool rec = false;
+    const int FRAME_STEP = 60;
+    struct prev_states {
+        std::vector<CharData> p1_prev_states;
+        std::vector<CharData> p2_prev_states;
+        std::vector<unsigned int> frameCount;
+        std::vector<unsigned int> matchTimer;
+    };
 
+    static prev_states prev_states;
+    auto bbcf_base_adress = GetBbcfBaseAdress();
+    char* ptr_replay_theater_current_frame = bbcf_base_adress + 0x11C0348;
+    //static bool rec = false;
+    static bool playing = false;
+    static int curr_frame = *g_gameVals.pFrameCount;
+    static int prev_frame;
+    static int frames_recorded = 0;
+    static int rewind_pos = 0;
+    static bool CAM_loop = false;
+    static unsigned int CAM_LOOP_currFrame = 0;
+    static unsigned int CAM_LOOP_initFrame = 0;
+    curr_frame = *g_gameVals.pFrameCount;
     //static int prev_match_state;
     //static gameStates firstRoundState;
     //static int recorded_first_round = false;
@@ -1046,8 +1066,15 @@ void ScrWindow::DrawVeryExperimentalSection() {
         (*g_gameVals.pMatchState != MatchState_Fight && *g_gameVals.pMatchState != MatchState_RebelActionRoundSign && *g_gameVals.pMatchState != MatchState_FinishSign) || 
         *g_gameVals.pGameState != GameState_InMatch) {
         if (rec) {
-            rec = true;
-            //allows for one pass to clean up in case it was left recording
+            rec = false;
+            prev_states.p1_prev_states = {};
+            prev_states.p2_prev_states = {};
+            prev_states.frameCount = {};
+            prev_states.matchTimer = {};
+            frames_recorded = 0;
+            rewind_pos = 0;
+            //force clear the vectors
+            return;
         }
         else {
             ImGui::Text("Only works during a running replay");
@@ -1102,27 +1129,7 @@ void ScrWindow::DrawVeryExperimentalSection() {
 
 
 
-    const int FRAME_STEP = 60;
-     struct prev_states {
-        std::vector<CharData> p1_prev_states;
-        std::vector<CharData> p2_prev_states;
-        std::vector<unsigned int> frameCount;
-        std::vector<unsigned int> matchTimer;
-    };
-
-    static prev_states prev_states;
-    auto bbcf_base_adress = GetBbcfBaseAdress();
-    char* ptr_replay_theater_current_frame = bbcf_base_adress + 0x11C0348;
-    //static bool rec = false;
-    static bool playing = false;
-    static int curr_frame = *g_gameVals.pFrameCount;
-    static int prev_frame;
-    static int frames_recorded = 0;
-    static int rewind_pos = 0;
-    static bool CAM_loop = false;
-    static unsigned int CAM_LOOP_currFrame = 0;
-    static unsigned int CAM_LOOP_initFrame = 0;
-    curr_frame = *g_gameVals.pFrameCount;
+  
     
     //*ptr_replay_theater_current_frame = *g_gameVals.pFrameCount;
     memcpy(ptr_replay_theater_current_frame, g_gameVals.pFrameCount, sizeof(unsigned int));
@@ -1139,8 +1146,10 @@ void ScrWindow::DrawVeryExperimentalSection() {
     }
 
     //automatic clear vector if change round or leave abruptly
-    if (*g_gameVals.pGameMode == GameMode_ReplayTheater && prev_match_state == MatchState_Fight &&
-        *g_gameVals.pMatchState == MatchState_FinishSign && !g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
+    if ((*g_gameVals.pGameMode == GameMode_ReplayTheater && prev_match_state == MatchState_Fight &&
+        *g_gameVals.pMatchState == MatchState_FinishSign && !g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr())
+        ||
+        *g_gameVals.pGameState != GameState_InMatch) {
         rec = false;
         prev_states.p1_prev_states = {};
         prev_states.p2_prev_states = {};
@@ -1149,12 +1158,12 @@ void ScrWindow::DrawVeryExperimentalSection() {
         frames_recorded = 0;
         rewind_pos = 0;
    }
-
+   
     if (rec && (*g_gameVals.pGameMode != GameMode_ReplayTheater || *g_gameVals.pMatchState != MatchState_Fight)) {
         rec = false;
     }
     prev_match_state = *g_gameVals.pMatchState;
-    if (ImGui::Button("start_recording::experimental")) {
+   /* if (ImGui::Button("start_recording::experimental")) {
         rec = true;
         prev_states.p1_prev_states.push_back(*g_interfaces.player1.GetData());
         prev_states.p2_prev_states.push_back(*g_interfaces.player2.GetData());
@@ -1163,11 +1172,11 @@ void ScrWindow::DrawVeryExperimentalSection() {
         prev_states.matchTimer.push_back(*g_gameVals.pMatchTimer);
         prev_frame = *g_gameVals.pFrameCount;
         
-    }
-    if (ImGui::Button("stop recording::experimental")) {
+    }*/
+    if (ImGui::Button("force stop recording::experimental")) {
         rec = false;
     }
-    if (ImGui::Button("clear vectors::experimental")) {
+    if (ImGui::Button("force clear vectors::experimental")) {
         prev_states.p1_prev_states = {};
         prev_states.p2_prev_states = {};
         prev_states.frameCount = {};
@@ -1296,7 +1305,7 @@ void ScrWindow::DrawVeryExperimentalSection() {
 
 bool camera_adj_loop(CharData p1_prev_state,CharData p2_prev_state,unsigned int frameCount,unsigned int matchTimer, unsigned int CAM_LOOP_initFrame) {
     auto bbcf_base_adress = GetBbcfBaseAdress();
-    static int CAM_ADJ_TIMEOUT = 90;
+    static int CAM_ADJ_TIMEOUT = 30;
     CharData* pP1_char_data = g_interfaces.player1.GetData();
     CharData* pP2_char_data = g_interfaces.player2.GetData();
     *g_gameVals.pMatchTimer = matchTimer;
