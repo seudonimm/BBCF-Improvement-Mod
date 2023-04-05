@@ -932,12 +932,14 @@ void restore_replays(int fname_size_max) {
     WriteToProtectedMemory(replay_file_template, original_name, fname_size_max);
 
 }
+void toggle_char_distance_code(bool skip);
 void ScrWindow::DrawReplayTheaterSection() {
     /*std::filesystem::path targetParent = "./Save/Replay/locals";
     std::filesystem::create_directories(targetParent);*/
     const int FNAME_SIZE_MAX = 31;
     static bool local_replay_loaded = false;
     static std::string local_replay_loaded_name = "";
+
     if (*g_gameVals.pGameMode != GameMode_ReplayTheater && local_replay_loaded) {
         restore_replays(FNAME_SIZE_MAX);
     }
@@ -958,39 +960,207 @@ void ScrWindow::DrawReplayTheaterSection() {
             local_replay_loaded = false;
         }
     }
+    /*if (ImGui::Button("nop operation::exp")) {
+        toggle_char_distance_code(true);
+    
+    }
+    if (ImGui::Button("restore operation::exp")) {
+        toggle_char_distance_code(false);
+   
+
+    }*/
 }
 
 struct gameStates {
-    CharData chardata;
+    CharData p1_chardata;
+    CharData p2_chardata;
     unsigned int pFrameCount;
-};
+    unsigned int pMatchTimer;
 
+};
+void toggle_char_distance_code(bool skip=true) {
+    int bbcf_base = (int)GetBbcfBaseAdress();
+    uintptr_t mem_replace = bbcf_base + 0x15AF4B;
+    if (skip) {
+        char skip[] = "\x39\xCD\x90";
+         WriteToProtectedMemory(mem_replace, skip, 3);
+    }
+    else {
+        char orig[] = "\x39\x4D\xFC";
+        WriteToProtectedMemory(mem_replace, orig, 3);
+    }
+    //ps az on left corner mai pushing out x pos  p1 in: FFE53887 //p1 out : FFF93D88
+}
+bool camera_adj_loop(CharData p1_prev_state, CharData p2_prev_state, unsigned int frameCount, unsigned int matchTimer, unsigned int CAM_LOOP_initFrame);
+std::vector<int> find_nearest_checkpoint(std::vector<unsigned int> frameCount);
 void ScrWindow::DrawVeryExperimentalSection() {
     if (!ImGui::CollapsingHeader("Replay Rewind::experimental"))
         return;
-    if (*g_gameVals.pGameMode != GameMode_ReplayTheater || *g_gameVals.pMatchState != MatchState_Fight) {
-        ImGui::Text("Only works during a running replay");
-        return;
-    }
-    const int FRAME_STEP = 60;
-    static std::vector<CharData> p1_prev_states;
-    static std::vector<CharData> p2_prev_states;
-    char* bbcf_base_adress = GetBbcfBaseAdress();
-    char* ptr_replay_theater_current_frame = bbcf_base_adress + 0x11C0348;
+    static int prev_match_state;
     static bool rec = false;
+
+    //static int prev_match_state;
+    //static gameStates firstRoundState;
+    //static int recorded_first_round = false;
+    //static CharData p1;
+    //static CharData p2;
+    //static std::vector<scrState*> p1_states;
+    //static std::vector<scrState*> p2_states;
+    //char* bbcf_base_adress = GetBbcfBaseAdress();
+    //if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
+    //    //p1 = *g_interfaces.player1.GetData();
+    //    //p2 = *g_interfaces.player2.GetData();
+    //    //p1_states = parse_scr(bbcf_base_adress, 1);
+    //    //p2_states = parse_scr(bbcf_base_adress, 2);
+    //}
+
+    //if (*g_gameVals.pMatchState == MatchState_RebelActionRoundSign && prev_match_state == MatchState_NotStarted && !recorded_first_round) {
+    //    firstRoundState.p1_chardata = *g_interfaces.player1.GetData();
+    //    firstRoundState.p2_chardata = *g_interfaces.player2.GetData();
+    //    firstRoundState.pFrameCount = *g_gameVals.pFrameCount;
+    //    firstRoundState.pMatchTimer = *g_gameVals.pMatchTimer;
+    //    p1_states = parse_scr(bbcf_base_adress, 1);
+    //    p2_states = parse_scr(bbcf_base_adress, 2);
+    //    recorded_first_round = true;
+    //}
+    //if (*g_gameVals.pMatchState == MatchState_RebelActionRoundSign && !g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
+    //    //keeps the characters from doing actions during countdown
+    //    memcpy(&(g_interfaces.player1.GetData()->currentScriptActionLocationInMemory), &(p1_states[0]->addr), 4);
+    //    memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(p2_states[0]->addr), 4);
+    //}
+    //if (!(*g_gameVals.pGameState == GameState_InMatch) && recorded_first_round)
+    //{
+    //    recorded_first_round = false;
+
+    //}
+    ////if (*g_gameVals.pMatchState == MatchState_NotStarted && *g_gameVals.pGameState == GameState_InMatch && !recorded_first_round && !g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()
+    ////   ) {
+    ////    //attempt at recording stuff during matchstate not started, big issues not being able to fulfill all reqs
+    ////    firstRoundState.p1_chardata = *g_interfaces.player1.GetData();
+    ////    firstRoundState.p2_chardata = *g_interfaces.player2.GetData();
+    ////    firstRoundState.pFrameCount = *g_gameVals.pFrameCount;
+    ////    firstRoundState.pMatchTimer = *g_gameVals.pMatchTimer;
+    ////    recorded_first_round = true;}
+    //prev_match_state = *g_gameVals.pMatchState;
+    if (*g_gameVals.pGameMode != GameMode_ReplayTheater || 
+        (*g_gameVals.pMatchState != MatchState_Fight && *g_gameVals.pMatchState != MatchState_RebelActionRoundSign && *g_gameVals.pMatchState != MatchState_FinishSign) || 
+        *g_gameVals.pGameState != GameState_InMatch) {
+        if (rec) {
+            rec = true;
+            //allows for one pass to clean up in case it was left recording
+        }
+        else {
+            ImGui::Text("Only works during a running replay");
+
+            return;
+        }
+    }
+  
+    //if (*g_gameVals.pMatchState == MatchState_RebelActionRoundSign && !g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
+    //    //add here an attemp at forcing both characters to have always CmdActStand while in the countdown to round start
+    //    //must finish the parsing of the script for the P1
+    //}
+    //if (ImGui::Button("rewind round F::experimental")) {
+    //   
+    //        CharData* pP1_char_data = g_interfaces.player1.GetData();
+    //        memcpy(pP1_char_data, &(firstRoundState.p1_chardata), sizeof(CharData));
+    //        CharData* pP2_char_data = g_interfaces.player2.GetData();
+    //        memcpy(pP2_char_data, &(firstRoundState.p2_chardata), sizeof(CharData));
+    //        *g_gameVals.pFrameCount = firstRoundState.pFrameCount;
+    //        *g_gameVals.pMatchState = MatchState_Fight;
+    //        *g_gameVals.pMatchTimer = firstRoundState.pMatchTimer;
+    //        //*ptr_replay_theater_current_frame = *ptr_replay_theater_current_frame - 60;
+
+    //    }
+    //if (ImGui::Button("rewind round RA::experimental")) {
+
+    //    CharData* pP1_char_data = g_interfaces.player1.GetData();
+    //    memcpy(pP1_char_data, &(firstRoundState.p1_chardata), sizeof(CharData));
+    //    CharData* pP2_char_data = g_interfaces.player2.GetData();
+    //    memcpy(pP2_char_data, &(firstRoundState.p2_chardata), sizeof(CharData));
+    //    *g_gameVals.pFrameCount = firstRoundState.pFrameCount;
+    //    *g_gameVals.pMatchState = MatchState_RebelActionRoundSign;
+    //    *g_gameVals.pMatchTimer = firstRoundState.pMatchTimer;
+    //    //*ptr_replay_theater_current_frame = *ptr_replay_theater_current_frame - 60;
+
+    //}
+    //if (ImGui::Button("rewind round MNT::experimental")) {
+
+    //    CharData* pP1_char_data = g_interfaces.player1.GetData();
+    //    memcpy(pP1_char_data, &(firstRoundState.p1_chardata), sizeof(CharData));
+    //    CharData* pP2_char_data = g_interfaces.player2.GetData();
+    //    memcpy(pP2_char_data, &(firstRoundState.p2_chardata), sizeof(CharData));
+    //    *g_gameVals.pFrameCount = firstRoundState.pFrameCount;
+    //    *g_gameVals.pMatchState = MatchState_NotStarted;
+    //    *g_gameVals.pMatchTimer = firstRoundState.pMatchTimer;
+    //    if (firstRoundState.p1_chardata.pJonbEntryBegin == NULL) { firstRoundState.p1_chardata.pJonbEntryBegin = g_interfaces.player1.GetData()->pJonbEntryBegin; }
+    //    if (firstRoundState.p2_chardata.pJonbEntryBegin == NULL) { firstRoundState.p2_chardata.pJonbEntryBegin = g_interfaces.player2.GetData()->pJonbEntryBegin; }
+    //    //*ptr_replay_theater_current_frame = *ptr_replay_theater_current_frame - 60;
+
+    //}
+
+
+
+
+    const int FRAME_STEP = 60;
+     struct prev_states {
+        std::vector<CharData> p1_prev_states;
+        std::vector<CharData> p2_prev_states;
+        std::vector<unsigned int> frameCount;
+        std::vector<unsigned int> matchTimer;
+    };
+
+    static prev_states prev_states;
+    auto bbcf_base_adress = GetBbcfBaseAdress();
+    char* ptr_replay_theater_current_frame = bbcf_base_adress + 0x11C0348;
+    //static bool rec = false;
     static bool playing = false;
     static int curr_frame = *g_gameVals.pFrameCount;
     static int prev_frame;
     static int frames_recorded = 0;
+    static int rewind_pos = 0;
+    static bool CAM_loop = false;
+    static unsigned int CAM_LOOP_currFrame = 0;
+    static unsigned int CAM_LOOP_initFrame = 0;
     curr_frame = *g_gameVals.pFrameCount;
-
+    
     //*ptr_replay_theater_current_frame = *g_gameVals.pFrameCount;
     memcpy(ptr_replay_theater_current_frame, g_gameVals.pFrameCount, sizeof(unsigned int));
+    ///automatic start rec on round start
+    if (*g_gameVals.pGameMode == GameMode_ReplayTheater && prev_match_state && prev_match_state == MatchState_RebelActionRoundSign &&
+        *g_gameVals.pMatchState == MatchState_Fight && !g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
+        rec = true;
+        prev_states.p1_prev_states.push_back(*g_interfaces.player1.GetData());
+        prev_states.p2_prev_states.push_back(*g_interfaces.player2.GetData());
+        frames_recorded += 1;
+        prev_states.frameCount.push_back(*g_gameVals.pFrameCount);
+        prev_states.matchTimer.push_back(*g_gameVals.pMatchTimer);
+        prev_frame = *g_gameVals.pFrameCount;
+    }
+
+    //automatic clear vector if change round or leave abruptly
+    if (*g_gameVals.pGameMode == GameMode_ReplayTheater && prev_match_state == MatchState_Fight &&
+        *g_gameVals.pMatchState == MatchState_FinishSign && !g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
+        rec = false;
+        prev_states.p1_prev_states = {};
+        prev_states.p2_prev_states = {};
+        prev_states.frameCount = {};
+        prev_states.matchTimer = {};
+        frames_recorded = 0;
+        rewind_pos = 0;
+   }
+
+    if (rec && (*g_gameVals.pGameMode != GameMode_ReplayTheater || *g_gameVals.pMatchState != MatchState_Fight)) {
+        rec = false;
+    }
+    prev_match_state = *g_gameVals.pMatchState;
     if (ImGui::Button("start_recording::experimental")) {
         rec = true;
-        p1_prev_states.push_back(*g_interfaces.player1.GetData());
-        p2_prev_states.push_back(*g_interfaces.player2.GetData());
+        prev_states.p1_prev_states.push_back(*g_interfaces.player1.GetData());
+        prev_states.p2_prev_states.push_back(*g_interfaces.player2.GetData());
         frames_recorded += 1;
+        prev_states.frameCount.push_back(*g_gameVals.pFrameCount);
+        prev_states.matchTimer.push_back(*g_gameVals.pMatchTimer);
         prev_frame = *g_gameVals.pFrameCount;
         
     }
@@ -998,59 +1168,196 @@ void ScrWindow::DrawVeryExperimentalSection() {
         rec = false;
     }
     if (ImGui::Button("clear vectors::experimental")) {
-        p1_prev_states = {};
-        p2_prev_states = {};
+        prev_states.p1_prev_states = {};
+        prev_states.p2_prev_states = {};
+        prev_states.frameCount = {};
+        prev_states.matchTimer = {};
         frames_recorded = 0;
+        rewind_pos = 0;
     }
     ImGui::Text("Frame stack: +%d", frames_recorded * FRAME_STEP);
-    if (ImGui::Button("rewind frame::experimental")) {
-        if (!p1_prev_states.empty()) {
-            CharData* pP1_char_data = g_interfaces.player1.GetData();
-            memcpy(pP1_char_data, &(p1_prev_states.back()), sizeof(CharData));
-            p1_prev_states.pop_back();
+    ImGui::Text("Rewind pos: +%d", rewind_pos);
+    auto nearest_pos = find_nearest_checkpoint(prev_states.frameCount);
+    ImGui::Text("nearest back: %d    nearest fwd: %d", nearest_pos[0],nearest_pos[1]);
+   
 
-            CharData* pP2_char_data = g_interfaces.player2.GetData();
-            memcpy(pP2_char_data, &(p2_prev_states.back()), sizeof(CharData));
-            p2_prev_states.pop_back();
+    //calls the camera loop if applicable
+    if (CAM_loop && *g_gameVals.pFrameCount > CAM_LOOP_currFrame) {
+        auto pos = rewind_pos;
+        CAM_loop = camera_adj_loop(prev_states.p1_prev_states[pos], prev_states.p2_prev_states[pos], prev_states.frameCount[pos], prev_states.matchTimer[pos], CAM_LOOP_initFrame);
+        CAM_LOOP_currFrame = *g_gameVals.pFrameCount;
+    }
+
+    //if (ImGui::Button("rewind checkpoint::experimental")) {
+    //    
+    //    if (!prev_states.p1_prev_states.empty() && prev_states.p1_prev_states.size()>=rewind_pos && rewind_pos > 0) {
+    //        auto pos = rewind_pos;
+    //        CharData* pP1_char_data = g_interfaces.player1.GetData();
+    //        memcpy(pP1_char_data, &(prev_states.p1_prev_states[pos]), sizeof(CharData));
+    //        //prev_states.p1_prev_states.pop_back();
+
+    //        CharData* pP2_char_data = g_interfaces.player2.GetData();
+    //        memcpy(pP2_char_data, &(prev_states.p2_prev_states[pos]), sizeof(CharData));
+    //        //prev_states.p2_prev_states.pop_back();
+
+    //        //*g_gameVals.pFrameCount = prev_states.frameCount[pos];
+    //        //prev_states.frameCount.pop_back();
+
+    //        ////////*g_gameVals.pMatchTimer = prev_states.matchTimer[pos];
+    //        //prev_states.matchTimer.pop_back();
+
+    //     /*   CharData* pP1_char_data = g_interfaces.player1.GetData();
+    //        CharData* pP2_char_data = g_interfaces.player2.GetData();
+    //        pP1_char_data->position_x = prev_states.p1_prev_states[pos].position_x;
+    //        pP2_char_data->position_x = prev_states.p2_prev_states[pos].position_x;*/
 
 
-            *g_gameVals.pFrameCount = *g_gameVals.pFrameCount - FRAME_STEP;
-            //*ptr_replay_theater_current_frame = *ptr_replay_theater_current_frame - 60;
-            frames_recorded -= 1;
+ 
+    //        //frames_recorded -= 1;
+    //        //starts the replay
+    //        char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
+    //        *replay_theather_speed = 0;
+    //        rewind_pos -= 1;
+    //        CAM_loop = true;
+    //        CAM_LOOP_currFrame = 0;
+    //        CAM_LOOP_initFrame = *g_gameVals.pFrameCount;
+    //    }
+    //}
+    //if (ImGui::Button("fast forward checkpoint::experimental")) {
+
+    //    if (!prev_states.p1_prev_states.empty() && prev_states.p1_prev_states.size() >= rewind_pos) {
+    //        auto pos = rewind_pos+1;
+    //        CharData* pP1_char_data = g_interfaces.player1.GetData();
+    //        memcpy(pP1_char_data, &(prev_states.p1_prev_states[pos]), sizeof(CharData));
+    //        CharData* pP2_char_data = g_interfaces.player2.GetData();
+    //        memcpy(pP2_char_data, &(prev_states.p2_prev_states[pos]), sizeof(CharData));
+    //        //starts the replay
+    //        char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
+    //        *replay_theather_speed = 0;
+    //        //rewind_pos += 1;
+    //        CAM_loop = true;
+    //        CAM_LOOP_currFrame = 0;
+    //        CAM_LOOP_initFrame = *g_gameVals.pFrameCount;
+    //    }
+    //}
+    if (ImGui::Button("closest back ::experimental")) {
+
+        if (!prev_states.p1_prev_states.empty()) {
+            auto pos = find_nearest_checkpoint(prev_states.frameCount)[0];
+            if (pos != -1) {
+                CharData* pP1_char_data = g_interfaces.player1.GetData();
+                memcpy(pP1_char_data, &(prev_states.p1_prev_states[pos]), sizeof(CharData));
+                CharData* pP2_char_data = g_interfaces.player2.GetData();
+                memcpy(pP2_char_data, &(prev_states.p2_prev_states[pos]), sizeof(CharData));
+                //starts the replay
+                char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
+                *replay_theather_speed = 0;
+                rewind_pos = pos;
+                CAM_loop = true;
+                CAM_LOOP_currFrame = 0;
+                CAM_LOOP_initFrame = *g_gameVals.pFrameCount;
+            }
         }
     }
-    if (ImGui::Button("rewind 10 frames::experimental")) {
-        if (p1_prev_states.size() > 10) {
-            for (int i = 0; i < 10; i++) {
-                if (!p1_prev_states.empty()) {
-                    CharData* pP1_char_data = g_interfaces.player1.GetData();
-                    memcpy(pP1_char_data, &(p1_prev_states.back()), sizeof(CharData));
-                    p1_prev_states.pop_back();
+    if (ImGui::Button("closest forward ::experimental")) {
 
-                    CharData* pP2_char_data = g_interfaces.player2.GetData();
-                    memcpy(pP2_char_data, &(p2_prev_states.back()), sizeof(CharData));
-                    p2_prev_states.pop_back();
-
-
-                    *g_gameVals.pFrameCount = *g_gameVals.pFrameCount - 1;
-                    //*ptr_replay_theater_current_frame = *ptr_replay_theater_current_frame - 1;
-                    frames_recorded -= 1;
-                }
+        if (!prev_states.p1_prev_states.empty()) {
+            auto pos = find_nearest_checkpoint(prev_states.frameCount)[1];
+            if (pos != -1) {
+                CharData* pP1_char_data = g_interfaces.player1.GetData();
+                memcpy(pP1_char_data, &(prev_states.p1_prev_states[pos]), sizeof(CharData));
+                CharData* pP2_char_data = g_interfaces.player2.GetData();
+                memcpy(pP2_char_data, &(prev_states.p2_prev_states[pos]), sizeof(CharData));
+                //starts the replay
+                char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
+                *replay_theather_speed = 0;
+                rewind_pos = pos;
+                CAM_loop = true;
+                CAM_LOOP_currFrame = 0;
+                CAM_LOOP_initFrame = *g_gameVals.pFrameCount;
             }
         }
     }
 
-
-
-
-    if (rec && p1_prev_states.size() < 1200) {
+    if (rec && prev_states.p1_prev_states.size() < 1200) {
         if (curr_frame == prev_frame + 60) {
-            p1_prev_states.push_back(*g_interfaces.player1.GetData());
-            p2_prev_states.push_back(*g_interfaces.player2.GetData());
+            prev_states.p1_prev_states.push_back(*g_interfaces.player1.GetData());
+            prev_states.p2_prev_states.push_back(*g_interfaces.player2.GetData());
+            prev_states.frameCount.push_back(*g_gameVals.pFrameCount);
+            prev_states.matchTimer.push_back(*g_gameVals.pMatchTimer);
             frames_recorded += 1;
+            rewind_pos += 1;
             prev_frame = curr_frame;
         }
     }
     //prev_frame = curr_frame;
     return;
+}
+
+bool camera_adj_loop(CharData p1_prev_state,CharData p2_prev_state,unsigned int frameCount,unsigned int matchTimer, unsigned int CAM_LOOP_initFrame) {
+    auto bbcf_base_adress = GetBbcfBaseAdress();
+    static int CAM_ADJ_TIMEOUT = 90;
+    CharData* pP1_char_data = g_interfaces.player1.GetData();
+    CharData* pP2_char_data = g_interfaces.player2.GetData();
+    *g_gameVals.pMatchTimer = matchTimer;
+    if (((pP1_char_data->position_x == p1_prev_state.position_x || 
+            pP1_char_data->position_x + pP1_char_data->offsetX_2 == p1_prev_state.position_x || 
+            pP1_char_data->position_x - pP1_char_data->offsetX_2 == p1_prev_state.position_x ||
+            pP1_char_data->position_x_dupe == p1_prev_state.position_x
+            )
+        && 
+        (pP2_char_data->position_x == p2_prev_state.position_x ||
+            pP2_char_data->position_x + pP2_char_data->offsetX_2 == p2_prev_state.position_x ||
+            pP2_char_data->position_x - pP2_char_data->offsetX_2 == p2_prev_state.position_x ||
+            pP2_char_data->position_x_dupe == p2_prev_state.position_x))
+        //timeout clause
+        ||
+        *g_gameVals.pFrameCount - CAM_LOOP_initFrame > CAM_ADJ_TIMEOUT
+        )
+    {
+        //means the loop should end because the camera adjusted already
+        //pauses replay again
+        char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
+        *replay_theather_speed = 1;
+        //sets the full state
+        memcpy(pP1_char_data, &p1_prev_state, sizeof(CharData));
+        memcpy(pP2_char_data, &p2_prev_state, sizeof(CharData));
+        *g_gameVals.pFrameCount = frameCount;
+        *g_gameVals.pMatchTimer = matchTimer;
+        //returns signal to stop the loop
+        return false;
+    }
+    memcpy(pP1_char_data, &p1_prev_state, sizeof(CharData));
+    memcpy(pP2_char_data, &p2_prev_state, sizeof(CharData));
+    return true;
+}
+
+std::vector<int> find_nearest_checkpoint(std::vector<unsigned int> frameCount) {
+    //returns a vector with the fist being the nearest pos in the checkpoints for a backwards and the second for the fwd, -1 if not available
+    auto fc = *g_gameVals.pFrameCount;
+    int nearest_back = 0;
+    int nearest_back_pos = 0;
+    int nearest_fwd = 0;
+    int nearest_fwd_pos = 0;
+    int i = 0;
+    for (auto frameCheckpoint : frameCount) {
+        if ((fc - frameCheckpoint < fc - nearest_back && fc - frameCheckpoint >0)|| nearest_back == 0) {
+            nearest_back = frameCheckpoint;
+            nearest_back_pos = i;
+        }
+        if ((frameCheckpoint - fc < nearest_fwd - fc && frameCheckpoint-fc >0) || nearest_fwd == 0) {
+            nearest_fwd = frameCheckpoint;
+            nearest_fwd_pos = i;
+        }
+
+
+        i++;
+    }
+    if (frameCount.empty()) {
+        return std::vector<int>{-1, -1};
+    }
+    if (frameCount.size() < nearest_back_pos + 1) {
+        nearest_fwd_pos = -1;
+    }
+    return std::vector<int>{nearest_back_pos, nearest_fwd_pos};
 }

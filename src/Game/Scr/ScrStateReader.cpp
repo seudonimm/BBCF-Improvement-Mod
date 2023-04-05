@@ -7,8 +7,8 @@
 constexpr auto OFFSET_FROM_FPAC = 0x60;
 constexpr auto FPAC_OFFSET_FROM_BBCF_P1 = 0x88E6F0;
 constexpr auto FPAC_OFFSET_FROM_BBCF_P2 = 0x88E750;
+constexpr auto PREINIT_OFFSET_FROM_BBCF_P1 = 0xDB6B2C;
 constexpr auto PREINIT_OFFSET_FROM_BBCF_P2 = 0xDB6B5C;
-
 
 
 std::vector<scrState*> parse_scr(char* bbcf_base_addr, int player_num) {
@@ -23,12 +23,12 @@ std::vector<scrState*> parse_scr(char* bbcf_base_addr, int player_num) {
 		scr_preinit_offset = (char**)(bbcf_base_addr + PREINIT_OFFSET_FROM_BBCF_P2);
 	}
 	else if (player_num == 1) {
-		/*
-		char* fpac_load = bbcf_base_addr + FPAC_OFFSET_FROM_BBCF_P1;
-		char* scr_index = fpac_load + OFFSET_FROM_FPAC;
-		char* scr_preinit = bbcf_base_addr + PREINIT_OFFSET_FROM_BBCF_P1;
-		*/
-		return std::vector<scrState*>{};
+		
+		 fpac_load = (char**)(bbcf_base_addr + FPAC_OFFSET_FROM_BBCF_P1);
+		scr_index = *fpac_load + OFFSET_FROM_FPAC;
+		scr_preinit_offset = (char**)(bbcf_base_addr + PREINIT_OFFSET_FROM_BBCF_P1);
+		
+
 	}
 	else {
 		return std::vector<scrState*>{};
