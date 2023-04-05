@@ -1016,6 +1016,7 @@ void ScrWindow::DrawVeryExperimentalSection() {
     static int frames_recorded = 0;
     static int rewind_pos = 0;
     static bool CAM_loop = false;
+    static int round_start_frame = 0;
     static unsigned int CAM_LOOP_currFrame = 0;
     static unsigned int CAM_LOOP_initFrame = 0;
     curr_frame = *g_gameVals.pFrameCount;
@@ -1133,9 +1134,14 @@ void ScrWindow::DrawVeryExperimentalSection() {
     
     //*ptr_replay_theater_current_frame = *g_gameVals.pFrameCount;
     memcpy(ptr_replay_theater_current_frame, g_gameVals.pFrameCount, sizeof(unsigned int));
-    ///automatic start rec on round start
+    ///grabs the frame count on round start
     if (*g_gameVals.pGameMode == GameMode_ReplayTheater && prev_match_state && prev_match_state == MatchState_RebelActionRoundSign &&
         *g_gameVals.pMatchState == MatchState_Fight && !g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
+        round_start_frame = *g_gameVals.pFrameCount;
+        
+    }
+    ///automatic start rec on round start + 4 frames to alleviate the loss of buffering during countdown
+    if (*g_gameVals.pFrameCount == round_start_frame+4 && *g_gameVals.pMatchState == MatchState_Fight && rec == false) {
         rec = true;
         prev_states.p1_prev_states.push_back(*g_interfaces.player1.GetData());
         prev_states.p2_prev_states.push_back(*g_interfaces.player2.GetData());
@@ -1144,7 +1150,6 @@ void ScrWindow::DrawVeryExperimentalSection() {
         prev_states.matchTimer.push_back(*g_gameVals.pMatchTimer);
         prev_frame = *g_gameVals.pFrameCount;
     }
-
     //automatic clear vector if change round or leave abruptly
     if ((*g_gameVals.pGameMode == GameMode_ReplayTheater && prev_match_state == MatchState_Fight &&
         *g_gameVals.pMatchState == MatchState_FinishSign && !g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr())
