@@ -991,7 +991,7 @@ void toggle_char_distance_code(bool skip=true) {
     }
     //ps az on left corner mai pushing out x pos  p1 in: FFE53887 //p1 out : FFF93D88
 }
-bool camera_adj_loop(CharData p1_prev_state, CharData p2_prev_state, unsigned int frameCount, unsigned int matchTimer, unsigned int CAM_LOOP_initFrame);
+bool camera_adj_loop(CharData p1_prev_state, CharData p2_prev_state, unsigned int frameCount, unsigned int matchTimer, D3DXMATRIX viewMatrix, unsigned int CAM_LOOP_initFrame);
 std::vector<int> find_nearest_checkpoint(std::vector<unsigned int> frameCount);
 void ScrWindow::DrawVeryExperimentalSection() {
     if (!ImGui::CollapsingHeader("Replay Rewind::experimental"))
@@ -1004,6 +1004,7 @@ void ScrWindow::DrawVeryExperimentalSection() {
         std::vector<CharData> p2_prev_states;
         std::vector<unsigned int> frameCount;
         std::vector<unsigned int> matchTimer;
+        std::vector<D3DXMATRIX> viewMatrixes;
     };
 
     static prev_states prev_states;
@@ -1148,6 +1149,7 @@ void ScrWindow::DrawVeryExperimentalSection() {
         frames_recorded += 1;
         prev_states.frameCount.push_back(*g_gameVals.pFrameCount);
         prev_states.matchTimer.push_back(*g_gameVals.pMatchTimer);
+        prev_states.viewMatrixes.push_back(*g_gameVals.viewMatrix);
         prev_frame = *g_gameVals.pFrameCount;
     }
     //automatic clear vector if change round or leave abruptly
@@ -1198,7 +1200,7 @@ void ScrWindow::DrawVeryExperimentalSection() {
     //calls the camera loop if applicable
     if (CAM_loop && *g_gameVals.pFrameCount > CAM_LOOP_currFrame) {
         auto pos = rewind_pos;
-        CAM_loop = camera_adj_loop(prev_states.p1_prev_states[pos], prev_states.p2_prev_states[pos], prev_states.frameCount[pos], prev_states.matchTimer[pos], CAM_LOOP_initFrame);
+        CAM_loop = camera_adj_loop(prev_states.p1_prev_states[pos], prev_states.p2_prev_states[pos], prev_states.frameCount[pos], prev_states.matchTimer[pos], prev_states.viewMatrixes[pos],CAM_LOOP_initFrame);
         CAM_LOOP_currFrame = *g_gameVals.pFrameCount;
     }
 
@@ -1263,6 +1265,7 @@ void ScrWindow::DrawVeryExperimentalSection() {
                 memcpy(pP1_char_data, &(prev_states.p1_prev_states[pos]), sizeof(CharData));
                 CharData* pP2_char_data = g_interfaces.player2.GetData();
                 memcpy(pP2_char_data, &(prev_states.p2_prev_states[pos]), sizeof(CharData));
+                *g_gameVals.viewMatrix = prev_states.viewMatrixes[pos];
                 //starts the replay
                 char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
                 *replay_theather_speed = 0;
@@ -1282,6 +1285,7 @@ void ScrWindow::DrawVeryExperimentalSection() {
                 memcpy(pP1_char_data, &(prev_states.p1_prev_states[pos]), sizeof(CharData));
                 CharData* pP2_char_data = g_interfaces.player2.GetData();
                 memcpy(pP2_char_data, &(prev_states.p2_prev_states[pos]), sizeof(CharData));
+                *g_gameVals.viewMatrix = prev_states.viewMatrixes[pos];
                 //starts the replay
                 char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
                 *replay_theather_speed = 0;
@@ -1299,6 +1303,7 @@ void ScrWindow::DrawVeryExperimentalSection() {
             prev_states.p2_prev_states.push_back(*g_interfaces.player2.GetData());
             prev_states.frameCount.push_back(*g_gameVals.pFrameCount);
             prev_states.matchTimer.push_back(*g_gameVals.pMatchTimer);
+            prev_states.viewMatrixes.push_back(*g_gameVals.viewMatrix);
             frames_recorded += 1;
             rewind_pos += 1;
             prev_frame = curr_frame;
@@ -1308,12 +1313,11 @@ void ScrWindow::DrawVeryExperimentalSection() {
     return;
 }
 
-bool camera_adj_loop(CharData p1_prev_state,CharData p2_prev_state,unsigned int frameCount,unsigned int matchTimer, unsigned int CAM_LOOP_initFrame) {
+bool camera_adj_loop(CharData p1_prev_state,CharData p2_prev_state,unsigned int frameCount,unsigned int matchTimer, D3DXMATRIX viewMatrix, unsigned int CAM_LOOP_initFrame) {
     auto bbcf_base_adress = GetBbcfBaseAdress();
     static int CAM_ADJ_TIMEOUT = 30;
     CharData* pP1_char_data = g_interfaces.player1.GetData();
     CharData* pP2_char_data = g_interfaces.player2.GetData();
-    *g_gameVals.pMatchTimer = matchTimer;
     if (((pP1_char_data->position_x == p1_prev_state.position_x || 
             pP1_char_data->position_x + pP1_char_data->offsetX_2 == p1_prev_state.position_x || 
             pP1_char_data->position_x - pP1_char_data->offsetX_2 == p1_prev_state.position_x ||
@@ -1338,11 +1342,14 @@ bool camera_adj_loop(CharData p1_prev_state,CharData p2_prev_state,unsigned int 
         memcpy(pP2_char_data, &p2_prev_state, sizeof(CharData));
         *g_gameVals.pFrameCount = frameCount;
         *g_gameVals.pMatchTimer = matchTimer;
+        *g_gameVals.viewMatrix = viewMatrix;
         //returns signal to stop the loop
         return false;
     }
     memcpy(pP1_char_data, &p1_prev_state, sizeof(CharData));
     memcpy(pP2_char_data, &p2_prev_state, sizeof(CharData));
+    *g_gameVals.pMatchTimer = matchTimer;
+    *g_gameVals.viewMatrix = viewMatrix;
     return true;
 }
 
