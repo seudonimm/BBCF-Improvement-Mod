@@ -18,7 +18,8 @@ private:
 	void DrawStatesSection();
 	void DrawPlaybackSection();
 	void DrawReplayTheaterSection();
-	void DrawVeryExperimentalSection();
+	void DrawReplayRewind();
+	void DrawVeryExperimentalSection2();
 	bool m_showDemoWindow = false;
 	void* p2_old_char_data = NULL;
 	std::vector<scrState*> gap_register{};

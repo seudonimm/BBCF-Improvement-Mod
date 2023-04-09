@@ -43,7 +43,16 @@ public:
 
 	char pad_01E4[4]; //0x01E4
 	class CharData* ownerEntity; //0x01E8
-	char pad_01EC[120]; //0x01EC
+	//char pad_01EC[120]; //0x01EC
+
+	//exp
+	char pad_01EC[64];
+	class CharData* last_child_entity_spawned; // 0x022C not 100% yet
+	class CharData* extra_child_entities[7]; // 0x0230 should hold up to 7(?) idk extra child entities
+	class CharData* main_child_entity; // 0x024C holds the main child entity, varies by character but its the puppets, arakune curse circle over enemy, etc. Some characters dont have it
+	char pad_0250[20]; // 0x0250
+
+	//exp 
 	int32_t facingLeft; //0x0264
 	int32_t position_x; //0x0268
 	int32_t position_y; //0x026C
