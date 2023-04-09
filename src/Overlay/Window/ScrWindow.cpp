@@ -965,14 +965,6 @@ void ScrWindow::DrawReplayTheaterSection() {
     }
 
 }
-
-struct gameStates {
-    CharData p1_chardata;
-    CharData p2_chardata;
-    unsigned int pFrameCount;
-    unsigned int pMatchTimer;
-
-};
 void toggle_char_distance_code(bool skip=true) {
     int bbcf_base = (int)GetBbcfBaseAdress();
     uintptr_t mem_replace = bbcf_base + 0x15AF4B;
@@ -988,50 +980,7 @@ void toggle_char_distance_code(bool skip=true) {
 }
 bool camera_adj_loop(CharData p1_prev_state, CharData p2_prev_state, unsigned int frameCount, unsigned int matchTimer, D3DXMATRIX viewMatrix, unsigned int CAM_LOOP_initFrame);
 std::vector<int> find_nearest_checkpoint(std::vector<unsigned int> frameCount);
-std::array<std::array<uint8_t, 12>, 3> get_camera_vals() {
-    auto bbcf_base_adress = GetBbcfBaseAdress();
-    char*** ptr_D3CAM_args = (char***)(bbcf_base_adress + 0x6128A8);
-    char* ptr_D3CAM_pos = **ptr_D3CAM_args + 0x4;
-    char* ptr_D3CAM_target = **ptr_D3CAM_args + 0x1C;
-    char* ptr_D3CAM_upVector = **ptr_D3CAM_args + 0x10;
-    std::array<uint8_t, 12> D3CAM_pos{};
-    std::array<uint8_t, 12>  D3CAM_target{};
-    std::array<uint8_t, 12>  D3CAM_upVector{};
-    for (int i = 0; i < 12; i++) {
-        D3CAM_pos[i] = *(ptr_D3CAM_pos + i);
-        D3CAM_target[i] = *(ptr_D3CAM_target + i);
-        D3CAM_upVector[i] = *(ptr_D3CAM_upVector + i);
-    }
-    std::array<std::array<uint8_t, 12>, 3> ret{ D3CAM_pos ,D3CAM_target ,D3CAM_upVector };
-    return ret;
-}
-std::array<uint8_t, 0xC> get_camera_mystery_vals0(){
-    auto bbcf_base_adress = GetBbcfBaseAdress();
-    char* mystery_val_base = bbcf_base_adress + 0xE3AA38;
-    std::array<uint8_t, 0xC> camera_mystery_vals0{};
-    for (int i = 0; i < 0xC; i++) {
-        camera_mystery_vals0[i] = *(mystery_val_base + i);
-    }
-    return camera_mystery_vals0;
-}
-std::array<uint8_t, 0x18> get_camera_mystery_vals1() {
-    auto bbcf_base_adress = GetBbcfBaseAdress();
-    char* mystery_val_base = bbcf_base_adress + 0xE3AA84;
-    std::array<uint8_t, 0x18> camera_mystery_vals1{};
-    for (int i = 0; i < 0x18; i++) {
-        camera_mystery_vals1[i] = *(mystery_val_base + i);
-    }
-    return camera_mystery_vals1;
-}
-std::array<uint8_t, 0x34> get_camera_mystery_vals2() {
-    auto bbcf_base_adress = GetBbcfBaseAdress();
-    char* mystery_val_base = bbcf_base_adress + 0xE3AAC0;
-    std::array<uint8_t, 0x34> camera_mystery_vals2{};
-    for (int i = 0; i < 0x34; i++) {
-        camera_mystery_vals2[i] = *(mystery_val_base + i);
-    }
-    return camera_mystery_vals2;
-}
+
 unsigned int count_entities() {
     if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
         std::vector<int*> entities{};
@@ -1063,34 +1012,8 @@ void ScrWindow::DrawReplayRewind() {
     static int prev_match_state;
     static bool rec = false;
     const int FRAME_STEP = 60;
-    struct prev_states {
-        std::vector<CharData> p1_prev_states;
-        std::vector<CharData> p2_prev_states;
-        std::vector<unsigned int> frameCount;
-        std::vector<unsigned int> matchTimer;
-
-
-        std::vector<std::array<uint8_t,12>> camPos;
-        std::vector<std::array<uint8_t, 12>> camTarget;
-        std::vector<std::array<uint8_t, 12>> camUpVector;
-        std::vector<D3DXMATRIX> viewMatrixes;
-        std::vector<std::array<uint8_t, 0xC>> cam_mystery_vals0; //bbcf.exe+e3aa38 to bbcf.exe + e3aa44
-        std::vector<std::array<uint8_t, 0x18>> cam_mystery_vals1; //bbcf.exe+e3aa84 to bbcf.exe + e3aa9C
-        std::vector<std::array<uint8_t, 0x34>> cam_mystery_vals2; //bbcf.exe + e3aac0 to bbcf.exe + e3aaf4 
-    };
-
-    static prev_states prev_states;
     auto bbcf_base_adress = GetBbcfBaseAdress();
     char* ptr_replay_theater_current_frame = bbcf_base_adress + 0x11C0348;
-    char*** ptr_D3CAM_args = (char***)(bbcf_base_adress + 0x6128A8);
-    char* ptr_D3CAM_pos = **ptr_D3CAM_args + 0x4;
-    char* ptr_D3CAM_target = **ptr_D3CAM_args + 0x1C;
-    char* ptr_D3CAM_upVector = **ptr_D3CAM_args + 0x10;
-    char* ptr_camera_mystery_val0 = bbcf_base_adress + 0xE3AA38;
-    char* ptr_camera_mystery_val1 = bbcf_base_adress + 0xE3AA84;
-    char* ptr_camera_mystery_val2 = bbcf_base_adress + 0xE3AAC0;
-    ///g_interfaces.pD3D9ExWrapper->GetViewport()
-    //static bool rec = false;
     static bool playing = false;
     static int curr_frame = *g_gameVals.pFrameCount;
     static int prev_frame;
@@ -1101,7 +1024,7 @@ void ScrWindow::DrawReplayRewind() {
     static unsigned int CAM_LOOP_currFrame = 0;
     static unsigned int CAM_LOOP_initFrame = 0;
 
-    static FrameState framestate;
+    static std::vector<std::shared_ptr<FrameState>> framestates;
 
     curr_frame = *g_gameVals.pFrameCount;
    
@@ -1110,16 +1033,8 @@ void ScrWindow::DrawReplayRewind() {
         *g_gameVals.pGameState != GameState_InMatch) {
         if (rec) {
             rec = false;
-            prev_states.p1_prev_states = {};
-            prev_states.p2_prev_states = {};
-            prev_states.frameCount = {};
-            prev_states.matchTimer = {};
-            prev_states.cam_mystery_vals0 = {};
-            prev_states.cam_mystery_vals1 = {};
-            prev_states.cam_mystery_vals2 = {};
-            prev_states.camPos = {};
-            prev_states.camTarget = {};
-            prev_states.camUpVector = {};
+            framestates = {};
+
             frames_recorded = 0;
             rewind_pos = 0;
             //force clear the vectors
@@ -1149,25 +1064,8 @@ void ScrWindow::DrawReplayRewind() {
     ///automatic start rec on round start + 4 frames to alleviate the loss of buffering during countdown
     if (*g_gameVals.pFrameCount == round_start_frame+4 && *g_gameVals.pMatchState == MatchState_Fight && rec == false) {
         rec = true;
-        prev_states.p1_prev_states.push_back(*g_interfaces.player1.GetData());
-        prev_states.p2_prev_states.push_back(*g_interfaces.player2.GetData());
         frames_recorded += 1;
-        prev_states.frameCount.push_back(*g_gameVals.pFrameCount);
-        prev_states.matchTimer.push_back(*g_gameVals.pMatchTimer);
-        prev_states.viewMatrixes.push_back(*g_gameVals.viewMatrix);
-        auto camArgs = get_camera_vals();
-        prev_states.camPos.push_back(camArgs[0]);
-        prev_states.camTarget.push_back(camArgs[1]);
-        prev_states.camUpVector.push_back(camArgs[2]);
-        prev_states.cam_mystery_vals0.push_back(get_camera_mystery_vals0());
-        prev_states.cam_mystery_vals1.push_back(get_camera_mystery_vals1());
-        prev_states.cam_mystery_vals2.push_back(get_camera_mystery_vals2());
-
-
-
-        framestate = FrameState();
-
-
+        framestates.push_back(std::make_shared<FrameState>());
         prev_frame = *g_gameVals.pFrameCount;
     }
     //automatic clear vector if change round or leave abruptly
@@ -1176,16 +1074,7 @@ void ScrWindow::DrawReplayRewind() {
         ||
         *g_gameVals.pGameState != GameState_InMatch) {
         rec = false;
-        prev_states.p1_prev_states = {};
-        prev_states.p2_prev_states = {};
-        prev_states.frameCount = {};
-        prev_states.matchTimer = {};
-        prev_states.cam_mystery_vals0 = {};
-        prev_states.cam_mystery_vals1 = {};
-        prev_states.cam_mystery_vals2 = {};
-        prev_states.camPos = {};
-        prev_states.camTarget = {};
-        prev_states.camUpVector = {};
+        framestates = {};
         frames_recorded = 0;
         rewind_pos = 0;
    }
@@ -1217,37 +1106,28 @@ void ScrWindow::DrawReplayRewind() {
     }*/
     ImGui::Text("Frame stack: +%d", frames_recorded * FRAME_STEP);
     ImGui::Text("Rewind pos: +%d", rewind_pos);
-    auto nearest_pos = find_nearest_checkpoint(prev_states.frameCount);
+    std::vector<unsigned int> frameCounts_temp{};
+    for (auto framestate : framestates) {
+        frameCounts_temp.push_back(framestate->frameCount);
+    }
+    auto nearest_pos = find_nearest_checkpoint(frameCounts_temp);
     ImGui::Text("Rewind checkpoint: %d    FF checkpoint(nearest): %d", nearest_pos[0],nearest_pos[1]);
    
 
     //calls the camera loop if applicable
     if (CAM_loop && *g_gameVals.pFrameCount > CAM_LOOP_currFrame) {
         auto pos = rewind_pos;
-        CAM_loop = camera_adj_loop(prev_states.p1_prev_states[pos], prev_states.p2_prev_states[pos], prev_states.frameCount[pos], prev_states.matchTimer[pos], prev_states.viewMatrixes[pos],CAM_LOOP_initFrame);
+        CAM_loop = camera_adj_loop(framestates[pos]->p1, framestates[pos]->p2, framestates[pos]->frameCount, framestates[pos]->matchTimer, framestates[pos]->viewMatrix,CAM_LOOP_initFrame);
         CAM_LOOP_currFrame = *g_gameVals.pFrameCount;
     }
 
     if (ImGui::Button("Rewind::experimental")) {
-
-        if (!prev_states.p1_prev_states.empty()) {
-            auto pos = find_nearest_checkpoint(prev_states.frameCount)[0];
+        if (!framestates.empty()) {
+            auto pos = find_nearest_checkpoint(frameCounts_temp)[0];
             if (pos != -1) {
-                CharData* pP1_char_data = g_interfaces.player1.GetData();
-                memcpy(pP1_char_data, &(prev_states.p1_prev_states[pos]), sizeof(CharData));
-                CharData* pP2_char_data = g_interfaces.player2.GetData();
-                memcpy(pP2_char_data, &(prev_states.p2_prev_states[pos]), sizeof(CharData));
 
 
-                memcpy(ptr_camera_mystery_val0, &(prev_states.cam_mystery_vals0[pos][0]), 0xC);
-                memcpy(ptr_camera_mystery_val1, &(prev_states.cam_mystery_vals1[pos][0]), 0x18);
-                memcpy(ptr_camera_mystery_val2, &(prev_states.cam_mystery_vals2[pos][0]), 0x34);
-                memcpy(ptr_D3CAM_pos, &(prev_states.camPos[pos][0]), 12);
-                memcpy(ptr_D3CAM_target, &(prev_states.camTarget[pos][0]), 12);
-                memcpy(ptr_D3CAM_upVector, &(prev_states.camUpVector[pos][0]), 12);
-                *g_gameVals.viewMatrix = prev_states.viewMatrixes[pos];
-
-
+                framestates[pos]->load_frame_state();
                 //starts the replay
                 char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
                 *replay_theather_speed = 0;
@@ -1260,24 +1140,13 @@ void ScrWindow::DrawReplayRewind() {
     }
     if (ImGui::Button("Fast Forward::experimental")) {
 
-        if (!prev_states.p1_prev_states.empty()) {
-            auto pos = find_nearest_checkpoint(prev_states.frameCount)[1];
+
+          if (!framestates.empty()) {
+              auto pos = find_nearest_checkpoint(frameCounts_temp)[0];
             if (pos != -1) {
-                CharData* pP1_char_data = g_interfaces.player1.GetData();
-                memcpy(pP1_char_data, &(prev_states.p1_prev_states[pos]), sizeof(CharData));
-                CharData* pP2_char_data = g_interfaces.player2.GetData();
-                memcpy(pP2_char_data, &(prev_states.p2_prev_states[pos]), sizeof(CharData));
 
 
-                memcpy(ptr_camera_mystery_val0, &(prev_states.cam_mystery_vals0[pos][0]), 0xC);
-                memcpy(ptr_camera_mystery_val1, &(prev_states.cam_mystery_vals1[pos][0]), 0x18);
-                memcpy(ptr_camera_mystery_val2, &(prev_states.cam_mystery_vals2[pos][0]), 0x34);
-                memcpy(ptr_D3CAM_pos, &(prev_states.camPos[pos][0]), 12);
-                memcpy(ptr_D3CAM_target, &(prev_states.camTarget[pos][0]), 12);
-                memcpy(ptr_D3CAM_upVector, &(prev_states.camUpVector[pos][0]), 12);
-                *g_gameVals.viewMatrix = prev_states.viewMatrixes[pos];
-
-
+                framestates[pos]->load_frame_state();
                 //starts the replay
                 char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
                 *replay_theather_speed = 0;
@@ -1290,30 +1159,11 @@ void ScrWindow::DrawReplayRewind() {
     }
     if (ImGui::Button("Restart Round::experimental")) {
 
-        if (!prev_states.p1_prev_states.empty()) {
+          if (!framestates.empty()) {
             auto pos = 0;
             if (pos != -1) {
-                /*CharData* pP1_char_data = g_interfaces.player1.GetData();
-                memcpy(pP1_char_data, &(prev_states.p1_prev_states[pos]), sizeof(CharData));
-                CharData* pP2_char_data = g_interfaces.player2.GetData();
-                memcpy(pP2_char_data, &(prev_states.p2_prev_states[pos]), sizeof(CharData));
-                *g_gameVals.viewMatrix = prev_states.viewMatrixes[pos];
 
-
-
-                memcpy(ptr_camera_mystery_val0, &(prev_states.cam_mystery_vals0[pos][0]), 0xC);
-                memcpy(ptr_camera_mystery_val1, &(prev_states.cam_mystery_vals1[pos][0]), 0x18);
-                memcpy(ptr_camera_mystery_val2, &(prev_states.cam_mystery_vals2[pos][0]), 0x34);
-
-
-
-                memcpy(ptr_D3CAM_pos, &(prev_states.camPos[pos][0]), 12);
-                memcpy(ptr_D3CAM_target, &(prev_states.camTarget[pos][0]), 12);
-                memcpy(ptr_D3CAM_upVector, &(prev_states.camUpVector[pos][0]), 12);
-
-
-                *g_gameVals.viewMatrix = prev_states.viewMatrixes[pos];*/
-                framestate.load_frame_state();
+                framestates[pos]->load_frame_state();
                 //starts the replay
                 char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
                 *replay_theather_speed = 0;
@@ -1325,23 +1175,10 @@ void ScrWindow::DrawReplayRewind() {
         }
     }
 
-    if (rec && prev_states.p1_prev_states.size() < 1200) {
-        if (curr_frame == prev_frame + 60) {
-            prev_states.p1_prev_states.push_back(*g_interfaces.player1.GetData());
-            prev_states.p2_prev_states.push_back(*g_interfaces.player2.GetData());
-            prev_states.frameCount.push_back(*g_gameVals.pFrameCount);
-            prev_states.matchTimer.push_back(*g_gameVals.pMatchTimer);
-            prev_states.viewMatrixes.push_back(*g_gameVals.viewMatrix);
-            
-            prev_states.cam_mystery_vals0.push_back(get_camera_mystery_vals0());
-            prev_states.cam_mystery_vals1.push_back(get_camera_mystery_vals1());
-            prev_states.cam_mystery_vals2.push_back(get_camera_mystery_vals2());
-            auto camArgs = get_camera_vals();
-            prev_states.camPos.push_back(camArgs[0]);
-            prev_states.camTarget.push_back(camArgs[1]);
-            prev_states.camUpVector.push_back(camArgs[2]);
+    if (rec && framestates.size() < 1200) {
+        if (curr_frame >= prev_frame + 60) {
 
-
+            framestates.push_back(std::make_shared<FrameState>());
 
             frames_recorded += 1;
             rewind_pos += 1;
