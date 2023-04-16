@@ -18,8 +18,8 @@ class FrameState {
 public:
     CharData p1;
     CharData p2;
-    std::map<CharData*, CharData> ownedEntites;
-    std::shared_ptr<std::array<EntityData, 250>> full_entity_list;
+    //std::map<CharData*, CharData> ownedEntites;
+    //std::shared_ptr<std::array<EntityData, 250>> full_entity_list;
     std::shared_ptr<std::map<EntityData*, EntityData>> full_entity_map;
     std::array<size_t, 252> secondary_entity_pointers_list;
     //std::vector<uint8_t> savedpEntityList;

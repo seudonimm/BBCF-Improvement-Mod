@@ -48,11 +48,9 @@ public:
 	//exp
 	char pad_01EC[4];
 	class CharData* enemyChar; //0x01F0 dont know exactly what it is yet, just that it is checked and I need to save it 
-	char pad_01F4[58]; //0x01F4
+	char pad_01F4[54]; //0x01F4 
 
 	//char pad_01EC[64];
-	//0x01F0 significant?
-
 	class CharData* last_child_entity_spawned; // 0x022C not 100% yet
 	class CharData* extra_child_entities[7]; // 0x0230 should hold up to 7(?) idk extra child entities
 	class CharData* main_child_entity; // 0x024C holds the main child entity, varies by character but its the puppets, arakune curse circle over enemy, etc. Some characters dont have it
@@ -60,7 +58,7 @@ public:
 
 	//0x0254 significant?
 	//exp 
-	int32_t facingLeft; //0x0264
+	int32_t facingLeft; //0x0264 is it not facing right?
 	int32_t position_x; //0x0268
 	int32_t position_y; //0x026C
 	char pad_0270[4]; //0x0270

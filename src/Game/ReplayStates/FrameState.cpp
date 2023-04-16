@@ -190,7 +190,7 @@ void FrameState::load_frame_state(bool round_start= false) {
         }*/
         if (round_start) {
             for (auto& entity : *full_entity_map) {
-                if (entity.first != NULL && entity.first->unknownStatus1 && entity.first->enemyChar != NULL) {
+                if (entity.first != NULL /*&& entity.first->unknownStatus1*/ && entity.first->enemyChar != NULL) {
                     entity.second.enemyChar = entity.first->enemyChar;
                 }
                 memcpy(entity.first, &entity.second, sizeof(EntityData));

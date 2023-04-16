@@ -995,7 +995,7 @@ unsigned int count_entities() {
         auto tst = entities_char_data[0];
         auto r = 0;
         for (auto entity : entities_char_data) {
-            if ((*entity)->unknownStatus1 != NULL && (*entity)->unknownStatus1 != 0) {
+            if ((*entity)->unknownStatus1 != NULL) {
                 r++;
             }
         }
@@ -1138,6 +1138,25 @@ void ScrWindow::DrawReplayRewind() {
             }
         }
     }
+#ifdef _DEBUG
+    if (ImGui::Button("Rewind with entities::experimental")) {
+        if (!framestates.empty()) {
+            auto pos = find_nearest_checkpoint(frameCounts_temp)[0];
+            if (pos != -1) {
+
+
+                framestates[pos]->load_frame_state(true);
+                //starts the replay
+                char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
+                *replay_theather_speed = 0;
+                rewind_pos = pos;
+                CAM_loop = true;
+                CAM_LOOP_currFrame = 0;
+                CAM_LOOP_initFrame = *g_gameVals.pFrameCount;
+            }
+        }
+    }
+#endif
     if (ImGui::Button("Fast Forward::experimental")) {
 
 
@@ -1269,6 +1288,7 @@ void ScrWindow::DrawVeryExperimentalSection2() {
         D3DXMATRIX viewMatrixes;
     };
     static states state{};
+    static std::unique_ptr<FrameState> framestate;
     char* bbcf_base = GetBbcfBaseAdress();
     static std::vector<char> replay_action_load{};
     char* r1p1_start = bbcf_base + 0x115B470 + 0x8d4;
@@ -1278,6 +1298,7 @@ void ScrWindow::DrawVeryExperimentalSection2() {
     ImGui::Text("time: %d", *g_gameVals.pMatchTimer);
     if (ImGui::Button("save state")) {
         if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
+            framestate = std::make_unique<FrameState>(FrameState());
             state.p1 = *g_interfaces.player1.GetData();
             state.p2 = *g_interfaces.player2.GetData();
 
@@ -1298,6 +1319,12 @@ void ScrWindow::DrawVeryExperimentalSection2() {
             auto len_replay = replay_action_load.size();
             //memcpy(start_of_slot_inputs, &replay_action_load[0], 0x400);
             //facing dir on replay start
+            /*auto p1ec = &(g_interfaces.player2.GetData()->pad_01EC);
+            auto lces = &(g_interfaces.player2.GetData()->last_child_entity_spawned);
+            auto ece = &(g_interfaces.player2.GetData()->extra_child_entities);
+            auto p250 = &(g_interfaces.player2.GetData()->pad_0250);
+            auto fl = &(g_interfaces.player2.GetData()->facingLeft);*/
+
             memcpy(bbcf_base + 0x9075D8, &g_interfaces.player2.GetData()->facingLeft, 1);
             memcpy(bbcf_base + 0x9075E8, &len_replay, 4);
             //memcpy(start_of_slot_inputs, r1p2_start + *g_gameVals.pFrameCount,0x400);
@@ -1329,7 +1356,7 @@ void ScrWindow::DrawVeryExperimentalSection2() {
                 p1->position_y_dupe = state.p2.position_y_dupe;
             }
             else {
-                *g_interfaces.player1.GetData() = state.p1;
+                /**g_interfaces.player1.GetData() = state.p1;
                 g_interfaces.player1.GetData()->position_x = state.p1.position_x;
                 g_interfaces.player1.GetData()->position_x = state.p1.position_y;
                 g_interfaces.player2.GetData()->position_x = state.p2.position_x;
@@ -1338,26 +1365,9 @@ void ScrWindow::DrawVeryExperimentalSection2() {
                 *g_interfaces.player1.GetData() = state.p1;
                 *g_interfaces.player2.GetData() = state.p2;
                 memcpy(g_interfaces.player1.GetData(), &state.p1, 0x2084);
-                memcpy(g_interfaces.player2.GetData(), &state.p2, 0x2084);
+                memcpy(g_interfaces.player2.GetData(), &state.p2, 0x2084);*/
 
-
-                //*g_interfaces.player1.GetData()->currentAction = *state.p1.currentAction;
-                //*g_interfaces.player1.GetData()->currentAction = *state.p1.currentAction;
-                /*memcpy(g_interfaces.player1.GetData(), &state.p1, 0x6d8);
-                memcpy(g_interfaces.player2.GetData(), &state.p2, 0x6d8);
-
-                memcpy(&g_interfaces.player1.GetData()->currentScriptActionLocationInMemory, &state.p1.currentScriptActionLocationInMemory, 0x10);
-                memcpy(&g_interfaces.player2.GetData()->currentScriptActionLocationInMemory, &state.p2.currentScriptActionLocationInMemory, 0x10);
-
-                
-                memcpy(&g_interfaces.player1.GetData()->lastAction, &state.p1.lastAction, 0x14);
-                memcpy(&g_interfaces.player2.GetData()->lastAction, &state.p2.lastAction, 0x14);
-
-                memcpy(&g_interfaces.player1.GetData()->currentAction, &state.p1.currentAction, 0x14);
-                memcpy(&g_interfaces.player2.GetData()->currentAction, &state.p2.currentAction, 0x14);
-
-                memcpy(&g_interfaces.player1.GetData()->char_abbr, &state.p1.char_abbr, 0x4);
-                memcpy(&g_interfaces.player2.GetData()->char_abbr, &state.p2.char_abbr, 0x4);*/
+                framestate->load_frame_state(false);
 
             }
             
@@ -1381,6 +1391,74 @@ void ScrWindow::DrawVeryExperimentalSection2() {
            int slot = 0;
            memcpy(active_slot, &slot, 4);
            memcpy(playback_control_ptr, &val_set, 2);
+
+
+
+
+
+
+
+
+
+        }
+
+
+
+    }
+    if (ImGui::Button("load state full")) {
+        if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
+            if (g_gameVals.isP1CPU) {
+                auto p1 = g_interfaces.player1.GetData();
+                auto p2 = g_interfaces.player2.GetData();
+                g_interfaces.player2.GetData()->position_x = state.p1.position_x;
+                g_interfaces.player2.GetData()->position_x = state.p1.position_y;
+                g_interfaces.player2.GetData()->position_x = state.p1.position_y;
+                p2->position_x_dupe = state.p1.position_x_dupe;
+                p2->position_y_dupe = state.p1.position_y_dupe;
+
+
+
+                g_interfaces.player1.GetData()->position_x = state.p2.position_x;
+                g_interfaces.player1.GetData()->position_x = state.p2.position_y;
+                p1->position_x_dupe = state.p2.position_x_dupe;
+                p1->position_y_dupe = state.p2.position_y_dupe;
+            }
+            else {
+                /**g_interfaces.player1.GetData() = state.p1;
+                g_interfaces.player1.GetData()->position_x = state.p1.position_x;
+                g_interfaces.player1.GetData()->position_x = state.p1.position_y;
+                g_interfaces.player2.GetData()->position_x = state.p2.position_x;
+                g_interfaces.player2.GetData()->position_x = state.p2.position_y;
+
+                *g_interfaces.player1.GetData() = state.p1;
+                *g_interfaces.player2.GetData() = state.p2;
+                memcpy(g_interfaces.player1.GetData(), &state.p1, 0x2084);
+                memcpy(g_interfaces.player2.GetData(), &state.p2, 0x2084);*/
+
+                framestate->load_frame_state(true);
+
+            }
+
+            for (int i = 0; i < 0x200; i++) {
+                //char* r1p2_curr_action = r1p2_start + (*g_gameVals.pFrameCount + i) * 2;
+                char* r1p2_curr_action = r1p2_start + (*g_gameVals.pFrameCount + i) * 2;
+                int time_count_slot_1_addr_offset = 0x9075E8;
+                char* start_of_slot_inputs = bbcf_base + time_count_slot_1_addr_offset + 0x10;
+
+
+
+                start_of_slot_inputs[i * 2] = (int32_t)replay_action_load[i];
+                //memcpy(start_of_slot_inputs, &replay_action_load[i]);
+                //memcpy(start_of_slot_inputs, r1p2_curr_action, 4);
+                //memcpy(start_of_slot_inputs, r1p2_curr_action, 2);
+            }
+
+            char* active_slot = bbcf_base + 0x902C3C;
+            char* playback_control_ptr = bbcf_base + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment, 0 for dummy, 1 for recording standby, 2 for bugged recording, 3 for playback, 4 for controller, 5 for cpu, 6 for continuous playback
+            int val_set = 3;
+            int slot = 0;
+            memcpy(active_slot, &slot, 4);
+            memcpy(playback_control_ptr, &val_set, 2);
 
 
 

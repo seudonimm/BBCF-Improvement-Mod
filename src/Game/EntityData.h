@@ -48,12 +48,7 @@ public:
 	//exp
 	char pad_01EC[4];
 	class CharData* enemyChar; //0x01F0 dont know exactly what it is yet, just that it is checked and I need to save it 
-	char pad_01F4[58]; //0x01F4
-
-	//0x01F0 significant?
-	//char pad_01EC[4]; // 0x0250
-
-	//class CharData* owner_again; //0x01F0 dont know exactly what it is yet, just that it is checked and I need to save it 
+	char pad_01F4[54]; //0x01F4
 
 	//char pad_0258[12]; //0x0258
 	class CharData* last_child_entity_spawned; // 0x022C not 100% yet
@@ -63,7 +58,7 @@ public:
 	
 	//0x0254 significant?
 	//exp 
-	int32_t facingLeft; //0x0264
+	int32_t facingLeft; //0x0264 is it not facing right?
 	int32_t position_x; //0x0268
 	int32_t position_y; //0x026C
 	char pad_0270[4]; //0x0270
