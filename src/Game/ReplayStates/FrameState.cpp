@@ -7,6 +7,8 @@
 #include <iostream>
 #include <fstream>
 #include <array>
+#include <map>
+#include <memory>
 #include "FrameState.h"
 
 FrameState::FrameState() {
@@ -25,6 +27,32 @@ FrameState::FrameState() {
         cam_mystery_vals0 = FrameState::get_camera_mystery_vals0();
         cam_mystery_vals1 = FrameState::get_camera_mystery_vals1();
         cam_mystery_vals2 = FrameState::get_camera_mystery_vals2();
+
+        //ownedEntites = save_owned_entities();
+        //gets first non player entity adress: 
+        //entity data is not actually CharData sized!! they prob share a superclass
+        auto entity_size = 0x2248;
+        //full_entity_list = std::make_shared< std::array<EntityData, 250>>();
+        full_entity_map = std::make_shared<std::map<EntityData*, EntityData>>();
+
+        int* first_entity = *((int**)(g_gameVals.pEntityList + (2)));
+        int* last_entity = *((int**)(g_gameVals.pEntityList + (251)));
+
+        for (int i = 0; i < 250; i++){ 
+            EntityData** entity = (EntityData**)(g_gameVals.pEntityList + (2) + i);
+            (*full_entity_map)[*entity] = **entity;
+            
+            }
+        
+        
+        //memcpy(&(*full_entity_list)[0], first_entity, last_entity - first_entity);
+
+        //secondary_entity_pointers_list = std::array<size_t, 252> {};
+
+       /* int* secondary_entity_pointers_list_start = g_gameVals.pEntityList + 254;
+        memcpy(&secondary_entity_pointers_list[0], secondary_entity_pointers_list_start, 252);*/
+
+
     }
 }
 
@@ -74,9 +102,48 @@ std::array<uint8_t, 0x34> FrameState::get_camera_mystery_vals2() {
     }
     return camera_mystery_vals2;
 }
+std::map<CharData*, CharData> FrameState::save_owned_entities() {
+    std::map<CharData*, CharData> ownedEntities{};
+    //p1 direct owned entities
+    CharData* player1 = g_interfaces.player1.GetData();
+    CharData* player2 = g_interfaces.player2.GetData();
+    CharData* players[2] = { player1, player2 };
+    for (auto& player : players) {
+
+            if (player->last_child_entity_spawned != NULL) {
+            ownedEntities[player->last_child_entity_spawned] = *player->last_child_entity_spawned;
+            }
+            if (player->main_child_entity != NULL) {
+                ownedEntities[player->main_child_entity] = *player->main_child_entity;
+            }
+
+            for (auto& extraEntity : player->extra_child_entities) {
+                if (extraEntity != NULL) {
+                    ownedEntities[extraEntity] = *extraEntity;
+                }
+            }
+        }
+    std::vector<CharData**> entities{};// = *g_gameVals.pEntityList;
+    for (int i = 0; i < 252; i++) {
+        entities.push_back((CharData**)(g_gameVals.pEntityList+i));
+    }
+    //general entities
+    /*for (auto entity : entities) {
+        if (entity != NULL) {
+            if ((*entity)->ownerEntity != NULL) {
+                ownedEntities[*entity] = **entity;
+            }
+        }
+    }*/
 
 
-void FrameState::load_frame_state() {
+
+
+    
+    return ownedEntities;
+}
+
+void FrameState::load_frame_state(bool round_start= false) {
     if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()){
         auto bbcf_base_adress = GetBbcfBaseAdress();
         char* ptr_replay_theater_current_frame = bbcf_base_adress + 0x11C0348;
@@ -88,6 +155,9 @@ void FrameState::load_frame_state() {
         char* ptr_camera_mystery_val1 = bbcf_base_adress + 0xE3AA84;
         char* ptr_camera_mystery_val2 = bbcf_base_adress + 0xE3AAC0;
 
+        //maybe clear all the other entities before putting those back in?
+        //must check if the pEntityList really is static after round start
+        //try as alternative to copy all entities?
 
         CharData* pP1_char_data = g_interfaces.player1.GetData();
         memcpy(pP1_char_data, &(p1), sizeof(CharData));
@@ -102,5 +172,40 @@ void FrameState::load_frame_state() {
         memcpy(ptr_D3CAM_target, &(camTarget[0]), 12);
         memcpy(ptr_D3CAM_upVector, &(camUpVector[0]), 12);
         *g_gameVals.viewMatrix = viewMatrix;
+
+        // ownedEntites = save_owned_entities();
+        //gets first non player etity adress: 
+        int* first_entity = *((int**)(g_gameVals.pEntityList + (2)));
+        int* last_entity = *((int**)(g_gameVals.pEntityList + (251)));
+        //just say they are from player 1 to stop the check from failing, need to change later
+        /*for (auto& entity : *full_entity_list) {
+            entity.enemyChar = g_interfaces.player1.GetData();
+        }*/
+        //EntityData* hardcoded = (EntityData*)0x24665270;
+        /*int iter = 0;
+        for (auto saved_entity : *full_entity_list) {
+            EntityData** current_entity = (EntityData**)(g_gameVals.pEntityList + (2) + iter);
+            saved_entity.enemyChar = (*current_entity)->enemyChar;
+            iter++;
+        }*/
+        if (round_start) {
+            for (auto& entity : *full_entity_map) {
+                if (entity.first != NULL && entity.first->unknownStatus1 && entity.first->enemyChar != NULL) {
+                    entity.second.enemyChar = entity.first->enemyChar;
+                }
+                memcpy(entity.first, &entity.second, sizeof(EntityData));
+            }
+        }
+       // memcpy(first_entity, &(*full_entity_list)[0], last_entity - first_entity);//copies all the values in
+        
+       
+       //memcpy(&(hardcoded->enemyChar), g_interfaces.player1.GetData(), 4);
+        /*int* secondary_entity_pointers_list_start = g_gameVals.pEntityList + 254;
+        memcpy(secondary_entity_pointers_list_start, &secondary_entity_pointers_list[0], 252);*/
+
+
+        /*for (auto& entity : ownedEntites) {
+            memcpy(entity.first, &entity.second, sizeof(CharData));
+        }*/
     }
 }

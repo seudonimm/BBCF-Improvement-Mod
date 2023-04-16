@@ -3,9 +3,12 @@
 #include "Core/Settings.h"
 #include "Core/utils.h"
 #include "Game/gamestates.h"
+#include "Game/EntityData.h"
 #include <ctime>
 #include <cstdlib>
 #include <array>
+#include <map>
+#include <memory>
 struct ChildEntity {
     uint8_t offset_ownerEntity;
     uint8_t offset_pEntityList;
@@ -15,6 +18,12 @@ class FrameState {
 public:
     CharData p1;
     CharData p2;
+    std::map<CharData*, CharData> ownedEntites;
+    std::shared_ptr<std::array<EntityData, 250>> full_entity_list;
+    std::shared_ptr<std::map<EntityData*, EntityData>> full_entity_map;
+    std::array<size_t, 252> secondary_entity_pointers_list;
+    //std::vector<uint8_t> savedpEntityList;
+
     unsigned int frameCount;
     unsigned int matchTimer;
 
@@ -28,11 +37,10 @@ public:
     std::array<uint8_t, 0x34> cam_mystery_vals2;//bbcf.exe + e3aac0 to bbcf.exe + e3aaf4 
 
 
-
     FrameState();
+    std::map<CharData*, CharData> save_owned_entities();
 
-
-    void load_frame_state();
+    void load_frame_state(bool round_start);
 
     static std::array<std::array<uint8_t, 12>, 3> get_camera_vals();
 
@@ -41,4 +49,5 @@ public:
     static std::array<uint8_t, 0x18> get_camera_mystery_vals1();
 
     static std::array<uint8_t, 0x34> get_camera_mystery_vals2();
+
 };

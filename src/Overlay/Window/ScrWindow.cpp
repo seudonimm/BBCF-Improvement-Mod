@@ -887,7 +887,7 @@ void ScrWindow::DrawPlaybackSection() {
             
         }
 }
-}
+} 
 //void get_files_in_directory(char** items) {
 //    std::string path = "./Save/Replay/locals";
 //    //char items[500] = {};
@@ -995,7 +995,7 @@ unsigned int count_entities() {
         auto tst = entities_char_data[0];
         auto r = 0;
         for (auto entity : entities_char_data) {
-            if ((*entity)->ownerEntity != NULL) {
+            if ((*entity)->unknownStatus1 != NULL && (*entity)->unknownStatus1 != 0) {
                 r++;
             }
         }
@@ -1008,7 +1008,7 @@ void ScrWindow::DrawReplayRewind() {
 
     if (!ImGui::CollapsingHeader("Replay Rewind::experimental"))
         return;
-    ImGui::Text("Entities with owner: %d",count_entities());
+    ImGui::Text("Active entities: %d",count_entities());
     static int prev_match_state;
     static bool rec = false;
     const int FRAME_STEP = 60;
@@ -1127,7 +1127,7 @@ void ScrWindow::DrawReplayRewind() {
             if (pos != -1) {
 
 
-                framestates[pos]->load_frame_state();
+                framestates[pos]->load_frame_state(false);
                 //starts the replay
                 char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
                 *replay_theather_speed = 0;
@@ -1146,7 +1146,7 @@ void ScrWindow::DrawReplayRewind() {
             if (pos != -1) {
 
 
-                framestates[pos]->load_frame_state();
+                framestates[pos]->load_frame_state(false);
                 //starts the replay
                 char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
                 *replay_theather_speed = 0;
@@ -1163,7 +1163,7 @@ void ScrWindow::DrawReplayRewind() {
             auto pos = 0;
             if (pos != -1) {
 
-                framestates[pos]->load_frame_state();
+                framestates[pos]->load_frame_state(true);
                 //starts the replay
                 char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
                 *replay_theather_speed = 0;

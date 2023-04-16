@@ -2,7 +2,7 @@
 #include <cstdint>
 // Generated using ReClass 2015
 
-class CharData
+class EntityData
 {
 public:
 	class OBJ_CCharBase* objCharbase; //0x0000
@@ -50,14 +50,17 @@ public:
 	class CharData* enemyChar; //0x01F0 dont know exactly what it is yet, just that it is checked and I need to save it 
 	char pad_01F4[58]; //0x01F4
 
-	//char pad_01EC[64];
 	//0x01F0 significant?
+	//char pad_01EC[4]; // 0x0250
 
+	//class CharData* owner_again; //0x01F0 dont know exactly what it is yet, just that it is checked and I need to save it 
+
+	//char pad_0258[12]; //0x0258
 	class CharData* last_child_entity_spawned; // 0x022C not 100% yet
 	class CharData* extra_child_entities[7]; // 0x0230 should hold up to 7(?) idk extra child entities
 	class CharData* main_child_entity; // 0x024C holds the main child entity, varies by character but its the puppets, arakune curse circle over enemy, etc. Some characters dont have it
 	char pad_0250[20]; // 0x0250
-
+	
 	//0x0254 significant?
 	//exp 
 	int32_t facingLeft; //0x0264
@@ -136,61 +139,4 @@ public:
 	char currentAction[20]; //0x2070
 	char pad_2084[452]; //0x2084
 	char char_abbr[4]; //0x2248
-	char pad_224C[40]; //0x224C
-
-	//thanks to kding0
-	int32_t blockstun; //0x2274
-	char pad_2278[12024]; //0x2278
-	int32_t hitstun; //0x5170
-	char pad_5174[160]; //0x5174
-	int32_t defaultProration[6]; //0x5214-0x5227, for Lv0-Lv5
-	char pad_5228[1348]; //0x5228
-	int32_t hitCount; //0x5770
-	int32_t hitCount2; //0x5774
-	int32_t timeAfterTechIsPerformed; //0x5778
-	int32_t timeAfterLatestHit; //0x577C
-	int32_t comboDamage; //0x5780
-	int32_t comboDamage2; //0x5784
-	int32_t lastcomboDamage; //0x5788
-	int32_t comboProration; //0x578C
-	int32_t starterRating; //0x5790
-	int32_t comboTime; //0x5794
-	int32_t singleHitDamage; //0x5798
-	char pad_579C[4]; //0x579C
-	int32_t realTimeComboTime; //0x57A0; THIS IS NOT COMBO TIME!
-	int32_t heatGeneratedForCombo; //0x57A4; this does not take heatGainCooldown into account
-	char pad_57A4[56]; //0x57A4
-	char hitByWhichAction[32]; //0x57E0
-	char pad_5800[28]; //0x5800
-	char sameMoveProrationStack[32]; //0x581C; idk how long the stack is but it's pretty long lmao
-	char pad_583C[664]; //0x583C
-
-
-
-
-
-
-
-
-
-	int32_t heatMeter; //0x5AD4
-	char pad_5AD8[4]; //0x5AD8
-	int32_t heatGainCooldown; //0x5ADC
-	char pad_5AE0[4]; //0x5AE0
-	int32_t overdriveMeter; //0x5AE4
-	char pad_5AE8[16]; //0x5AE8
-	int32_t overdriveMaxtime; //0x5AF8
-	char pad_5AFC[8]; //0x5AFC
-	int32_t barrier; //0x5B04
-	char pad_5B08[102072]; //0x5b08
-	int32_t slot2_or_slot4; //0x1E9C0 referring to the scr SLOTs, naoto only for now until i figure out more about this shit 
-	char pad_1E9C4[5960]; //0x1E9C4 108036
-	int32_t Drive1; //0x2010C
-	char pad_20110[12]; //0x20110
-	int32_t Drive1_type; //0x2011C
-	char pad_20120[16]; //0x20120
-	int32_t Drive2; //0x20130
-	char pad_20134[32]; //0x20134
-	int32_t Drive3; //0x20154
-	char pad_20158[4972]; //0x20158
-}; //Size: 0x214C4
+}; //Size: 0x2248

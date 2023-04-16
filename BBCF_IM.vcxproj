@@ -96,6 +96,7 @@
     <ClInclude Include="src\Game\Scr\ScrStateEntry.h" />
     <ClInclude Include="src\Game\Scr\ScrStateReader.h" />
     <ClInclude Include="src\Game\stages.h" />
+    <ClInclude Include="src\Game\EntityData.h" />
     <ClInclude Include="src\Network\OnlineGameModeManager.h" />
     <ClInclude Include="src\Overlay\NotificationBar\NotificationBar.h" />
     <ClInclude Include="src\Overlay\Widget\ActiveGameModeWidget.h" />

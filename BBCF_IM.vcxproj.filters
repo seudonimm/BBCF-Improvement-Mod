@@ -257,6 +257,7 @@
     <ClInclude Include="src\Game\Scr\ScrStateReader.h" />
     <ClInclude Include="src\Overlay\Window\ScrWindow.h" />
     <ClInclude Include="src\Game\ReplayStates\FrameState.h" />
+    <ClInclude Include="src\Game\EntityData.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="export\dinput8.def">
