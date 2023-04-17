@@ -978,10 +978,27 @@ void toggle_char_distance_code(bool skip=true) {
     }
     //ps az on left corner mai pushing out x pos  p1 in: FFE53887 //p1 out : FFF93D88
 }
+
+
+void toggle_unknown2_asm_code() {
+    int bbcf_base = (int)GetBbcfBaseAdress();
+    uintptr_t mem_replace = bbcf_base + 0x196634;
+    //checks if replay is paused
+    char* replay_theather_speed = (char*)bbcf_base + 0x11C0350;
+
+    if (*replay_theather_speed == 1) {
+        char skip[] = "\x90\x90\x90\x90\x90\x90\x90"; 
+        WriteToProtectedMemory(mem_replace, skip, 7);
+    }
+    else {
+        char orig[] = "\x83\x8F\x54\x01\x00\x00\x02";
+        WriteToProtectedMemory(mem_replace, orig, 7);
+    }
+}
 bool camera_adj_loop(CharData p1_prev_state, CharData p2_prev_state, unsigned int frameCount, unsigned int matchTimer, D3DXMATRIX viewMatrix, unsigned int CAM_LOOP_initFrame);
 std::vector<int> find_nearest_checkpoint(std::vector<unsigned int> frameCount);
 
-unsigned int count_entities() {
+unsigned int count_entities(bool unk_status2) {
     if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
         std::vector<int*> entities{};
         std::vector<CharData**> entities_char_data{};
@@ -996,7 +1013,14 @@ unsigned int count_entities() {
         auto r = 0;
         for (auto entity : entities_char_data) {
             if ((*entity)->unknownStatus1 != NULL) {
-                r++;
+                if (unk_status2) {
+                    if ((*entity)->unknown_status2 != NULL && (*entity)->unknown_status2 == 2) {
+                        r++;
+                    }
+                }
+                else {
+                    r++;
+                }
             }
         }
         return r;
@@ -1006,9 +1030,10 @@ unsigned int count_entities() {
 }
 void ScrWindow::DrawReplayRewind() {
 
-    if (!ImGui::CollapsingHeader("Replay Rewind::experimental"))
+    if (!ImGui::CollapsingHeader("Replay Rewind"))
         return;
-    ImGui::Text("Active entities: %d",count_entities());
+    ImGui::Text("Active entities: %d",count_entities(false));
+    ImGui::Text("Active entities with unk_status2 = 2: %d", count_entities(true));
     static int prev_match_state;
     static bool rec = false;
     const int FRAME_STEP = 60;
@@ -1025,7 +1050,9 @@ void ScrWindow::DrawReplayRewind() {
     static unsigned int CAM_LOOP_initFrame = 0;
 
     static std::vector<std::shared_ptr<FrameState>> framestates;
-
+    if (*g_gameVals.pGameMode == GameMode_ReplayTheater && *g_gameVals.pMatchState == MatchState_Fight) {
+        toggle_unknown2_asm_code();
+    }
     curr_frame = *g_gameVals.pFrameCount;
    
     if (*g_gameVals.pGameMode != GameMode_ReplayTheater || 
@@ -1121,7 +1148,7 @@ void ScrWindow::DrawReplayRewind() {
         CAM_LOOP_currFrame = *g_gameVals.pFrameCount;
     }
 
-    if (ImGui::Button("Rewind::experimental")) {
+    if (ImGui::Button("Rewind without entities")) {
         if (!framestates.empty()) {
             auto pos = find_nearest_checkpoint(frameCounts_temp)[0];
             if (pos != -1) {
@@ -1138,7 +1165,7 @@ void ScrWindow::DrawReplayRewind() {
             }
         }
     }
-#ifdef _DEBUG
+//#ifdef _DEBUG
     if (ImGui::Button("Rewind with entities::experimental")) {
         if (!framestates.empty()) {
             auto pos = find_nearest_checkpoint(frameCounts_temp)[0];
@@ -1156,7 +1183,7 @@ void ScrWindow::DrawReplayRewind() {
             }
         }
     }
-#endif
+//#endif
     if (ImGui::Button("Fast Forward::experimental")) {
 
 
@@ -1176,7 +1203,7 @@ void ScrWindow::DrawReplayRewind() {
             }
         }
     }
-    if (ImGui::Button("Restart Round::experimental")) {
+    if (ImGui::Button("Restart Round")) {
 
           if (!framestates.empty()) {
             auto pos = 0;

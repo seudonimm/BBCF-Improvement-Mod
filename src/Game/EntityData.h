@@ -8,7 +8,7 @@ public:
 	class OBJ_CCharBase* objCharbase; //0x0000
 	int32_t frame_count_minus_1; //thanks to kding0
 	int32_t hitstop; //thanks to kding0
-	char pad_0004[4]; //0x0004
+	char pad_0008[4]; //0x0004
 	int32_t unknownStatus1; //0x0010
 	char pad_0014[4]; //0x0014
 	int32_t stateChangedCount; //0x0018
@@ -21,10 +21,14 @@ public:
 	uint32_t hitboxCount; //0x0098
 	char pad_009C[60]; //0x009C
 	char* current_sprite_img; //0x00D8
+	char pad_00DC[120]; //0x00DC
+	char unknown_status2; //0x0154  compared if 2 or not?
+	char pad_0158[8]; ///0x0158
 
-
-
-	char pad_015C[132]; //0x015C
+	
+	
+	//char pad_00DC[132]; 0x00DC[132]
+	//char pad_015C[132]; //0x015C
 	int32_t actionTime; //0x0160
 	int32_t actionTime2; //0x0164
 	int32_t actionTimeNoHitstop; //0x0170

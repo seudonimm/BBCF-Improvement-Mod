@@ -178,34 +178,23 @@ void FrameState::load_frame_state(bool round_start= false) {
         int* first_entity = *((int**)(g_gameVals.pEntityList + (2)));
         int* last_entity = *((int**)(g_gameVals.pEntityList + (251)));
         //just say they are from player 1 to stop the check from failing, need to change later
-        /*for (auto& entity : *full_entity_list) {
-            entity.enemyChar = g_interfaces.player1.GetData();
-        }*/
-        //EntityData* hardcoded = (EntityData*)0x24665270;
-        /*int iter = 0;
-        for (auto saved_entity : *full_entity_list) {
-            EntityData** current_entity = (EntityData**)(g_gameVals.pEntityList + (2) + iter);
-            saved_entity.enemyChar = (*current_entity)->enemyChar;
-            iter++;
-        }*/
         if (round_start) {
             for (auto& entity : *full_entity_map) {
-                if (entity.first != NULL /*&& entity.first->unknownStatus1*/ && entity.first->enemyChar != NULL) {
+                if (entity.first != NULL 
+                    /*&& entity.first->unknownStatus1*/ 
+                    && entity.first->enemyChar != NULL
+                    ) {
                     entity.second.enemyChar = entity.first->enemyChar;
+                    memcpy(entity.first, &entity.second, sizeof(EntityData));
                 }
-                memcpy(entity.first, &entity.second, sizeof(EntityData));
+                if (entity.first != NULL && entity.first->unknown_status2 == 2) {
+                    ///really need further insight into the unknown status 2
+                    entity.first->unknown_status2 = 0;
+                }
+                //memcpy(entity.first, &entity.second, sizeof(EntityData));
             }
+            
         }
-       // memcpy(first_entity, &(*full_entity_list)[0], last_entity - first_entity);//copies all the values in
-        
-       
-       //memcpy(&(hardcoded->enemyChar), g_interfaces.player1.GetData(), 4);
-        /*int* secondary_entity_pointers_list_start = g_gameVals.pEntityList + 254;
-        memcpy(secondary_entity_pointers_list_start, &secondary_entity_pointers_list[0], 252);*/
 
-
-        /*for (auto& entity : ownedEntites) {
-            memcpy(entity.first, &entity.second, sizeof(CharData));
-        }*/
     }
 }
