@@ -869,7 +869,7 @@ void ScrWindow::DrawPlaybackSection() {
             auto wakeup_action_trigger_find = current_action.find("CmnActUkemiLandNLanding");
             if (random_wakeup_slot_toggle && !random_wakeup.empty() && wakeup_action_trigger_find != std::string::npos) {
                 //does randomized
-                int random_pos = std::rand() % random_gap.size();
+                int random_pos = std::rand() % random_wakeup.size();
                 slot = random_wakeup[random_pos] - 1;
                 memcpy(active_slot, &slot, 4);
                 memcpy(playback_control_ptr, &val_set, 2);
