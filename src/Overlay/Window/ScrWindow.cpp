@@ -829,7 +829,10 @@ void ScrWindow::DrawPlaybackSection() {
             //                {"ActBDownDown", 20}, //lasts 20 frames
             //                {"ActWallBoundDown", 15}
             //}; //lasts 15 frames
-            static std::vector<std::tuple<std::string, int>> wakeup_buffer_actions{ {"ActUkemiLandN",30 } };
+            static std::vector<std::tuple<std::string, int>> wakeup_buffer_actions{ 
+                {"ActUkemiLandN",30 } ,
+                {"ActUkemiLandF",30 },
+                {"ActUkemiLandB",30 } };
             
             //checks if 
 
