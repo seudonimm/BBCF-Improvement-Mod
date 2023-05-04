@@ -24,6 +24,10 @@ private:
 	void* p2_old_char_data = NULL;
 	std::vector<scrState*> gap_register{};
 	std::vector<scrState*> wakeup_register{};
+	std::vector<scrState*> onhit_register{};
+	scrState* burst_action;
+	scrState* air_burst_action;
+	int frame_to_burst_onhit;
 
 
 	char fpath_s1[1200] = "fpath";

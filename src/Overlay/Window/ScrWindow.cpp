@@ -52,8 +52,18 @@ void ScrWindow::DrawStatesSection()
         g_interfaces.player2.SetScrStates(states);
         g_interfaces.player2.states = states;
         p2_old_char_data = (void*)g_interfaces.player2.GetData();
+        for (auto& state : states) {
+            if (state->name == "CmnActBurstBegin") {
+                burst_action = state;
+            }
+            if (state->name == "CmnActAirBurstBegin") {
+                air_burst_action = state;
+            }
+        }
+        frame_to_burst_onhit = 0;
         gap_register = {};
         wakeup_register = {};
+        onhit_register = {};
         selected = 0;
     }
 
@@ -85,7 +95,7 @@ void ScrWindow::DrawStatesSection()
         static bool isActive_old;
         static bool isActive = false;
         if (ImGui::Checkbox("Naoto EN specials toggle", &isActive)) {
-               memset(&g_interfaces.player2.GetData()->slot2_or_slot4, 0x00000018, 4);
+            memset(&g_interfaces.player2.GetData()->slot2_or_slot4, 0x00000018, 4);
         }
         if (isActive) {
             memset(&g_interfaces.player2.GetData()->slot2_or_slot4, 0x00000018, 4);
@@ -98,13 +108,13 @@ void ScrWindow::DrawStatesSection()
         isActive_old = isActive;
         //ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 100)); // Leave room for 1 line below us
         ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 150)); // Leave room for 1 line below us
-        if (states.size()>0){
+        if (states.size() > 0) {
             auto selected_state = states[selected];
             ImGui::Text("%s", selected_state->name.c_str());
             ImGui::Separator();
             ImGui::Text("Addr: 0x%x", selected_state->addr);
             ImGui::Text("Frames: %d", selected_state->frames);
-            ImGui::Text("Damage: %d",  selected_state->damage);
+            ImGui::Text("Damage: %d", selected_state->damage);
             ImGui::Text("Atk_level: %d", selected_state->atk_level);
             ImGui::Text("Hitstun: %d", selected_state->hitstun);
             ImGui::Text("Blockstun: %d", selected_state->blockstun);
@@ -117,15 +127,16 @@ void ScrWindow::DrawStatesSection()
             ImGui::Text("Hit_air_ublockable: %d", selected_state->hit_air_unblockable);
             ImGui::Text("fatal_counter: %d", selected_state->fatal_counter);
             ImGui::Text("Whiff_cancels:", selected_state->fatal_counter);
-            for (std::string name: selected_state->whiff_cancel) {
+            for (std::string name : selected_state->whiff_cancel) {
                 ImGui::Text("    %s", name.c_str());
             }
             ImGui::Text("Hit_or_block_cancels(gatlings):", selected_state->fatal_counter);
             int item_view_len;
-            if (selected_state->hit_or_block_cancel.size() > 5){
-               item_view_len = 100; }
+            if (selected_state->hit_or_block_cancel.size() > 5) {
+                item_view_len = 100;
+            }
             else {
-               item_view_len = selected_state->hit_or_block_cancel.size() * 20;
+                item_view_len = selected_state->hit_or_block_cancel.size() * 20;
             }
             ImGui::BeginChild("item view", ImVec2(0, item_view_len));
             for (std::string name : selected_state->hit_or_block_cancel) {
@@ -136,8 +147,67 @@ void ScrWindow::DrawStatesSection()
         ImGui::EndChild();
 
 
-        
+
         ImGui::Separator();
+        static bool burst_onhit_toggle = false;
+        static int burst_onhit_delay = 0;
+        static int burst_onhit_cooldown_frames = 700;
+
+        ImGui::Checkbox("Burst on hit", &burst_onhit_toggle);
+        if (burst_onhit_toggle) {
+            onhit_register = {};
+            std::string lastAction = g_interfaces.player2.GetData()->lastAction;
+            std::string currentAction = g_interfaces.player2.GetData()->currentAction;
+
+            if (*g_gameVals.pFrameCount <20 || (frame_to_burst_onhit && frame_to_burst_onhit+ burst_onhit_cooldown_frames < *g_gameVals.pFrameCount)) {
+                frame_to_burst_onhit = 0;
+            }
+            if (!frame_to_burst_onhit) {
+                if (g_interfaces.player2.GetData()->hitstun > 0
+                    &&
+                    lastAction.find("CmnActBurst") == std::string::npos
+                    &&
+                    currentAction.find("CmnActBurst") == std::string::npos
+                    &&
+                    currentAction.find("CmnActUkemi") == std::string::npos
+                    ) {
+                    frame_to_burst_onhit = *g_gameVals.pFrameCount + burst_onhit_delay;
+
+                }
+            }
+            if (*g_gameVals.pFrameCount == frame_to_burst_onhit) {
+                if (g_interfaces.player2.GetData()->position_y > 0) {
+                    memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(air_burst_action->addr), 4);
+                    memcpy(&(g_interfaces.player2.GetData()->currentAction), &(air_burst_action->name[0]), 20);
+                }
+                else {
+                    memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(burst_action->addr), 4);
+                    memcpy(&(g_interfaces.player2.GetData()->currentAction), &(burst_action->name[0]), 20);
+                }
+            }
+            ImGui::BeginChild("burst_buttons##states", ImVec2(0, 60));
+            ImGui::Text("Burst delay: ");
+            ImGui::SameLine();
+            ImGui::InputInt("##state_burst_onhit_delay", &burst_onhit_delay);
+            ImGui::Text("Burst cooldown: ");
+            ImGui::SameLine();
+            ImGui::InputInt("##state_burst_onhit_cooldown_frames", &burst_onhit_cooldown_frames);
+            ImGui::EndChild();
+        }
+
+
+
+
+
+
+         
+        if (ImGui::Button("Set as on hit action")) {
+            onhit_register = {};
+            states = g_interfaces.player2.states;
+            onhit_register.push_back(states[selected]);
+
+        }
+        //ImGui::InputInt("Burst delay##slot1", &slot_buffer[0]);
         if (ImGui::Button("Set as wakeup action")) {
             wakeup_register = {};
             states = g_interfaces.player2.states;
@@ -166,7 +236,7 @@ void ScrWindow::DrawStatesSection()
             states = g_interfaces.player2.states;
             auto selected_state = states[selected];
             //auto tst = g_interfaces.player2.GetData();
-            memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(selected_state->addr),4);
+            memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(selected_state->addr), 4);
         }
         ImGui::SameLine();
         if (ImGui::Button("Reset")) {
@@ -175,21 +245,21 @@ void ScrWindow::DrawStatesSection()
                 if (state->replaced_state_script[0]) {
                     memcpy(state->addr + 36, state->replaced_state_script, 36);
                     state->replaced_state_script[0] = 0;
-                
                 }
             }
             gap_register = {};
             wakeup_register = {};
+            onhit_register = {};
         }
-        
-        
+
+
         if (ImGui::CollapsingHeader("Gap/wakeup random actions")) {
             ImGui::Columns(2);
             if (ImGui::Button("Add to wakeup action")) {
                 states = g_interfaces.player2.states;
                 wakeup_register.push_back(states[selected]);
             }
-            ImGui::BeginChild("wakeup_register_display");
+            ImGui::BeginChild("wakeup_register_display", ImVec2(0, 80));
             for (auto e : wakeup_register) {
                 ImGui::Text(e->name.c_str());
             }
@@ -199,15 +269,16 @@ void ScrWindow::DrawStatesSection()
                 states = g_interfaces.player2.states;
                 gap_register.push_back(states[selected]);
             }
-        
-            ImGui::BeginChild("gap_register_display");
+
+            ImGui::BeginChild("gap_register_display", ImVec2(0, 80));
             for (auto e : gap_register) {
                 ImGui::Text(e->name.c_str());
             }
             ImGui::EndChild();
+            ImGui::Columns(1);
 
-    
-            
+
+
         }
         static std::vector<std::tuple<std::string, int>> wakeup_length_pairs{
             //{"CmnActUkemiLandN",30} ,
@@ -229,7 +300,7 @@ void ScrWindow::DrawStatesSection()
                     break;
                 }
             }
-           
+
         }
 
 
@@ -248,7 +319,21 @@ void ScrWindow::DrawStatesSection()
                 }
             }
         }
-        //ImGui::EndChild();
+
+
+        if (!onhit_register.empty()) {
+            states = g_interfaces.player2.states;
+            int random_pos = std::rand() % onhit_register.size();
+            if (g_interfaces.player2.GetData()->hitstun == 1
+
+                ) {
+                memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(onhit_register[random_pos]->addr), 4);
+                memcpy(&(g_interfaces.player2.GetData()->currentAction), &(onhit_register[random_pos]->name[0]), 20);
+            }
+
+
+        }
+    
         ImGui::EndGroup(); 
     
     }
@@ -786,7 +871,7 @@ void ScrWindow::DrawPlaybackSection() {
             }
             
         }
-
+        ImGui::Columns(1);
         if (!g_interfaces.player2.IsCharDataNullPtr()) {
 
             //does gap action for recorded slot
