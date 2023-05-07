@@ -23,11 +23,23 @@ private:
 	bool m_showDemoWindow = false;
 	void* p2_old_char_data = NULL;
 	std::vector<scrState*> gap_register{};
+	std::vector<int> gap_register_delays{};
 	std::vector<scrState*> wakeup_register{};
+	std::vector<int> wakeup_register_delays{};
 	std::vector<scrState*> onhit_register{};
+	std::vector<int> onhit_register_delays{};
 	scrState* burst_action;
 	scrState* air_burst_action;
+
+
+
+	int states_wakeup_random_pos = 0;
+	int state_gap_random_pos = 0;
+	int states_onhitp_wakeup_random_pos = 0;
+
 	int frame_to_burst_onhit;
+	int states_wakeup_frame_to_do_action = 0;
+	int states_gap_frame_to_do_action = 0;
 
 
 	char fpath_s1[1200] = "fpath";

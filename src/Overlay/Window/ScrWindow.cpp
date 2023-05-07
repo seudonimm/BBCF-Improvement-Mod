@@ -152,6 +152,11 @@ void ScrWindow::DrawStatesSection()
         static bool burst_onhit_toggle = false;
         static int burst_onhit_delay = 0;
         static int burst_onhit_cooldown_frames = 700;
+        static bool action_delays_toggle = false;
+        static int wakeup_delay = 0;
+        static int gap_delay = 0;
+        static int onhit_delay = 0;
+
 
         ImGui::Checkbox("Burst on hit", &burst_onhit_toggle);
         if (burst_onhit_toggle) {
@@ -194,8 +199,25 @@ void ScrWindow::DrawStatesSection()
             ImGui::InputInt("##state_burst_onhit_cooldown_frames", &burst_onhit_cooldown_frames);
             ImGui::EndChild();
         }
-
-
+        ImGui::Checkbox("Add delays to wakeup/gap actions", &action_delays_toggle);
+        if (action_delays_toggle) {
+            ImGui::BeginChild("delay_actions##states", ImVec2(0, 60));
+            ImGui::Text("Wakeup: ");
+            ImGui::SameLine();
+            ImGui::InputInt("##state_wakeup_delay", &wakeup_delay);
+            ImGui::Text("Gap: ");
+            ImGui::SameLine();
+            ImGui::InputInt("##state_gap_delay", &gap_delay);
+            /*ImGui::Text("On Hit Delay: ");
+            ImGui::SameLine();
+            ImGui::InputInt("##state_onhit_delay", &onhit_delay);*/
+            ImGui::EndChild();
+        }
+        else {
+            wakeup_delay = 0;
+            gap_delay = 0;
+            onhit_delay = 0;
+        }
 
 
 
@@ -203,33 +225,32 @@ void ScrWindow::DrawStatesSection()
          
         if (ImGui::Button("Set as on hit action")) {
             onhit_register = {};
+            onhit_register_delays = {};
             states = g_interfaces.player2.states;
             onhit_register.push_back(states[selected]);
+            onhit_register_delays.push_back(onhit_delay);
 
         }
         //ImGui::InputInt("Burst delay##slot1", &slot_buffer[0]);
         if (ImGui::Button("Set as wakeup action")) {
             wakeup_register = {};
+            wakeup_register_delays = {};
+            states_wakeup_random_pos = 0;
             states = g_interfaces.player2.states;
             wakeup_register.push_back(states[selected]);
+            wakeup_register_delays.push_back(wakeup_delay);
 
         }
         ImGui::SameLine();
         if (ImGui::Button("Set as gap action")) {
             states = g_interfaces.player2.states;
+            gap_register = {};
+            gap_register_delays = {};
+            state_gap_random_pos = 0;
+            gap_register.push_back(states[selected]);
+            gap_register_delays.push_back(gap_delay);
             auto selected_state = states[selected];
-            std::string substr = "GuardEnd";
-            std::vector<std::string> matches = {};
-            for (auto state : states) {
-                std::string name = state->name;
-                if (name.find(substr) != std::string::npos) {
-                    if (!state->replaced_state_script[0]) {
-                        memcpy(state->replaced_state_script, state->addr + 36, 36);
-                    }
-                    override_state(state->addr, &selected_state->name[0]);
 
-                }
-            }
         }
         ImGui::SameLine();
         if (ImGui::Button("Use")) {
@@ -248,8 +269,11 @@ void ScrWindow::DrawStatesSection()
                 }
             }
             gap_register = {};
+            gap_register_delays = {};
             wakeup_register = {};
+            wakeup_register_delays = {};
             onhit_register = {};
+            onhit_register_delays = {};
         }
 
 
@@ -258,6 +282,7 @@ void ScrWindow::DrawStatesSection()
             if (ImGui::Button("Add to wakeup action")) {
                 states = g_interfaces.player2.states;
                 wakeup_register.push_back(states[selected]);
+                wakeup_register_delays.push_back(wakeup_delay);
             }
             ImGui::BeginChild("wakeup_register_display", ImVec2(0, 80));
             for (auto e : wakeup_register) {
@@ -268,6 +293,7 @@ void ScrWindow::DrawStatesSection()
             if (ImGui::Button("Add to gap action")) {
                 states = g_interfaces.player2.states;
                 gap_register.push_back(states[selected]);
+                gap_register_delays.push_back(gap_delay);
             }
 
             ImGui::BeginChild("gap_register_display", ImVec2(0, 80));
@@ -285,9 +311,10 @@ void ScrWindow::DrawStatesSection()
            {"CmnActUkemiLandNLanding",1},
             {"CmnActUkemiLandF",30 },
             {"CmnActUkemiLandB",30 } };
+
         if (!wakeup_register.empty()) {
             states = g_interfaces.player2.states;
-            int random_pos = std::rand() % wakeup_register.size();
+
             for (std::tuple<std::string, int> wakeup_length_pair : wakeup_length_pairs) {
                 auto name = std::get<0>(wakeup_length_pair);
                 auto len = std::get<1>(wakeup_length_pair);
@@ -295,31 +322,65 @@ void ScrWindow::DrawStatesSection()
                     &&
                     g_interfaces.player2.GetData()->actionTime == len
                     ) {
-                    memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(wakeup_register[random_pos]->addr), 4);
-                    memcpy(&(g_interfaces.player2.GetData()->currentAction), &(wakeup_register[random_pos]->name[0]), 20);
-                    break;
+                    states_wakeup_random_pos = std::rand() % wakeup_register.size();
+                    states_wakeup_frame_to_do_action = *g_gameVals.pFrameCount + wakeup_register_delays[states_wakeup_random_pos];
+
+                    
+                }
+                if (states_wakeup_frame_to_do_action) {
+                 
+
+
+                     if (*g_gameVals.pFrameCount == states_wakeup_frame_to_do_action) {
+                        memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(wakeup_register[states_wakeup_random_pos]->addr), 4);
+                        memcpy(&(g_interfaces.player2.GetData()->currentAction), &(wakeup_register[states_wakeup_random_pos]->name[0]), 20);
+                        states_wakeup_frame_to_do_action = 0;
+                        states_wakeup_random_pos = 0;
+                        break;
+                    }
+                    else if (*g_gameVals.pFrameCount > states_wakeup_frame_to_do_action) {
+                        states_wakeup_frame_to_do_action = 0;
+                        states_wakeup_random_pos = 0;
+                        break;
+                    }
+
                 }
             }
-
         }
-
 
         if (!gap_register.empty()) {
             states = g_interfaces.player2.states;
+            //if (!state_gap_random_pos) { state_gap_random_pos = std::rand() % gap_register.size(); }
             auto selected_state = states[selected];
-            int random_pos = std::rand() % gap_register.size();
             std::string substr = "GuardEnd";
-            for (auto state : states) {
-                std::string name = state->name;
-                if (name.find(substr) != std::string::npos) {
-                    if (!state->replaced_state_script[0]) {
-                        memcpy(state->replaced_state_script, state->addr + 36, 36);
-                    }
-                    override_state(state->addr, &gap_register[random_pos]->name[0]);
+
+            std::string curr_action = g_interfaces.player2.GetData()->currentAction;
+            if (curr_action.find(substr) != std::string::npos
+                &&
+                g_interfaces.player2.GetData()->actionTime == 1
+                ) {
+                state_gap_random_pos = std::rand() % gap_register.size();
+                states_gap_frame_to_do_action = *g_gameVals.pFrameCount + gap_register_delays[state_gap_random_pos];
+
+
+            }
+            if (states_gap_frame_to_do_action) {
+
+
+
+                if (*g_gameVals.pFrameCount == states_gap_frame_to_do_action) {
+                    memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(gap_register[state_gap_random_pos]->addr), 4);
+                    memcpy(&(g_interfaces.player2.GetData()->currentAction), &(gap_register[state_gap_random_pos]->name[0]), 20);
+                    states_gap_frame_to_do_action = 0;
+                    state_gap_random_pos = 0;
                 }
+                else if (*g_gameVals.pFrameCount > states_gap_frame_to_do_action) {
+                    states_gap_frame_to_do_action = 0;
+                    state_gap_random_pos = 0;
+                }
+
             }
         }
-
 
         if (!onhit_register.empty()) {
             states = g_interfaces.player2.states;
