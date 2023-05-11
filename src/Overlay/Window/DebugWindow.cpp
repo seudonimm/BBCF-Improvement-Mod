@@ -81,13 +81,13 @@ void DebugWindow::DrawGameValuesSection()
 		if (!g_interfaces.player1.IsCharDataNullPtr())
 			ImGui::Text("pP1CharData 0x%p", g_interfaces.player1.GetData());
 		if (!g_interfaces.player1.IsCharDataNullPtr())
-			ImGui::Text("pP1CurrentScriptActionLocationInMemory 0x%p", g_interfaces.player1.GetData()->currentScriptActionLocationInMemory);
+			ImGui::Text("pP1CurrentScriptActionLocationInMemory 0x%p", g_interfaces.player1.GetData()->nextScriptLineLocationInMemory);
 
 		if (!g_interfaces.player2.IsCharDataNullPtr())
 			ImGui::Text("pP2CharData 0x%p", g_interfaces.player2.GetData());
 		
 		if (!g_interfaces.player2.IsCharDataNullPtr())
-			ImGui::Text("pP2CurrentScriptActionLocationInMemory 0x%p", g_interfaces.player2.GetData()->currentScriptActionLocationInMemory);
+			ImGui::Text("pP2CurrentScriptActionLocationInMemory 0x%p", g_interfaces.player2.GetData()->nextScriptLineLocationInMemory);
 
 		if (!g_interfaces.player2.IsCharDataNullPtr())
 			ImGui::Text("pP2slot2_or_slot4 0x%x", g_interfaces.player2.GetData()->slot2_or_slot4);

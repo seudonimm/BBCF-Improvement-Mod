@@ -48,6 +48,7 @@ private:
 	char fpath_s4[1200] = "fpath";
 	int slot_gap = 0; //0 for disabled, 1 for slot 1, 2 for slot 2, etc
 	int slot_wakeup = 0; //0 for disabled, 1 for slot 1, 2 for slot 2, etc
+	int slot_onblock = 0; //0 for disabled, 1 for slot 1, 2 for slot 2, etc
 	bool random_gap_slot1 = false;
 	bool random_gap_slot2 = false;
 	bool random_gap_slot3 = false;

@@ -182,16 +182,18 @@ void ScrWindow::DrawStatesSection()
             }
             if (*g_gameVals.pFrameCount == frame_to_burst_onhit) {
                 if (g_interfaces.player2.GetData()->position_y > 0) {
-                    memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(air_burst_action->addr), 4);
+                    memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(air_burst_action->addr), 4);
+                    g_interfaces.player2.GetData()->frameCounterCurrentSprite = g_interfaces.player2.GetData()->frameLengthCurrentSprite2;
                     memcpy(&(g_interfaces.player2.GetData()->currentAction), &(air_burst_action->name[0]), 20);
                 }
                 else {
-                    memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(burst_action->addr), 4);
+                    memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(burst_action->addr), 4);
+                    g_interfaces.player2.GetData()->frameCounterCurrentSprite = g_interfaces.player2.GetData()->frameLengthCurrentSprite2;
                     memcpy(&(g_interfaces.player2.GetData()->currentAction), &(burst_action->name[0]), 20);
                 }
             }
             ImGui::BeginChild("burst_buttons##states", ImVec2(0, 60));
-            ImGui::Text("Burst delay: ");
+            ImGui::Text("Burst delay(+hitstop): ");
             ImGui::SameLine();
             ImGui::InputInt("##state_burst_onhit_delay", &burst_onhit_delay);
             ImGui::Text("Burst cooldown: ");
@@ -257,7 +259,7 @@ void ScrWindow::DrawStatesSection()
             states = g_interfaces.player2.states;
             auto selected_state = states[selected];
             //auto tst = g_interfaces.player2.GetData();
-            memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(selected_state->addr), 4);
+            memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(selected_state->addr), 4);
         }
         ImGui::SameLine();
         if (ImGui::Button("Reset")) {
@@ -321,6 +323,8 @@ void ScrWindow::DrawStatesSection()
                 if (g_interfaces.player2.GetData()->currentAction == name
                     &&
                     g_interfaces.player2.GetData()->actionTime == len
+                    &&
+                    g_interfaces.player2.GetData()->lastAction != name
                     ) {
                     states_wakeup_random_pos = std::rand() % wakeup_register.size();
                     states_wakeup_frame_to_do_action = *g_gameVals.pFrameCount + wakeup_register_delays[states_wakeup_random_pos];
@@ -332,8 +336,9 @@ void ScrWindow::DrawStatesSection()
 
 
                      if (*g_gameVals.pFrameCount == states_wakeup_frame_to_do_action) {
-                        memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(wakeup_register[states_wakeup_random_pos]->addr), 4);
-                        memcpy(&(g_interfaces.player2.GetData()->currentAction), &(wakeup_register[states_wakeup_random_pos]->name[0]), 20);
+                        memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(wakeup_register[states_wakeup_random_pos]->addr), 4);
+                        g_interfaces.player2.GetData()->frameCounterCurrentSprite = g_interfaces.player2.GetData()->frameLengthCurrentSprite2 -1;
+                        //memcpy(&(g_interfaces.player2.GetData()->currentAction), &(wakeup_register[states_wakeup_random_pos]->name[0]), 20);
                         states_wakeup_frame_to_do_action = 0;
                         states_wakeup_random_pos = 0;
                         break;
@@ -355,7 +360,10 @@ void ScrWindow::DrawStatesSection()
             std::string substr = "GuardEnd";
 
             std::string curr_action = g_interfaces.player2.GetData()->currentAction;
+            std::string prev_action = g_interfaces.player2.GetData()->lastAction;
             if (curr_action.find(substr) != std::string::npos
+                &&
+                prev_action.find(substr) == std::string::npos
                 &&
                 g_interfaces.player2.GetData()->actionTime == 1
                 ) {
@@ -369,8 +377,9 @@ void ScrWindow::DrawStatesSection()
 
 
                 if (*g_gameVals.pFrameCount == states_gap_frame_to_do_action) {
-                    memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(gap_register[state_gap_random_pos]->addr), 4);
-                    memcpy(&(g_interfaces.player2.GetData()->currentAction), &(gap_register[state_gap_random_pos]->name[0]), 20);
+                    memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(gap_register[state_gap_random_pos]->addr), 4);
+                    g_interfaces.player2.GetData()->frameCounterCurrentSprite = g_interfaces.player2.GetData()->frameLengthCurrentSprite2 - 1;
+                    //memcpy(&(g_interfaces.player2.GetData()->currentAction), &(gap_register[state_gap_random_pos]->name[0]), 20);
                     states_gap_frame_to_do_action = 0;
                     state_gap_random_pos = 0;
                 }
@@ -388,7 +397,7 @@ void ScrWindow::DrawStatesSection()
             if (g_interfaces.player2.GetData()->hitstun == 1
 
                 ) {
-                memcpy(&(g_interfaces.player2.GetData()->currentScriptActionLocationInMemory), &(onhit_register[random_pos]->addr), 4);
+                memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(onhit_register[random_pos]->addr), 4);
                 memcpy(&(g_interfaces.player2.GetData()->currentAction), &(onhit_register[random_pos]->name[0]), 20);
             }
 
@@ -623,12 +632,15 @@ void ScrWindow::DrawPlaybackSection() {
             if (ImGui::Button("Set as wakeup action##slot1")) {
                 slot_wakeup = 1;
             }
-            
+            if (ImGui::Button("Set as onblock action##slot1")) {
+                slot_onblock = 1;
+            }
 
             ImGui::SameLine();
             if (ImGui::Button("Reset##slot1")) {
                 slot_gap = 0;
                 slot_wakeup = 0;
+                slot_onblock = 0;
             }
             ImGui::InputInt("Buffer frames##slot1", &slot_buffer[0]);
             ImGui::Separator();
@@ -704,11 +716,15 @@ void ScrWindow::DrawPlaybackSection() {
             if (ImGui::Button("Set as wakeup action##slot2")) {
                 slot_wakeup= 2;
             }
+            if (ImGui::Button("Set as onblock action##slot2")) {
+                slot_onblock = 2;
+            }
             
             ImGui::SameLine();
             if (ImGui::Button("Reset##slot2")) {
                 slot_gap = 0;
                 slot_wakeup = 0;
+                slot_onblock = 0;
             }
             ImGui::InputInt("Buffer frames ##slot2", &slot_buffer[1]);
             ImGui::Separator();
@@ -785,11 +801,14 @@ void ScrWindow::DrawPlaybackSection() {
             if (ImGui::Button("Set as wakeup action##slot3")) {
                 slot_wakeup = 3;
             }
-            
+            if (ImGui::Button("Set as onblock action##slot3")) {
+                slot_onblock = 3;
+            }
             ImGui::SameLine();
             if (ImGui::Button("Reset##slot3")) {
                 slot_gap = 0;
                 slot_wakeup = 0;
+                slot_onblock = 0;
             }
             ImGui::InputInt("Buffer frames ##slot3", &slot_buffer[2]);
             ImGui::Separator();
@@ -866,11 +885,14 @@ void ScrWindow::DrawPlaybackSection() {
             if (ImGui::Button("Set as wakeup action##slot4")) {
                 slot_wakeup = 4;
             }
-         
+            if (ImGui::Button("Set as onblock action##slot4")) {
+                slot_onblock = 4;
+            }
             ImGui::SameLine();
             if (ImGui::Button("Reset##slot4")) {
                 slot_gap = 0;
                 slot_wakeup = 0;
+                slot_onblock = 0;
             }
             ImGui::InputInt("Buffer frames ##slot4", &slot_buffer[3]);
             ImGui::Separator();
@@ -967,6 +989,18 @@ void ScrWindow::DrawPlaybackSection() {
             }
 
 
+            auto onblock_action_trigger_find = current_action.find("GuardLoop");
+            if (slot_onblock != 0 && onblock_action_trigger_find != std::string::npos) {
+                //does pre-defined
+                slot = slot_onblock - 1;
+                memcpy(active_slot, &slot, 4);
+                memcpy(playback_control_ptr, &val_set, 2);
+            }
+
+
+
+
+
             //change to const later?
             //states that happen immediately before CmnActUkemiLandNLanding that I know of, not an exhaustive list
             //static std::vector<std::tuple<std::string, int>> wakeup_buffer_actions{ {"ActFDownDown", 9} ,  //lasts 9 frames
@@ -1008,6 +1042,7 @@ void ScrWindow::DrawPlaybackSection() {
                     memcpy(playback_control_ptr, &val_set, 2);
                 }
             }
+
 
 
 

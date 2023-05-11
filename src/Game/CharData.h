@@ -22,7 +22,7 @@ public:
 	char pad_009C[60]; //0x009C
 	char* current_sprite_img; //0x00D8
 	char pad_00DC[120]; //0x00DC
-	char unknown_status2; //0x0154  compared if 2 or not?
+	char unknown_status2; //0x0154  compared if 2 or not? I think 2 might mean its an entity that is anchored to the character that spawned it 
 	char pad_0158[8]; ///0x0158
 
 
@@ -55,7 +55,7 @@ public:
 	char pad_01F4[54]; //0x01F4 
 
 	//char pad_01EC[64];
-	class CharData* last_child_entity_spawned; // 0x022C not 100% yet
+	class CharData* last_child_entity_spawned; // 0x022C 
 	class CharData* extra_child_entities[7]; // 0x0230 should hold up to 7(?) idk extra child entities
 	class CharData* main_child_entity; // 0x024C holds the main child entity, varies by character but its the puppets, arakune curse circle over enemy, etc. Some characters dont have it
 	char pad_0250[20]; // 0x0250
@@ -125,12 +125,12 @@ public:
 	int32_t currentHP; //0x09D4
 	int32_t maxHP; //0x09D8
 	char pad_09DC[2372]; //0x09DC
-	char* currentScriptActionLocationInMemory; //0x01320 points to the place in memory where the current script command is being read
+	char* nextScriptLineLocationInMemory; //0x01320 points to the place in memory where the next line of the script to be read is
 	char* currentScriptStateEntryInMemory;///0x01324 points to the start of the current state in the script
 	int32_t frameCounterCurrentSprite;//0x01328 Counts the frames the current sprite has been drawn on screen
 	int32_t frameLengthCurrentSprite;//0x0132C the amount of frames the current sprite should last
-	char pad_01330[4]; //0x01330
-	int32_t framesInCurrentState; //0x01334
+	int32_t frameLengthCurrentSprite2; //0x01330 the amount of frames the current sprite should last, this one seems to be the "correct" one
+	int32_t linesReadInCurrentState; //0x01334 counts the amount of "lines" read from the start of the script, in looping actions take the modulo
 	int64_t currentSprite; // 0x01338 the name of the current sprite
 	char pad_1340[3252]; //0x01340
 	char lastAction[20]; //0x1FF4
