@@ -162,15 +162,21 @@ void ScrWindow::DrawStatesSection()
         if (burst_onhit_toggle) {
             onhit_register = {};
             std::string lastAction = g_interfaces.player2.GetData()->lastAction;
+            std::string weird_current_action_q = g_interfaces.player2.GetData()->current_action2;
+            std::string set_action_override_hitstop_q = g_interfaces.player2.GetData()->set_action_override;
             std::string currentAction = g_interfaces.player2.GetData()->currentAction;
+            std::string hitByWhichAction = g_interfaces.player2.GetData()->hitByWhichAction;
 
             if (*g_gameVals.pFrameCount <20 || (frame_to_burst_onhit && frame_to_burst_onhit+ burst_onhit_cooldown_frames < *g_gameVals.pFrameCount)) {
                 frame_to_burst_onhit = 0;
             }
             if (!frame_to_burst_onhit) {
-                if (g_interfaces.player2.GetData()->hitstun > 0
-                    &&
-                    lastAction.find("CmnActBurst") == std::string::npos
+                if (//(set_action_override_hitstop_q.find("CmnActHit") !=  std::string::npos || set_action_override_hitstop_q.find("CmnActFreeze") != std::string::npos)
+                    //&& 
+                    //hitByWhichAction != ""
+                    g_interfaces.player2.GetData()->hitstun > 0
+                    //&&
+                    //lastAction.find("CmnActBurst") == std::string::npos
                     &&
                     currentAction.find("CmnActBurst") == std::string::npos
                     &&
@@ -182,14 +188,18 @@ void ScrWindow::DrawStatesSection()
             }
             if (*g_gameVals.pFrameCount == frame_to_burst_onhit) {
                 if (g_interfaces.player2.GetData()->position_y > 0) {
-                    memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(air_burst_action->addr), 4);
+                    /*memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(air_burst_action->addr), 4);
                     g_interfaces.player2.GetData()->frameCounterCurrentSprite = g_interfaces.player2.GetData()->frameLengthCurrentSprite2;
                     memcpy(&(g_interfaces.player2.GetData()->currentAction), &(air_burst_action->name[0]), 20);
+                    memcpy(&(g_interfaces.player2.GetData()->weird_current_action_q), &(air_burst_action->name[0]), 20);*/
+                    memcpy(&(g_interfaces.player2.GetData()->set_action_override), &(air_burst_action->name[0]), 20);
                 }
                 else {
-                    memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(burst_action->addr), 4);
+                    /*memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(burst_action->addr), 4);
                     g_interfaces.player2.GetData()->frameCounterCurrentSprite = g_interfaces.player2.GetData()->frameLengthCurrentSprite2;
                     memcpy(&(g_interfaces.player2.GetData()->currentAction), &(burst_action->name[0]), 20);
+                    memcpy(&(g_interfaces.player2.GetData()->weird_current_action_q), &(burst_action->name[0]), 20);*/
+                    memcpy(&(g_interfaces.player2.GetData()->set_action_override), &(burst_action->name[0]), 20);
                 }
             }
             ImGui::BeginChild("burst_buttons##states", ImVec2(0, 60));
@@ -331,7 +341,8 @@ void ScrWindow::DrawStatesSection()
 
                     
                 }
-                if (states_wakeup_frame_to_do_action) {
+                //the hitstun check is necessary to make sure it doesnt trigger once the action is already stopped by a hit before it triggers, in the case of delayed ones
+                if (states_wakeup_frame_to_do_action && g_interfaces.player2.GetData()->hitstun == 0) {
                  
 
 
@@ -372,7 +383,8 @@ void ScrWindow::DrawStatesSection()
 
 
             }
-            if (states_gap_frame_to_do_action) {
+            //the hitstun check is necessary to make sure it doesnt trigger once the action is already stopped by a hit before it triggers, in the case of delayed ones
+            if (states_gap_frame_to_do_action && g_interfaces.player2.GetData()->hitstun == 0) {
 
 
 
