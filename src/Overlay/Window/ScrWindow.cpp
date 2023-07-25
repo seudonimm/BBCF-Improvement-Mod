@@ -399,26 +399,19 @@ void ScrWindow::DrawStatesSection()
             std::string curr_action = g_interfaces.player2.GetData()->currentAction;
             std::string prev_action = g_interfaces.player2.GetData()->lastAction;
             int prev_blockstun = g_interfaces.player2.GetData()->blockstun;
-            static bool triggered = false;
+
             if (
-    //            (curr_action.find(substr) != std::string::npos
-//                    &&
-  //                  prev_action.find(substr) == std::string::npos
-//                    &&
-               //     g_interfaces.player2.GetData()->actionTime == 1)
-             //   ||
-                // Doing it this way is necessary because otherwise you have a 1f delay, due to GuardEnd being skipped on f1 mash
+                // Doing it this way is necessary because otherwise you have a 1f delay, due to GuardEnd being skipped on frame 1 mash
                 // blockstun for now seems to be the most reliable metric
                 (g_interfaces.player2.GetData()->blockstun == 1
                     &&
                     curr_action.find("Guard") != std::string::npos
-                    && 
-                    !triggered
+
                     )
 
 
                 ) {
-                triggered = true;
+
 
                 state_gap_random_pos = std::rand() % gap_register.size();
                 states_gap_frame_to_do_action = *g_gameVals.pFrameCount + gap_register_delays[state_gap_random_pos];
@@ -436,7 +429,7 @@ void ScrWindow::DrawStatesSection()
                     //memcpy(&(g_interfaces.player2.GetData()->currentAction), &(gap_register[state_gap_random_pos]->name[0]), 20);
                     states_gap_frame_to_do_action = 0;
                     state_gap_random_pos = 0;
-                    triggered = false;
+
                 }
                 else if (*g_gameVals.pFrameCount > states_gap_frame_to_do_action) {
                     states_gap_frame_to_do_action = 0;
@@ -1027,8 +1020,11 @@ void ScrWindow::DrawPlaybackSection() {
 
             //checking for gap action
             ///std::string substr = "GuardEnd";
-            auto gap_action_trigger_find = current_action.find("GuardEnd");
-            if (random_gap_slot_toggle && !random_gap.empty() && gap_action_trigger_find != std::string::npos) {
+            auto gap_action_trigger_find = current_action.find("Guard");
+            if (random_gap_slot_toggle && !random_gap.empty() 
+                 &&  g_interfaces.player2.GetData()->blockstun == 1
+               
+                && gap_action_trigger_find != std::string::npos) {
                 //does randomized
                 int random_pos = std::rand() % random_gap.size();
                 slot = random_gap[random_pos] - 1;
@@ -1036,7 +1032,10 @@ void ScrWindow::DrawPlaybackSection() {
                 memcpy(playback_control_ptr, &val_set, 2);
 
             }
-            else if (slot_gap != 0 && gap_action_trigger_find != std::string::npos) {
+            else if //(slot_gap != 0 && gap_action_trigger_find != std::string::npos
+            (slot_gap != 0 && g_interfaces.player2.GetData()->blockstun == 1
+                &&
+                gap_action_trigger_find  != std::string::npos) {
                 //does pre-defined
                 slot = slot_gap - 1;
                 memcpy(active_slot, &slot, 4);
