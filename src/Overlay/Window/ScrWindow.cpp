@@ -30,20 +30,32 @@ void ScrWindow::Draw()
     DrawReplayRewind();
     DrawVeryExperimentalSection2();
 }
-
+void ScrWindow::swap_character_coordinates() {
+    CharData* p1 = g_interfaces.player1.GetData();
+    CharData* p2 = g_interfaces.player2.GetData();
+    auto posx1 = p1->position_x;
+    auto posy1 = p1->position_y;
+    p1->facingLeft = !p1->facingLeft;
+    p1->position_x = p2->position_x;
+    p1->position_y = p2->position_y;
+    p2->position_x = posx1;
+    p2->position_y = posy1;
+    p2->facingLeft = !p2->facingLeft;
+}
 void ScrWindow::DrawStatesSection()
 {
     if (*g_gameVals.pGameMode == GameMode_Training) {
 		if (ImGui::Button("Swap character coordinates")) {
-            CharData* p1 = g_interfaces.player1.GetData();
-            CharData* p2 = g_interfaces.player2.GetData();
-            auto posx1 = p1->position_x;
-            auto posy1 = p1->position_y;
-            p1->position_x = p2->position_x;
-            p1->position_y = p2->position_y;
-            p2->position_x = posx1;
-            p2->position_y = posy1;
+            ScrWindow::swap_character_coordinates();
         }
+        ImGui::SameLine();
+        static bool swap_character_coords_toggle = false;
+        ImGui::Checkbox("Always swap coordinates", &swap_character_coords_toggle);
+        if (swap_character_coords_toggle && *g_gameVals.pFrameCount ==5) {
+            ScrWindow::swap_character_coordinates();
+        }
+
+
     }
 
 

@@ -14,6 +14,8 @@ public:
 protected:
 	void Draw() override;
 
+	void swap_character_coordinates();
+
 private:
 	void DrawStatesSection();
 	void DrawPlaybackSection();
