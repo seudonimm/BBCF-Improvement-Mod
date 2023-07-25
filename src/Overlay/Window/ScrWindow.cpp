@@ -33,7 +33,20 @@ void ScrWindow::Draw()
 
 void ScrWindow::DrawStatesSection()
 {
-    
+    if (*g_gameVals.pGameMode == GameMode_Training) {
+		if (ImGui::Button("Swap character coordinates")) {
+            CharData* p1 = g_interfaces.player1.GetData();
+            CharData* p2 = g_interfaces.player2.GetData();
+            auto posx1 = p1->position_x;
+            auto posy1 = p1->position_y;
+            p1->position_x = p2->position_x;
+            p1->position_y = p2->position_y;
+            p2->position_x = posx1;
+            p2->position_y = posy1;
+        }
+    }
+
+
     if (!ImGui::CollapsingHeader("States"))
         return;
     if (*g_gameVals.pGameMode != GameMode_Training) {
