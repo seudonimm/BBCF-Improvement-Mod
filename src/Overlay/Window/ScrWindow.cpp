@@ -157,7 +157,7 @@ void ScrWindow::DrawStatesSection()
         static int gap_delay = 0;
         static int onhit_delay = 0;
 
-
+          
         ImGui::Checkbox("Burst on hit", &burst_onhit_toggle);
         if (burst_onhit_toggle) {
             onhit_register = {};
@@ -367,17 +367,34 @@ void ScrWindow::DrawStatesSection()
         if (!gap_register.empty()) {
             states = g_interfaces.player2.states;
             //if (!state_gap_random_pos) { state_gap_random_pos = std::rand() % gap_register.size(); }
+            // Note that you can't rely on "GuardEnd"to be there, it can be skipped if there is a mash frame 1
             auto selected_state = states[selected];
             std::string substr = "GuardEnd";
 
             std::string curr_action = g_interfaces.player2.GetData()->currentAction;
             std::string prev_action = g_interfaces.player2.GetData()->lastAction;
-            if (curr_action.find(substr) != std::string::npos
-                &&
-                prev_action.find(substr) == std::string::npos
-                &&
-                g_interfaces.player2.GetData()->actionTime == 1
+            int prev_blockstun = g_interfaces.player2.GetData()->blockstun;
+            static bool triggered = false;
+            if (
+    //            (curr_action.find(substr) != std::string::npos
+//                    &&
+  //                  prev_action.find(substr) == std::string::npos
+//                    &&
+               //     g_interfaces.player2.GetData()->actionTime == 1)
+             //   ||
+                // Doing it this way is necessary because otherwise you have a 1f delay, due to GuardEnd being skipped on f1 mash
+                // blockstun for now seems to be the most reliable metric
+                (g_interfaces.player2.GetData()->blockstun == 1
+                    &&
+                    curr_action.find("Guard") != std::string::npos
+                    && 
+                    !triggered
+                    )
+
+
                 ) {
+                triggered = true;
+
                 state_gap_random_pos = std::rand() % gap_register.size();
                 states_gap_frame_to_do_action = *g_gameVals.pFrameCount + gap_register_delays[state_gap_random_pos];
 
@@ -394,6 +411,7 @@ void ScrWindow::DrawStatesSection()
                     //memcpy(&(g_interfaces.player2.GetData()->currentAction), &(gap_register[state_gap_random_pos]->name[0]), 20);
                     states_gap_frame_to_do_action = 0;
                     state_gap_random_pos = 0;
+                    triggered = false;
                 }
                 else if (*g_gameVals.pFrameCount > states_gap_frame_to_do_action) {
                     states_gap_frame_to_do_action = 0;
