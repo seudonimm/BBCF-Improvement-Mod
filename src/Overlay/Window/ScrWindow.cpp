@@ -547,6 +547,7 @@ void save_to_file(std::vector<char> slot_buffer, char facing_direction, char* fn
     
     std::string fpath = "./slots/";
     fpath += fname;
+    fpath += ".playback";
     std::ofstream out(fpath);
     out << facing_direction;
     for (const auto& e : slot_buffer) out << e;
@@ -555,6 +556,10 @@ void save_to_file(std::vector<char> slot_buffer, char facing_direction, char* fn
 std::vector<char> load_from_file(char* fname) {
     std::string fpath = "./slots/";
     fpath +=fname;
+    if (fpath.find(".playback") == std::string::npos) {
+        fpath += ".playback";
+        //fpath.substr(0, fpath.find(".playback") - 1);
+    }
     //char* filename = "./slots/" + fpath;
     std::streampos fileSize;
     std::ifstream file(fpath, std::ios::binary);
@@ -672,6 +677,7 @@ void ScrWindow::DrawPlaybackSection() {
             }
             
             ImGui::InputText("File Path##slot1", fpath_s1, IM_ARRAYSIZE(fpath_s1));
+            ImGui::TextWrapped("All input files expect the .playback extension now, please add the extension to your old playback files. You can still load the files with .playback extension without writing the extension in the field.");
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
             if (ImGui::Button("Set as gap action##slot1")) {
                 slot_gap = 1;
@@ -756,6 +762,7 @@ void ScrWindow::DrawPlaybackSection() {
                 load_trimmed_playback(slot2_recording_frames, frame_len_slot_p, start_of_slot_inputs);
             }
             ImGui::InputText("File Path##slot2", fpath_s2, IM_ARRAYSIZE(fpath_s2));
+            ImGui::TextWrapped("All input files expect the .playback extension now, please add the extension to your old playback files. You can still load the files with .playback extension without writing the extension in the field.");
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
             if (ImGui::Button("Set as gap action##slot2")) {
                 slot_gap = 2;
@@ -841,6 +848,7 @@ void ScrWindow::DrawPlaybackSection() {
                 load_trimmed_playback(slot3_recording_frames, frame_len_slot_p, start_of_slot_inputs);
             }
             ImGui::InputText("File Path##slot3", fpath_s3, IM_ARRAYSIZE(fpath_s3));
+            ImGui::TextWrapped("All input files expect the .playback extension now, please add the extension to your old playback files. You can still load the files with .playback extension without writing the extension in the field.");
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
             if (ImGui::Button("Set as gap action##slot3")) {
                 slot_gap = 3;
@@ -925,6 +933,7 @@ void ScrWindow::DrawPlaybackSection() {
                 load_trimmed_playback(slot4_recording_frames, frame_len_slot_p, start_of_slot_inputs);
             }
             ImGui::InputText("File Path##slot4", fpath_s4, IM_ARRAYSIZE(fpath_s4));
+            ImGui::TextWrapped("All input files expect the .playback extension now, please add the extension to your old playback files. You can still load the files with .playback extension without writing the extension in the field.");
             ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
             if (ImGui::Button("Set as gap action##slot4")) {
                 slot_gap = 4;
