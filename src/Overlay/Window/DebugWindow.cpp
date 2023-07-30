@@ -100,6 +100,7 @@ void DebugWindow::DrawGameValuesSection()
 
 		
 			ImGui::Text("g_gameVals.isP1CPU: %d", g_gameVals.isP1CPU);
+		//	ImGui::Text("g_gameVals.P1InputJumpBackAddr: %d", g_gameVals.P1InputJumpBackAdress);
 
 		ImGui::Separator();
 		ImGui::Text("pP1PalIndex 0x%p", &(g_interfaces.player1.GetPalHandle().GetPalIndexRef()));
