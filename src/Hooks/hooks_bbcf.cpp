@@ -737,6 +737,6 @@ bool placeHooks_bbcf()
 		"xx????xx?x????xx????xx", 6);
 	g_gameVals.pGameMoney = (int*)HookManager::GetBytesFromAddr("GetMoneyAddr", 2, 4);
 
-	SetDumpfileCommentStringJmpBackAddr = HookManager::SetHook("SetDumpfileCommentString", "\x68\x04\x8f\xd9\x00", "xxxxx", 5, SetDumpfileCommentString);
+	SetDumpfileCommentStringJmpBackAddr = HookManager::SetHook("SetDumpfileCommentString", "\x68\x04\x8f\x97\x00", "xxxxx", 5, SetDumpfileCommentString);
 	return true;
 }
