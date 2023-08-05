@@ -29,6 +29,7 @@ void ScrWindow::Draw()
     DrawReplayTheaterSection();
     DrawReplayRewind();
     DrawVeryExperimentalSection2();
+    DrawRoomSection();
 }
 void ScrWindow::swap_character_coordinates() {
     CharData* p1 = g_interfaces.player1.GetData();
@@ -1750,3 +1751,56 @@ void ScrWindow::DrawVeryExperimentalSection2() {
         *g_gameVals.pMatchTimer = 3597;
     }
 }
+
+
+
+void ScrWindow::DrawRoomSection() {
+    const char* items[] = { "No Rematch", "No limit", "FT2", "FT3", "FT5", "FT10", " " };
+    static int currentItem = 6;
+
+    if (!ImGui::CollapsingHeader("Room Settings"))
+        return;
+
+    if (!g_gameVals.pRoom || g_gameVals.pRoom->roomStatus == RoomStatus_Unavailable)
+    {
+        ImGui::TextUnformatted("Room is not available!");
+        return;
+    }
+
+
+    if (ImGui::Combo("Rematch Settings##dropdown", &currentItem, items, IM_ARRAYSIZE(items)))
+    {
+        switch (currentItem) {
+        case 0:
+            g_gameVals.pRoom->rematch = RoomRematch::RematchType_Disabled;
+            break;
+
+        case 1:
+            g_gameVals.pRoom->rematch = RoomRematch::RematchType_Unlimited;
+            break;
+
+        case 2:
+            g_gameVals.pRoom->rematch = RoomRematch::RematchType_Ft2;
+            break;
+
+        case 3:
+            g_gameVals.pRoom->rematch = RoomRematch::RematchType_Ft3;
+            break;
+
+        case 4:
+            g_gameVals.pRoom->rematch = RoomRematch::RematchType_Ft5;
+            break;
+
+        case 5:
+            g_gameVals.pRoom->rematch = RoomRematch::RematchType_Ft10;
+            break;
+
+        case 6:
+            break;
+
+        default:
+            break;
+        }
+
+    };
+};

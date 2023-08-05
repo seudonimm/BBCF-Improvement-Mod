@@ -22,6 +22,7 @@ private:
 	void DrawReplayTheaterSection();
 	void DrawReplayRewind();
 	void DrawVeryExperimentalSection2();
+	void DrawRoomSection();
 	bool m_showDemoWindow = false;
 	void* p2_old_char_data = NULL;
 	std::vector<scrState*> gap_register{};

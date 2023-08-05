@@ -171,6 +171,7 @@ void DebugWindow::DrawRoomSection()
 		ImGui::Text("Invitation: %d", g_gameVals.pRoom->invitation);
 		ImGui::Text("Member count: %d", g_gameVals.pRoom->memberCount);
 		ImGui::Text("Seconds elapsed: %d", g_gameVals.pRoom->secondsElapsed);
+		ImGui::Text("Room Rematch: %x", g_gameVals.pRoom->roundsToWinPlusMatchLimitBitfield);
 
 		ImGui::TreePop();
 	}
