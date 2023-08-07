@@ -17,6 +17,7 @@ protected:
 	void swap_character_coordinates();
 
 private:
+	void DrawGenericOptionsSection();
 	void DrawStatesSection();
 	void DrawPlaybackSection();
 	void DrawReplayTheaterSection();

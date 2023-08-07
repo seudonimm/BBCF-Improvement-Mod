@@ -88,6 +88,7 @@ struct gameVals_t
 	int entityCount;
 
 	Room* pRoom;
+	bool enableForeignPalettes = false;
 };
 
 struct gameProc_t

@@ -15,7 +15,9 @@
 #include <fstream>
 #include <array>
 //#include <filesystem>
+#include "Core/info.h"
 #include <windows.h>
+
 
 void ScrWindow::Draw()
 {
@@ -23,13 +25,21 @@ void ScrWindow::Draw()
     {
         ImGui::ShowDemoWindow(&m_showDemoWindow);
     }
-
+    DrawGenericOptionsSection();
     DrawStatesSection();
     DrawPlaybackSection();
     DrawReplayTheaterSection();
     DrawReplayRewind();
     DrawVeryExperimentalSection2();
     DrawRoomSection();
+}
+
+void ScrWindow::DrawGenericOptionsSection() {
+    static bool check_dummy = false;
+    if (ImGui::Checkbox("Load other people palettes", &check_dummy)) {
+        g_gameVals.enableForeignPalettes = !g_gameVals.enableForeignPalettes;
+
+    }
 }
 void ScrWindow::swap_character_coordinates() {
     CharData* p1 = g_interfaces.player1.GetData();
@@ -1555,6 +1565,18 @@ std::vector<int> find_nearest_checkpoint(std::vector<unsigned int> frameCount) {
 
 
 void ScrWindow::DrawVeryExperimentalSection2() {
+   // if(ImGui::Button("load other people pallettes")) {
+ //       enableForeignPalettes = !enableForeignPalettes;
+ //   }
+ //   static bool check_dummy = false;
+ //   if(ImGui::Checkbox("Load other people  palettes", &check_dummy)) {
+//        g_gameVals.enableForeignPalettes = !g_gameVals.enableForeignPalettes;
+ //    
+  //  }
+ //   {
+   //     enableForeignPalettes = !enableForeignPalettes;
+    //}
+    
 
     struct states {
         CharData p1;
@@ -1766,7 +1788,6 @@ void ScrWindow::DrawRoomSection() {
         ImGui::TextUnformatted("Room is not available!");
         return;
     }
-
 
     if (ImGui::Combo("Rematch Settings##dropdown", &currentItem, items, IM_ARRAYSIZE(items)))
     {

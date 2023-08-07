@@ -7,7 +7,7 @@
 #include "Overlay/NotificationBar/NotificationBar.h"
 #include "Overlay/WindowManager.h"
 #include "Overlay/Window/HitboxOverlay.h"
-
+#include "Core/info.h"
 void DebugWindow::Draw()
 {
 	if (m_showDemoWindow)
@@ -138,6 +138,7 @@ void DebugWindow::DrawGameValuesSection()
 		ImGui::Text("viewMatrix: 0x%p", g_gameVals.viewMatrix);
 		ImGui::Text("projMatrix: 0x%p", g_gameVals.projMatrix);
 		ImGui::Text("pRoom: 0x%p", g_gameVals.pRoom);
+		ImGui::Text("enableForeignPalettes: %d", g_gameVals.enableForeignPalettes);
 
 		ImGui::TreePop();
 	}
