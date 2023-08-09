@@ -721,7 +721,7 @@ void ScrWindow::DrawPlaybackSection() {
 
             ImGui::SameLine();
             if (ImGui::Button("Set as onhit action::experimental##slot1")) {
-                slot_onblock = 1;
+                slot_onhit = 1;
             }
             if (ImGui::Button("Reset##slot1")) {
                 slot_gap = 0;
@@ -811,7 +811,7 @@ void ScrWindow::DrawPlaybackSection() {
             
             ImGui::SameLine();
             if (ImGui::Button("Set as onhit action::experimental##slot2")) {
-                slot_onblock = 2;
+                slot_onhit = 2;
             }
             if (ImGui::Button("Reset##slot2")) {
                 slot_gap = 0;
@@ -901,7 +901,7 @@ void ScrWindow::DrawPlaybackSection() {
             }
             ImGui::SameLine();
             if (ImGui::Button("Set as onhit action::experimental##slot3")) {
-                slot_onblock = 3;
+                slot_onhit = 3;
             }
             if (ImGui::Button("Reset##slot3")) {
                 slot_gap = 0;
@@ -991,7 +991,7 @@ void ScrWindow::DrawPlaybackSection() {
             }
             ImGui::SameLine();
             if (ImGui::Button("Set as onhit action::experimental##slot4")) {
-                slot_onblock = 4;
+                slot_onhit = 4;
             }
             if (ImGui::Button("Reset##slot4")) {
                 slot_gap = 0;
