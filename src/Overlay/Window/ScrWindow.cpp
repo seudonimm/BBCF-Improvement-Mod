@@ -354,12 +354,21 @@ void ScrWindow::DrawStatesSection()
 
 
         }
+        //static bool old_way = false;
+        //ImGui::Checkbox("old_way##testchoose", &old_way);
+        //static bool hitstun_0 = true;
+        //ImGui::Checkbox("hitstun_0##testchoose", &hitstun_0);
+        //static bool curr_action_not_ukemi = false;
+        //ImGui::Checkbox("curr_action_not_ukemi##testchoose", &curr_action_not_ukemi);      
+        //static bool hitstun_0_curr_action_not_ukemi = false;
+        //ImGui::Checkbox("hitstun_0_curr_action_not_ukemi##testchoose", &hitstun_0_curr_action_not_ukemi);
+
         static std::vector<std::tuple<std::string, int>> wakeup_length_pairs{
             //{"CmnActUkemiLandN",30} ,
            {"CmnActUkemiLandNLanding",1},
             {"CmnActUkemiLandF",30 },
             {"CmnActUkemiLandB",30 } };
-
+        
         if (!wakeup_register.empty()) {
             states = g_interfaces.player2.states;
 
@@ -378,7 +387,16 @@ void ScrWindow::DrawStatesSection()
                     
                 }
                 //the hitstun check is necessary to make sure it doesnt trigger once the action is already stopped by a hit before it triggers, in the case of delayed ones
-                if (states_wakeup_frame_to_do_action && g_interfaces.player2.GetData()->hitstun == 0) {
+                // this used to be a check on the histun, but since sometimes the hitstun isn't reset upon knockdown it wouldn't trigger the action in some situations when it should,
+                // so it'll filter out being interrupted by checking if the state itself the character is in is one of hitstun, It doesn't seem like it triggers a 1f delay as I was concerned,
+                // but could be wrong
+                if (states_wakeup_frame_to_do_action && std::string(g_interfaces.player2.GetData()->currentAction).find("CmnActHit") == std::string::npos){
+                    //old_way && (states_wakeup_frame_to_do_action)
+                   // ||
+               //     hitstun_0 && (states_wakeup_frame_to_do_action && g_interfaces.player2.GetData()->hitstun == 0)
+               //     || 
+             //       curr_action_not_ukemi && (states_wakeup_frame_to_do_action && std::string(g_interfaces.player2.GetData()->currentAction).find("CmnActHit") == std::string::npos)
+             //      {
                  
 
 
@@ -702,12 +720,17 @@ void ScrWindow::DrawPlaybackSection() {
             }
 
             ImGui::SameLine();
+            if (ImGui::Button("Set as onhit action::experimental##slot1")) {
+                slot_onblock = 1;
+            }
             if (ImGui::Button("Reset##slot1")) {
                 slot_gap = 0;
                 slot_wakeup = 0;
                 slot_onblock = 0;
+                slot_onhit = 0;
             }
             ImGui::InputInt("Buffer frames##slot1", &slot_buffer[0]);
+            ImGui::TextWrapped("Buffer frames only works currently with non random wakeup actions");
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
             for (auto el : slot1_recording_frames) {
@@ -787,12 +810,17 @@ void ScrWindow::DrawPlaybackSection() {
             }
             
             ImGui::SameLine();
+            if (ImGui::Button("Set as onhit action::experimental##slot2")) {
+                slot_onblock = 2;
+            }
             if (ImGui::Button("Reset##slot2")) {
                 slot_gap = 0;
                 slot_wakeup = 0;
                 slot_onblock = 0;
+                slot_onhit = 0;
             }
             ImGui::InputInt("Buffer frames ##slot2", &slot_buffer[1]);
+            ImGui::TextWrapped("Buffer frames only works currently with non random wakeup actions");
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
             for (auto el : slot2_recording_frames) {
@@ -872,12 +900,17 @@ void ScrWindow::DrawPlaybackSection() {
                 slot_onblock = 3;
             }
             ImGui::SameLine();
+            if (ImGui::Button("Set as onhit action::experimental##slot3")) {
+                slot_onblock = 3;
+            }
             if (ImGui::Button("Reset##slot3")) {
                 slot_gap = 0;
                 slot_wakeup = 0;
                 slot_onblock = 0;
+                slot_onhit = 0;
             }
             ImGui::InputInt("Buffer frames ##slot3", &slot_buffer[2]);
+            ImGui::TextWrapped("Buffer frames only works currently with non random wakeup actions");
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
             for (auto el : slot3_recording_frames) {
@@ -957,12 +990,17 @@ void ScrWindow::DrawPlaybackSection() {
                 slot_onblock = 4;
             }
             ImGui::SameLine();
+            if (ImGui::Button("Set as onhit action::experimental##slot4")) {
+                slot_onblock = 4;
+            }
             if (ImGui::Button("Reset##slot4")) {
                 slot_gap = 0;
                 slot_wakeup = 0;
                 slot_onblock = 0;
+                slot_onhit = 0;
             }
             ImGui::InputInt("Buffer frames ##slot4", &slot_buffer[3]);
+            ImGui::TextWrapped("Buffer frames only works currently with non random wakeup actions");
             ImGui::Separator();
             auto old_val = 0; auto frame_counter = 0;
             for (auto el : slot4_recording_frames) {
@@ -1071,8 +1109,12 @@ void ScrWindow::DrawPlaybackSection() {
                 memcpy(playback_control_ptr, &val_set, 2);
             }
 
-
-
+            auto onhit_action_trigger_find = current_action.find("CmnActHit");
+            if (slot_onhit != 0 && g_interfaces.player2.GetData()->hitstun > 0 && onhit_action_trigger_find != std::string::npos) {
+                slot = slot_onhit - 1;
+                memcpy(active_slot, &slot, 4);
+                memcpy(playback_control_ptr, &val_set, 2);
+            }
 
 
             //change to const later?
@@ -1123,6 +1165,7 @@ void ScrWindow::DrawPlaybackSection() {
 
             //checking for wakeup action
             //std::string substr = "CmnActUkemiLandNLanding";
+            // I think I need to change this later to fit the above activation criteria, otherwise it may have ~3 frames gap? needs more testing!
             auto wakeup_action_trigger_find = current_action.find("CmnActUkemiLandNLanding");
             if (random_wakeup_slot_toggle && !random_wakeup.empty() && wakeup_action_trigger_find != std::string::npos) {
                 //does randomized
