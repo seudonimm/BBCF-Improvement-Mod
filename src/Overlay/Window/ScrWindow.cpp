@@ -5,6 +5,8 @@
 #include "Core/utils.h"
 #include "Game/gamestates.h"
 #include "Game/ReplayStates/FrameState.h"
+#include "Game/ReplayFiles/ReplayFile.h"
+#include "Game/ReplayFiles/ReplayFileManager.h"
 #include "Overlay/NotificationBar/NotificationBar.h"
 #include "Overlay/WindowManager.h"
 #include "Overlay/Window/HitboxOverlay.h"
@@ -14,10 +16,10 @@
 #include <iostream>
 #include <fstream>
 #include <array>
-//#include <filesystem>
+#include "Core/utils.h"
 #include "Core/info.h"
 #include <windows.h>
-
+#include "Game/ReplayFiles/ReplayFileManager.h"
 
 void ScrWindow::Draw()
 {
@@ -36,10 +38,14 @@ void ScrWindow::Draw()
 
 void ScrWindow::DrawGenericOptionsSection() {
     static bool check_dummy = false;
-    if (ImGui::Checkbox("Load other people palettes", &check_dummy)) {
+    ImGui::TextWrapped("If you're having crash issues when joining ranked from training mode, disable this when searching in training mode, can be reenabled for any other situation. It stops your game from loading foreign palettes. This is just a stopgap, grim will come with the real fix.");
+    if (ImGui::Checkbox("Load foreign palettes", &check_dummy)) {
         g_gameVals.enableForeignPalettes = !g_gameVals.enableForeignPalettes;
 
     }
+ 
+
+
 }
 void ScrWindow::swap_character_coordinates() {
     CharData* p1 = g_interfaces.player1.GetData();
@@ -229,6 +235,9 @@ void ScrWindow::DrawStatesSection()
                     memcpy(&(g_interfaces.player2.GetData()->currentAction), &(air_burst_action->name[0]), 20);
                     memcpy(&(g_interfaces.player2.GetData()->weird_current_action_q), &(air_burst_action->name[0]), 20);*/
                     memcpy(&(g_interfaces.player2.GetData()->set_action_override), &(air_burst_action->name[0]), 20);
+                    //uint32_t* kding_p2Inputs2 = (uint32_t*)GetBbcfBaseAdress() + 0xE19888;
+                    //*kding_p2Inputs2 = 0xCCF5;
+                    //memcpy(kding_p2Inputs2, &burst_act,4);
                 }
                 else {
                     /*memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(burst_action->addr), 4);
@@ -236,6 +245,10 @@ void ScrWindow::DrawStatesSection()
                     memcpy(&(g_interfaces.player2.GetData()->currentAction), &(burst_action->name[0]), 20);
                     memcpy(&(g_interfaces.player2.GetData()->weird_current_action_q), &(burst_action->name[0]), 20);*/
                     memcpy(&(g_interfaces.player2.GetData()->set_action_override), &(burst_action->name[0]), 20);
+                    //uint32_t* kding_p2Inputs2 = (uint32_t*)GetBbcfBaseAdress() + 0xE19888;
+                    //*kding_p2Inputs2 = 0xCCF5;
+                    //memcpy(kding_p2Inputs2, &burst_act,4);
+                  
                 }
             }
             ImGui::BeginChild("burst_buttons##states", ImVec2(0, 60));
@@ -1108,7 +1121,7 @@ void ScrWindow::DrawPlaybackSection() {
                 memcpy(active_slot, &slot, 4);
                 memcpy(playback_control_ptr, &val_set, 2);
             }
-
+            //need to add the actions for when there is a on hit on the air, CmdActBDownUpper, CmdActBDownDown, etc
             auto onhit_action_trigger_find = current_action.find("CmnActHit");
             if (slot_onhit != 0 && g_interfaces.player2.GetData()->hitstun > 0 && onhit_action_trigger_find != std::string::npos) {
                 slot = slot_onhit - 1;
@@ -1239,10 +1252,13 @@ void toggle_char_distance_code(bool skip);
 void ScrWindow::DrawReplayTheaterSection() {
     /*std::filesystem::path targetParent = "./Save/Replay/locals";
     std::filesystem::create_directories(targetParent);*/
+    
+
+
     const int FNAME_SIZE_MAX = 31;
     static bool local_replay_loaded = false;
     static std::string local_replay_loaded_name = "";
-
+    static ReplayFileManager rep_manager = ReplayFileManager();
     if (*g_gameVals.pGameMode != GameMode_ReplayTheater && local_replay_loaded) {
         restore_replays(FNAME_SIZE_MAX);
     }
@@ -1250,6 +1266,7 @@ void ScrWindow::DrawReplayTheaterSection() {
         set_local_replay(&local_replay_loaded_name[0], FNAME_SIZE_MAX);
     }
     if (ImGui::CollapsingHeader("Local Replays")) {
+        ImGui::TextWrapped("The replay file must be in Save/Replay/, to load archived replays move them from Save/Replay/archive/ to Save/Replay/. Filenames must not exceed 31 chars. ");
         static char local_replay_name[FNAME_SIZE_MAX] = "fname";
         ImGui::InputText("File Name##replay_theater", local_replay_name, IM_ARRAYSIZE(local_replay_name));
         if (ImGui::Button("Load##replay_theater")) {
@@ -1262,7 +1279,17 @@ void ScrWindow::DrawReplayTheaterSection() {
             restore_replays(FNAME_SIZE_MAX);
             local_replay_loaded = false;
         }
+
+        
+        
+        if (ImGui::Button("Archive replay files")) {
+            rep_manager.archive_replays();
+
+        }
+        ImGui::TextWrapped("Archiving will copy and rename all current replays to Save/Replay/archive/");
+
     }
+    
 
 }
 void toggle_char_distance_code(bool skip=true) {

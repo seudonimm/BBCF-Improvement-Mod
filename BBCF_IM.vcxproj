@@ -18,6 +18,9 @@
     <ClCompile Include="src\CustomGameMode\customGameMode.cpp" />
     <ClCompile Include="src\CustomGameMode\GameModeManager.cpp" />
     <ClCompile Include="src\Game\characters.cpp" />
+    <ClCompile Include="src\Game\ReplayFiles\ReplayFileManager.cpp">
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
+    </ClCompile>
     <ClCompile Include="src\Game\ReplayStates\FrameState.cpp" />
     <ClCompile Include="src\Game\Scr\ScrStateReader.cpp" />
     <ClCompile Include="src\Game\stages.cpp" />
@@ -91,6 +94,8 @@
     <ClInclude Include="src\CustomGameMode\GameModeManager.h" />
     <ClInclude Include="src\D3D9EXWrapper\d3d9.h" />
     <ClInclude Include="src\Game\characters.h" />
+    <ClInclude Include="src\Game\ReplayFiles\ReplayFile.h" />
+    <ClInclude Include="src\Game\ReplayFiles\ReplayFileManager.h" />
     <ClInclude Include="src\Game\ReplayStates\FrameState.h" />
     <ClInclude Include="src\Game\Scr\CmdList.h" />
     <ClInclude Include="src\Game\Scr\ScrStateEntry.h" />

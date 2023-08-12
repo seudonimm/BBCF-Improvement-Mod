@@ -22,13 +22,12 @@ char* CharPaletteHandle::GetPalFileAddr(const char* base, int palIndex, int file
 	// [[[baseaddr + 0x4] + palIndex * 0x20] + fileID * 0x4] + 0x1C
 
 	// Leave for debugging:
-	//DWORD* deref1 = (DWORD*)base + 1;
-	//DWORD* deref2 = (DWORD*)*deref1 + (palIndex * 8);
-	//DWORD* deref2Offset = deref2 + + fileID;
-	//DWORD* finalAddr = (DWORD*)*deref2Offset + 7;
+	DWORD* deref1 = (DWORD*)base + 1;
+	DWORD* deref2 = (DWORD*)*deref1 + (palIndex * 8);
+	DWORD* deref2Offset = deref2 + + fileID;
+	DWORD* finalAddr = (DWORD*)*deref2Offset + 7;
 
 	DWORD* paletteAddress = (DWORD*)*((DWORD*)*((DWORD*)base + 1) + (palIndex * 8) + fileID) + 7;
-	
 	return (char*)paletteAddress;
 }
 
@@ -83,8 +82,10 @@ void CharPaletteHandle::ReplaceSinglePalFile(const char* newPalData, PaletteFile
 {
 	char* pDst1 = GetPalFileAddr(m_pPalBaseAddr, m_switchPalIndex1, (int)palFile);
 	char* pDst2 = GetPalFileAddr(m_pPalBaseAddr, m_switchPalIndex2, (int)palFile);
+	
 	ReplacePalArrayInMemory(pDst1, newPalData);
 	ReplacePalArrayInMemory(pDst2, newPalData);
+	
 
 	UpdatePalette();
 }
