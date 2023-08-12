@@ -37,7 +37,7 @@ void ScrWindow::Draw()
 }
 
 void ScrWindow::DrawGenericOptionsSection() {
-    static bool check_dummy = false;
+    static bool check_dummy = true;
     ImGui::TextWrapped("If you're having crash issues when joining ranked from training mode, disable this when searching in training mode, can be reenabled for any other situation. It stops your game from loading foreign palettes. This is just a stopgap, grim will come with the real fix.");
     if (ImGui::Checkbox("Load foreign palettes", &check_dummy)) {
         g_gameVals.enableForeignPalettes = !g_gameVals.enableForeignPalettes;
