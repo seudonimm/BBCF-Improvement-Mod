@@ -1,6 +1,6 @@
 #pragma once
-
-#define MOD_VERSION_NUM	"v3.0490 BO BLEIS edition"
+#define MOD_VERSION "v3.0490"
+#define MOD_VERSION_NUM	MOD_VERSION " BO BLEIS edition"
 #define MOD_WINDOW_TITLE "BBCF Improvement Mod BO BLEIS"
 
 #define MOD_FORCE_DISABLE_UPDATE_CHECK 0
