@@ -50,4 +50,5 @@ std::vector<char> PlaybackSlot::get_slot_buffer() {
 	for (int i = 0; i < frame_len_slot; i++) {
 		slot1_recording_frames.push_back(*(this->start_of_slot_inputs_p + i * 2));
 	}
+	return slot1_recording_frames;
 }
