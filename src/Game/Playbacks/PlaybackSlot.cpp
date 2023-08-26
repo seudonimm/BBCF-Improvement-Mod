@@ -30,7 +30,7 @@ int PlaybackSlot::initialize_facing_direction_slot(int slot)
 char* PlaybackSlot::initialize_start_of_slot_inputs_p(int slot)
 {
 	/*initializes the start_of_slot_inputs_p for the specified slot*/
-	this->start_of_slot_inputs_p = this->bbcf_base_adress + this->start_of_slot_inputs_addr_offset_from_time_count[slot - 1];
+	this->start_of_slot_inputs_p = this->frame_len_slot_p+ this->start_of_slot_inputs_addr_offset_from_time_count[slot - 1];
 	return this->start_of_slot_inputs_p;
 }
 
@@ -50,4 +50,5 @@ std::vector<char> PlaybackSlot::get_slot_buffer() {
 	for (int i = 0; i < frame_len_slot; i++) {
 		slot1_recording_frames.push_back(*(this->start_of_slot_inputs_p + i * 2));
 	}
+	return slot1_recording_frames;
 }

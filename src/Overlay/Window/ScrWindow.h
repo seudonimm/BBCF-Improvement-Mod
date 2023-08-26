@@ -2,7 +2,7 @@
 #include "IWindow.h"
 #include <vector>
 #include "Game/Scr/ScrStateReader.h"
-
+#include "Game/Playbacks/PlaybackManager.h"
 class ScrWindow : public IWindow
 {
 public:
@@ -19,11 +19,13 @@ protected:
 private:
 	void DrawGenericOptionsSection();
 	void DrawStatesSection();
+	void draw_playback_slot_section(int slot);
 	void DrawPlaybackSection();
 	void DrawReplayTheaterSection();
 	void DrawReplayRewind();
 	void DrawVeryExperimentalSection2();
 	void DrawRoomSection();
+	PlaybackManager playback_manager;
 	bool m_showDemoWindow = false;
 	void* p2_old_char_data = NULL;
 	std::vector<scrState*> gap_register{};

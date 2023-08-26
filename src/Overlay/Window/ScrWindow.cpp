@@ -20,9 +20,17 @@
 #include "Core/info.h"
 #include <windows.h>
 #include "Game/ReplayFiles/ReplayFileManager.h"
+#include "Game/Playbacks/PlaybackManager.h"
+#include <cstdlib>
+#include <ctime>
 
 void ScrWindow::Draw()
 {
+    static bool random_seeded = false;
+    if (!random_seeded){
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
+        random_seeded = true;
+    }
     if (m_showDemoWindow)
     {
         ImGui::ShowDemoWindow(&m_showDemoWindow);
@@ -661,370 +669,198 @@ void treat_random_slot_checkbox(std::vector<int> &slot_vec, bool slot_toggle, in
         }
     }
 };
+void ScrWindow::draw_playback_slot_section(int slot) {
+    ImGui::PushID(int("slot") + slot);
+    char* fpath;
+    switch (slot)
+    {
+    case 1:
+        fpath = fpath_s1;
+        break;
+    case 2:
+        fpath = fpath_s2;
+        break;
+    case 3:
+        fpath = fpath_s3;
+        break;
+    case 4:
+        fpath = fpath_s4;
+        break;
+
+    default:
+        fpath = fpath_s1;
+        break;
+    }
+    PlaybackSlot selected_slot = playback_manager.slots[slot - 1];
+   
+
+    int facing_direction;
+    memcpy(&facing_direction, selected_slot.facing_direction_p, 4);
+
+
+
+    std::vector<char> slot_recording_frames = selected_slot.get_slot_buffer();
+    if (ImGui::Button("Save")) {
+        save_to_file(slot_recording_frames, facing_direction, fpath);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Load")) {
+        playback_manager.load_from_file_into_slot(fpath,slot);
+
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Trim Playback")) {
+        slot_recording_frames = playback_manager.trim_playback(slot_recording_frames);
+        playback_manager.load_into_slot(slot_recording_frames, slot);
+        //load_trimmed_playback(slot_recording_frames, selected_slot.frame_len_slot_p, start_of_slot_inputs);
+    }
+
+    ImGui::InputText("File Path", fpath, 1200);// IM_ARRAYSIZE(fpath));
+    ImGui::TextWrapped("All input files expect the .playback extension now, please add the extension to your old playback files. You can still load the files with .playback extension without writing the extension in the field.");
+    ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
+    if (ImGui::Button("Set as gap action")) {
+        slot_gap = slot;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Set as wakeup action")) {
+        slot_wakeup = slot;
+    }
+    if (ImGui::Button("Set as onblock action")) {
+        slot_onblock = slot;
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Set as onhit action::experimental")) {
+        slot_onhit = slot;
+    }
+    if (ImGui::Button("Reset")) {
+        slot_gap = 0;
+        slot_wakeup = 0;
+        slot_onblock = 0;
+        slot_onhit = 0;
+    }
+    ImGui::InputInt("Buffer frames", &slot_buffer[0]);
+    ImGui::TextWrapped("Buffer frames only works currently with non random wakeup actions");
+    ImGui::Separator();
+    auto old_val = 0; auto frame_counter = 0;
+    for (auto el : slot_recording_frames) {
+        frame_counter++;
+        if (old_val != el) {
+            std::string move_string = interpret_move(el);
+            ImGui::Text("frame %d: %s (0x%x)", frame_counter, move_string.c_str(), el);
+            old_val = el;
+        }
+    }
+    ImGui::PopID();
+};
 void ScrWindow::DrawPlaybackSection() {
     char* bbcf_base_adress = GetBbcfBaseAdress();
     char* active_slot = bbcf_base_adress + 0x902C3C;
     if (ImGui::CollapsingHeader("Playback")) {
-
         if (ImGui::CollapsingHeader("SLOT_1")) {
-
-
-
-
-            int time_count_slot_1_addr_offset = 0x9075E8;
-            char* frame_len_slot_p = bbcf_base_adress + time_count_slot_1_addr_offset;
-            int frame_len_slot;
-            memcpy(&frame_len_slot, frame_len_slot_p, 4);
-
-
-            int facing_direction_slot_1_addr_offset = 0x9075D8;
-            char* facing_direction_p = bbcf_base_adress + facing_direction_slot_1_addr_offset;
-            int facing_direction;
-            memcpy(&facing_direction, facing_direction_p, 4);
-
-
-
-            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_1_addr_offset + 0x10;
-            std::vector<char> slot1_recording_frames{};
-            for (int i = 0; i < frame_len_slot; i++) {
-                slot1_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
-            }
-            if (ImGui::Button("Save##slot1")) {
-                save_to_file(slot1_recording_frames, facing_direction, fpath_s1);
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Load##slot1")) {
-                auto loaded_file = load_from_file(fpath_s1);
-                if (!loaded_file.empty()) {
-                    char facing_direction = loaded_file[0];
-                    loaded_file.erase(loaded_file.begin());
-                    memcpy(facing_direction_p, &(facing_direction), sizeof(char));
-                }
-                int frame_len_loaded_file = loaded_file.size();
-                memcpy(frame_len_slot_p, &(frame_len_loaded_file), 4);
-                int iter = 0;
-
-                if (!loaded_file.empty()) {
-                    for (auto input : loaded_file) {
-                        memcpy(start_of_slot_inputs + (iter * 2), &input, 2);
-                        iter++;
-                    }
-                }
-
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Trim Playback##slot1")) {
-                slot1_recording_frames = trim_playback(slot1_recording_frames);
-                load_trimmed_playback(slot1_recording_frames, frame_len_slot_p, start_of_slot_inputs);
-            }
-            
-            ImGui::InputText("File Path##slot1", fpath_s1, IM_ARRAYSIZE(fpath_s1));
-            ImGui::TextWrapped("All input files expect the .playback extension now, please add the extension to your old playback files. You can still load the files with .playback extension without writing the extension in the field.");
-            ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
-            if (ImGui::Button("Set as gap action##slot1")) {
-                slot_gap = 1;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Set as wakeup action##slot1")) {
-                slot_wakeup = 1;
-            }
-            if (ImGui::Button("Set as onblock action##slot1")) {
-                slot_onblock = 1;
-            }
-
-            ImGui::SameLine();
-            if (ImGui::Button("Set as onhit action::experimental##slot1")) {
-                slot_onhit = 1;
-            }
-            if (ImGui::Button("Reset##slot1")) {
-                slot_gap = 0;
-                slot_wakeup = 0;
-                slot_onblock = 0;
-                slot_onhit = 0;
-            }
-            ImGui::InputInt("Buffer frames##slot1", &slot_buffer[0]);
-            ImGui::TextWrapped("Buffer frames only works currently with non random wakeup actions");
-            ImGui::Separator();
-            auto old_val = 0; auto frame_counter = 0;
-            for (auto el : slot1_recording_frames) {
-                frame_counter++;
-                if (old_val != el) {
-                    std::string move_string = interpret_move(el);
-                    ImGui::Text("frame %d: %s (0x%x)", frame_counter, move_string.c_str(), el);
-                    old_val = el;
-                }
-            }
+            draw_playback_slot_section(1);
 
         }
-        
         if (ImGui::CollapsingHeader("SLOT_2")) {
-
-
-
-
-            int time_count_slot_2_addr_offset = 0x9075EC;
-            char* frame_len_slot_p = bbcf_base_adress + time_count_slot_2_addr_offset;
-            int frame_len_slot;
-            memcpy(&frame_len_slot, frame_len_slot_p, 4);
-
-
-            int facing_direction_slot_2_addr_offset = 0x9075DC;
-            char* facing_direction_p = bbcf_base_adress + facing_direction_slot_2_addr_offset;
-            int facing_direction;
-            memcpy(&facing_direction, facing_direction_p, 4);
-
-
-            //0x960 is 2400 which is the size of the recording slot_1, recording slot_2 has this offset + 0xC relative to start of slot_1
-            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_2_addr_offset + 0x960+ 0xC;
-            std::vector<char> slot2_recording_frames{};
-            for (int i = 0; i < frame_len_slot; i++) {
-                slot2_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
-            }
-            if (ImGui::Button("Save##slot2")) {
-                save_to_file(slot2_recording_frames, facing_direction, fpath_s2);
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Load##slot2")) {
-                auto loaded_file = load_from_file(fpath_s2);
-                if (!loaded_file.empty()) {
-                    char facing_direction = loaded_file[0];
-                    loaded_file.erase(loaded_file.begin());
-                    memcpy(facing_direction_p, &(facing_direction), sizeof(char));
-                }
-                int frame_len_loaded_file = loaded_file.size();
-                memcpy(frame_len_slot_p, &(frame_len_loaded_file), 4);
-                int iter = 0;
-
-                if (!loaded_file.empty()) {
-                    for (auto input : loaded_file) {
-                        memcpy(start_of_slot_inputs + (iter * 2), &input, 2);
-                        iter++;
-                    }
-                }
-            }
-            
-            ImGui::SameLine();
-            if (ImGui::Button("Trim Playback##slot2")) {
-                slot2_recording_frames = trim_playback(slot2_recording_frames);
-                load_trimmed_playback(slot2_recording_frames, frame_len_slot_p, start_of_slot_inputs);
-            }
-            ImGui::InputText("File Path##slot2", fpath_s2, IM_ARRAYSIZE(fpath_s2));
-            ImGui::TextWrapped("All input files expect the .playback extension now, please add the extension to your old playback files. You can still load the files with .playback extension without writing the extension in the field.");
-            ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
-            if (ImGui::Button("Set as gap action##slot2")) {
-                slot_gap = 2;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Set as wakeup action##slot2")) {
-                slot_wakeup= 2;
-            }
-            if (ImGui::Button("Set as onblock action##slot2")) {
-                slot_onblock = 2;
-            }
-            
-            ImGui::SameLine();
-            if (ImGui::Button("Set as onhit action::experimental##slot2")) {
-                slot_onhit = 2;
-            }
-            if (ImGui::Button("Reset##slot2")) {
-                slot_gap = 0;
-                slot_wakeup = 0;
-                slot_onblock = 0;
-                slot_onhit = 0;
-            }
-            ImGui::InputInt("Buffer frames ##slot2", &slot_buffer[1]);
-            ImGui::TextWrapped("Buffer frames only works currently with non random wakeup actions");
-            ImGui::Separator();
-            auto old_val = 0; auto frame_counter = 0;
-            for (auto el : slot2_recording_frames) {
-                frame_counter++;
-                if (old_val != el) {
-                    std::string move_string = interpret_move(el);
-                    ImGui::Text("frame %d: %s (0x%x)", frame_counter, move_string.c_str(), el);
-                    old_val = el;
-                }
-            }
-
-        
+            draw_playback_slot_section(2);
         }
+        //if (ImGui::CollapsingHeader("SLOT_2")) {
+
+
+
+
+        //    int time_count_slot_2_addr_offset = 0x9075EC;
+        //    char* frame_len_slot_p = bbcf_base_adress + time_count_slot_2_addr_offset;
+        //    int frame_len_slot;
+        //    memcpy(&frame_len_slot, frame_len_slot_p, 4);
+
+
+        //    int facing_direction_slot_2_addr_offset = 0x9075DC;
+        //    char* facing_direction_p = bbcf_base_adress + facing_direction_slot_2_addr_offset;
+        //    int facing_direction;
+        //    memcpy(&facing_direction, facing_direction_p, 4);
+
+
+        //    //0x960 is 2400 which is the size of the recording slot_1, recording slot_2 has this offset + 0xC relative to start of slot_1
+        //    char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_2_addr_offset + 0x960+ 0xC;
+        //    std::vector<char> slot2_recording_frames{};
+        //    for (int i = 0; i < frame_len_slot; i++) {
+        //        slot2_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
+        //    }
+        //    if (ImGui::Button("Save##slot2")) {
+        //        save_to_file(slot2_recording_frames, facing_direction, fpath_s2);
+        //    }
+        //    ImGui::SameLine();
+        //    if (ImGui::Button("Load##slot2")) {
+        //        auto loaded_file = load_from_file(fpath_s2);
+        //        if (!loaded_file.empty()) {
+        //            char facing_direction = loaded_file[0];
+        //            loaded_file.erase(loaded_file.begin());
+        //            memcpy(facing_direction_p, &(facing_direction), sizeof(char));
+        //        }
+        //        int frame_len_loaded_file = loaded_file.size();
+        //        memcpy(frame_len_slot_p, &(frame_len_loaded_file), 4);
+        //        int iter = 0;
+
+        //        if (!loaded_file.empty()) {
+        //            for (auto input : loaded_file) {
+        //                memcpy(start_of_slot_inputs + (iter * 2), &input, 2);
+        //                iter++;
+        //            }
+        //        }
+        //    }
+        //    
+        //    ImGui::SameLine();
+        //    if (ImGui::Button("Trim Playback##slot2")) {
+        //        slot2_recording_frames = trim_playback(slot2_recording_frames);
+        //        load_trimmed_playback(slot2_recording_frames, frame_len_slot_p, start_of_slot_inputs);
+        //    }
+        //    ImGui::InputText("File Path##slot2", fpath_s2, IM_ARRAYSIZE(fpath_s2));
+        //    ImGui::TextWrapped("All input files expect the .playback extension now, please add the extension to your old playback files. You can still load the files with .playback extension without writing the extension in the field.");
+        //    ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
+        //    if (ImGui::Button("Set as gap action##slot2")) {
+        //        slot_gap = 2;
+        //    }
+        //    ImGui::SameLine();
+        //    if (ImGui::Button("Set as wakeup action##slot2")) {
+        //        slot_wakeup= 2;
+        //    }
+        //    if (ImGui::Button("Set as onblock action##slot2")) {
+        //        slot_onblock = 2;
+        //    }
+        //    
+        //    ImGui::SameLine();
+        //    if (ImGui::Button("Set as onhit action::experimental##slot2")) {
+        //        slot_onhit = 2;
+        //    }
+        //    if (ImGui::Button("Reset##slot2")) {
+        //        slot_gap = 0;
+        //        slot_wakeup = 0;
+        //        slot_onblock = 0;
+        //        slot_onhit = 0;
+        //    }
+        //    ImGui::InputInt("Buffer frames ##slot2", &slot_buffer[1]);
+        //    ImGui::TextWrapped("Buffer frames only works currently with non random wakeup actions");
+        //    ImGui::Separator();
+        //    auto old_val = 0; auto frame_counter = 0;
+        //    for (auto el : slot2_recording_frames) {
+        //        frame_counter++;
+        //        if (old_val != el) {
+        //            std::string move_string = interpret_move(el);
+        //            ImGui::Text("frame %d: %s (0x%x)", frame_counter, move_string.c_str(), el);
+        //            old_val = el;
+        //        }
+        //    }
+
+        //
+        //}
         
         if (ImGui::CollapsingHeader("SLOT_3")) {
-
-
-
-
-            int time_count_slot_3_addr_offset = 0x9075F0;
-            char* frame_len_slot_p = bbcf_base_adress + time_count_slot_3_addr_offset;
-            int frame_len_slot;
-            memcpy(&frame_len_slot, frame_len_slot_p, 4);
-
-
-            int facing_direction_slot_3_addr_offset = 0x9075E0;
-            char* facing_direction_p = bbcf_base_adress + facing_direction_slot_3_addr_offset;
-            int facing_direction;
-            memcpy(&facing_direction, facing_direction_p, 4);
-
-
-            //similar to slot_2 but with 0x8
-            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_3_addr_offset + (0x960 * 2) + 0x8;
-            std::vector<char> slot3_recording_frames{};
-            for (int i = 0; i < frame_len_slot; i++) {
-                slot3_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
-            }
-            if (ImGui::Button("Save##slot3")) {
-                save_to_file(slot3_recording_frames, facing_direction, fpath_s3);
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Load##slot3")) {
-                auto loaded_file = load_from_file(fpath_s3);
-                if (!loaded_file.empty()) {
-                    char facing_direction = loaded_file[0];
-                    loaded_file.erase(loaded_file.begin());
-                    memcpy(facing_direction_p, &(facing_direction), sizeof(char));
-                }
-                int frame_len_loaded_file = loaded_file.size();
-                memcpy(frame_len_slot_p, &(frame_len_loaded_file), 4);
-                int iter = 0;
-
-                if (!loaded_file.empty()) {
-                    for (auto input : loaded_file) {
-                        memcpy(start_of_slot_inputs + (iter * 2), &input, 2);
-                        iter++;
-                    }
-                }
-            }
-
-            ImGui::SameLine();
-            if (ImGui::Button("Trim Playback##slot3")) {
-                slot3_recording_frames = trim_playback(slot3_recording_frames);
-                load_trimmed_playback(slot3_recording_frames, frame_len_slot_p, start_of_slot_inputs);
-            }
-            ImGui::InputText("File Path##slot3", fpath_s3, IM_ARRAYSIZE(fpath_s3));
-            ImGui::TextWrapped("All input files expect the .playback extension now, please add the extension to your old playback files. You can still load the files with .playback extension without writing the extension in the field.");
-            ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
-            if (ImGui::Button("Set as gap action##slot3")) {
-                slot_gap = 3;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Set as wakeup action##slot3")) {
-                slot_wakeup = 3;
-            }
-            if (ImGui::Button("Set as onblock action##slot3")) {
-                slot_onblock = 3;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Set as onhit action::experimental##slot3")) {
-                slot_onhit = 3;
-            }
-            if (ImGui::Button("Reset##slot3")) {
-                slot_gap = 0;
-                slot_wakeup = 0;
-                slot_onblock = 0;
-                slot_onhit = 0;
-            }
-            ImGui::InputInt("Buffer frames ##slot3", &slot_buffer[2]);
-            ImGui::TextWrapped("Buffer frames only works currently with non random wakeup actions");
-            ImGui::Separator();
-            auto old_val = 0; auto frame_counter = 0;
-            for (auto el : slot3_recording_frames) {
-                frame_counter++;
-                if (old_val != el) {
-                    std::string move_string = interpret_move(el);
-                    ImGui::Text("frame %d: %s (0x%x)", frame_counter, move_string.c_str(), el);
-                    old_val = el;
-                }
-            }
-          
+            draw_playback_slot_section(3);
         }
 
         if (ImGui::CollapsingHeader("SLOT_4")) {
-
-
-
-
-            int time_count_slot_4_addr_offset = 0x9075F4;
-            char* frame_len_slot_p = bbcf_base_adress + time_count_slot_4_addr_offset;
-            int frame_len_slot;
-            memcpy(&frame_len_slot, frame_len_slot_p, 4);
-
-
-            int facing_direction_slot_4_addr_offset = 0x9075E4;
-            char* facing_direction_p = bbcf_base_adress + facing_direction_slot_4_addr_offset;
-            int facing_direction;
-            memcpy(&facing_direction, facing_direction_p, 4);
-
-
-            //similar to slot_2 and slot_3 but with 0x4
-            char* start_of_slot_inputs = bbcf_base_adress + time_count_slot_4_addr_offset + (0x960 * 3) + 0x4;
-            std::vector<char> slot4_recording_frames{};
-            for (int i = 0; i < frame_len_slot; i++) {
-                slot4_recording_frames.push_back(*(start_of_slot_inputs + i * 2));
-            }
-            if (ImGui::Button("Save##slot4")) {
-                save_to_file(slot4_recording_frames, facing_direction, fpath_s4);
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Load##slot4")) {
-                auto loaded_file = load_from_file(fpath_s4);
-                if (!loaded_file.empty()) {
-                    char facing_direction = loaded_file[0];
-                    loaded_file.erase(loaded_file.begin());
-                    memcpy(facing_direction_p, &(facing_direction), sizeof(char));
-                }
-                int frame_len_loaded_file = loaded_file.size();
-                memcpy(frame_len_slot_p, &(frame_len_loaded_file), 4);
-                int iter = 0;
-
-                if (!loaded_file.empty()) {
-                    for (auto input : loaded_file) {
-                        memcpy(start_of_slot_inputs + (iter * 2), &input, 2);
-                        iter++;
-                    }
-                }
-
-            }
-           
-            ImGui::SameLine();
-            if (ImGui::Button("Trim Playback##slot4")) {
-                slot4_recording_frames = trim_playback(slot4_recording_frames);
-                load_trimmed_playback(slot4_recording_frames, frame_len_slot_p, start_of_slot_inputs);
-            }
-            ImGui::InputText("File Path##slot4", fpath_s4, IM_ARRAYSIZE(fpath_s4));
-            ImGui::TextWrapped("All input files expect the .playback extension now, please add the extension to your old playback files. You can still load the files with .playback extension without writing the extension in the field.");
-            ImGui::TextWrapped("If the field isn't accepting keyboard input, try alt-tabbing out and back in, if that doesn't work copy and paste should still work(or restarting the game)");
-            if (ImGui::Button("Set as gap action##slot4")) {
-                slot_gap = 4;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Set as wakeup action##slot4")) {
-                slot_wakeup = 4;
-            }
-            if (ImGui::Button("Set as onblock action##slot4")) {
-                slot_onblock = 4;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Set as onhit action::experimental##slot4")) {
-                slot_onhit = 4;
-            }
-            if (ImGui::Button("Reset##slot4")) {
-                slot_gap = 0;
-                slot_wakeup = 0;
-                slot_onblock = 0;
-                slot_onhit = 0;
-            }
-            ImGui::InputInt("Buffer frames ##slot4", &slot_buffer[3]);
-            ImGui::TextWrapped("Buffer frames only works currently with non random wakeup actions");
-            ImGui::Separator();
-            auto old_val = 0; auto frame_counter = 0;
-            for (auto el : slot4_recording_frames) {
-                frame_counter++;
-                if (old_val != el) {
-                    std::string move_string = interpret_move(el);
-                    ImGui::Text("frame %d: %s (0x%x)", frame_counter, move_string.c_str(), el);
-                    old_val = el;
-                }
-            }
-          
+            draw_playback_slot_section(4);
         }
         
 
@@ -1079,6 +915,7 @@ void ScrWindow::DrawPlaybackSection() {
             //does gap action for recorded slot
             //can optimize later by checking for same memory address
             std::string current_action = g_interfaces.player2.GetData()->currentAction;
+            //replace by the action in the manager
             char* playback_control_ptr = bbcf_base_adress + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment, 0 for dummy, 1 for recording standby, 2 for bugged recording, 3 for playback, 4 for controller, 5 for cpu, 6 for continuous playback
             int val_set = 3;
             int slot = 0;
@@ -1097,7 +934,8 @@ void ScrWindow::DrawPlaybackSection() {
                
                 && gap_action_trigger_find != std::string::npos) {
                 //does randomized
-                int random_pos = std::rand() % random_gap.size();
+                int rand = std::rand();
+                int random_pos = rand % random_gap.size();
                 slot = random_gap[random_pos] - 1;
                 memcpy(active_slot, &slot, 4);
                 memcpy(playback_control_ptr, &val_set, 2);

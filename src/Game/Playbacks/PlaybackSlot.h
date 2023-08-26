@@ -45,7 +45,9 @@ private:
 		(0x960 * 3) + 0x4 //slot 4
 	};//offset to find start_of_slot_inputs_p from base_adress + time_count_slot_*_addr_offset
 public:
-	// start_of_slot_inputs_p = bbcf_base_adress + time_count_slot_*_addr_offset +  start_of_slot_inputs_slot_*_addr_offset_from_time_count
+	/* start_of_slot_inputs_p = bbcf_base_adress + time_count_slot_ * _addr_offset + start_of_slot_inputs_slot_ * _addr_offset_from_time_count
+	   which is equialent to 
+	   start_of_slot_inputs_p = frame_len_slot_p + start_of_slot_inputs_slot_ * _addr_offset_from_time_count */
 	char* start_of_slot_inputs_p; /*adress holding the starting position of playback data on a specific slot, must be recalculated for every different slot*/
 
 };
