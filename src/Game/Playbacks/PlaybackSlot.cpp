@@ -52,3 +52,4 @@ std::vector<char> PlaybackSlot::get_slot_buffer() {
 	}
 	return slot1_recording_frames;
 }
+
