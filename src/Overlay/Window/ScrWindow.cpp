@@ -959,8 +959,16 @@ void ScrWindow::DrawPlaybackSection() {
                 memcpy(active_slot, &slot, 4);
                 memcpy(playback_control_ptr, &val_set, 2);
             }
-            //need to add the actions for when there is a on hit on the air, CmdActBDownUpper, CmdActBDownDown, etc
-            auto onhit_action_trigger_find = current_action.find("CmnActHit");
+
+            auto onhit_action_trigger_find = [&]()-> size_t {
+                for (auto& el : std::vector<std::string>{ "CmnActHit", "CmnActBDown", "CmnActFDown", "CmnActVDown" }) {
+                    if (current_action.find(el) != std::string::npos) {
+                        return current_action.find(el);
+                    }
+                };
+                return std::string::npos; 
+            }();
+           //auto onhit_action_trigger_find = current_action.find("CmnActHit");
             if (slot_onhit != 0 && g_interfaces.player2.GetData()->hitstun > 0 && onhit_action_trigger_find != std::string::npos) {
                 slot = slot_onhit - 1;
                 memcpy(active_slot, &slot, 4);
