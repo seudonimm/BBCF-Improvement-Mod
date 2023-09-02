@@ -170,7 +170,7 @@ void MainWindow::DrawFrameAdvantageSection() const
 
 		/* Window */
 		ImGui::Begin("Framedata", &isFrameAdvantageOpen);
-		ImGui::SetWindowSize(ImVec2(220, 100));
+		ImGui::SetWindowSize(ImVec2(220, 100), ImGuiCond_FirstUseEver);
 		ImGui::SetWindowPos(ImVec2(350, 250), ImGuiCond_FirstUseEver);
 
 		ImGui::Columns(2, "columns_layout", true);
