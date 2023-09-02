@@ -159,7 +159,8 @@ void MainWindow::DrawFrameAdvantageSection() const
 	computeFramedataInteractions();
 
 	static bool isFrameAdvantageOpen = false;
-	ImGui::Checkbox("Enable", &isFrameAdvantageOpen);
+	ImGui::HorizontalSpacing();
+	ImGui::Checkbox("Enable##framedata_section", &isFrameAdvantageOpen);
 
 	if (isFrameAdvantageOpen)
 	{
@@ -264,7 +265,7 @@ void MainWindow::DrawHitboxOverlaySection() const
 	static bool isOpen = false;
 
 	ImGui::HorizontalSpacing();
-	if (ImGui::Checkbox("Enable", &isOpen))
+	if (ImGui::Checkbox("Enable##hitbox_overlay_section", &isOpen))
 	{
 		if (isOpen)
 		{
