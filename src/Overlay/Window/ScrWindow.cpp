@@ -206,6 +206,7 @@ void ScrWindow::DrawStatesSection()
         static int wakeup_delay = 0;
         static int gap_delay = 0;
         static int onhit_delay = 0;
+        static int throwtech_delay = 0;
 
           
         ImGui::Checkbox("Burst on hit", &burst_onhit_toggle);
@@ -268,7 +269,7 @@ void ScrWindow::DrawStatesSection()
             ImGui::InputInt("##state_burst_onhit_cooldown_frames", &burst_onhit_cooldown_frames);
             ImGui::EndChild();
         }
-        ImGui::Checkbox("Add delays to wakeup/gap actions", &action_delays_toggle);
+        ImGui::Checkbox("Add delays to actions", &action_delays_toggle);
         if (action_delays_toggle) {
             ImGui::BeginChild("delay_actions##states", ImVec2(0, 60));
             ImGui::Text("Wakeup: ");
@@ -277,6 +278,9 @@ void ScrWindow::DrawStatesSection()
             ImGui::Text("Gap: ");
             ImGui::SameLine();
             ImGui::InputInt("##state_gap_delay", &gap_delay);
+            ImGui::Text("Tech: ");
+            ImGui::SameLine();
+            ImGui::InputInt("##state_throwtech_delay", &throwtech_delay);
             /*ImGui::Text("On Hit Delay: ");
             ImGui::SameLine();
             ImGui::InputInt("##state_onhit_delay", &onhit_delay);*/
@@ -286,6 +290,7 @@ void ScrWindow::DrawStatesSection()
             wakeup_delay = 0;
             gap_delay = 0;
             onhit_delay = 0;
+            throwtech_delay = 0;
         }
 
 
@@ -315,13 +320,24 @@ void ScrWindow::DrawStatesSection()
             states = g_interfaces.player2.states;
             gap_register = {};
             gap_register_delays = {};
-            state_gap_random_pos = 0;
+            states_gap_random_pos = 0;
             gap_register.push_back(states[selected]);
             gap_register_delays.push_back(gap_delay);
             auto selected_state = states[selected];
 
         }
         ImGui::SameLine();
+       
+        if (ImGui::Button("Set as tech action")) {
+            states = g_interfaces.player2.states;
+            throwtech_register = {};
+            throwtech_register_delays = {};
+            states_throwtech_random_pos = 0;
+            throwtech_register.push_back(states[selected]);
+            throwtech_register_delays.push_back(throwtech_delay);
+            auto selected_state = states[selected];
+
+        }
         if (ImGui::Button("Use")) {
             states = g_interfaces.player2.states;
             auto selected_state = states[selected];
@@ -343,6 +359,8 @@ void ScrWindow::DrawStatesSection()
             wakeup_register_delays = {};
             onhit_register = {};
             onhit_register_delays = {};
+            throwtech_register = {};
+            throwtech_register_delays = {};
         }
 
 
@@ -439,6 +457,33 @@ void ScrWindow::DrawStatesSection()
             }
         }
 
+        if (!throwtech_register.empty()) {
+            states = g_interfaces.player2.states;
+            auto throwtech_action_trigger_find = std::string(g_interfaces.player2.GetData()->currentAction).find("LockReject");
+
+                
+                if (g_interfaces.player2.GetData()->timeAfterTechIsPerformed == 29 && throwtech_action_trigger_find != std::string::npos){
+                    states_throwtech_random_pos = std::rand() % throwtech_register.size();
+                    states_throwtech_frame_to_do_action = *g_gameVals.pFrameCount + throwtech_register_delays[states_throwtech_random_pos];
+
+
+                }
+               
+                if (*g_gameVals.pFrameCount == states_throwtech_frame_to_do_action) {
+                    memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(throwtech_register[states_throwtech_random_pos]->addr), 4);
+                    g_interfaces.player2.GetData()->frameCounterCurrentSprite = g_interfaces.player2.GetData()->frameLengthCurrentSprite2 - 1;
+                    //memcpy(&(g_interfaces.player2.GetData()->currentAction), &(wakeup_register[states_wakeup_random_pos]->name[0]), 20);
+                    states_throwtech_frame_to_do_action = 0;
+                    states_throwtech_random_pos = 0;
+                }
+                else if (*g_gameVals.pFrameCount > states_throwtech_frame_to_do_action && states_throwtech_frame_to_do_action != 0) {
+                    states_throwtech_frame_to_do_action = 0;
+                    states_throwtech_random_pos = 0;
+                };
+
+                }
+            
+        
         if (!gap_register.empty()) {
             states = g_interfaces.player2.states;
             //if (!state_gap_random_pos) { state_gap_random_pos = std::rand() % gap_register.size(); }
@@ -463,8 +508,8 @@ void ScrWindow::DrawStatesSection()
                 ) {
 
 
-                state_gap_random_pos = std::rand() % gap_register.size();
-                states_gap_frame_to_do_action = *g_gameVals.pFrameCount + gap_register_delays[state_gap_random_pos];
+                states_gap_random_pos = std::rand() % gap_register.size();
+                states_gap_frame_to_do_action = *g_gameVals.pFrameCount + gap_register_delays[states_gap_random_pos];
 
 
             }
@@ -474,16 +519,16 @@ void ScrWindow::DrawStatesSection()
 
 
                 if (*g_gameVals.pFrameCount == states_gap_frame_to_do_action) {
-                    memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(gap_register[state_gap_random_pos]->addr), 4);
+                    memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(gap_register[states_gap_random_pos]->addr), 4);
                     g_interfaces.player2.GetData()->frameCounterCurrentSprite = g_interfaces.player2.GetData()->frameLengthCurrentSprite2 - 1;
                     //memcpy(&(g_interfaces.player2.GetData()->currentAction), &(gap_register[state_gap_random_pos]->name[0]), 20);
                     states_gap_frame_to_do_action = 0;
-                    state_gap_random_pos = 0;
+                    states_gap_random_pos = 0;
 
                 }
                 else if (*g_gameVals.pFrameCount > states_gap_frame_to_do_action) {
                     states_gap_frame_to_do_action = 0;
-                    state_gap_random_pos = 0;
+                    states_gap_random_pos = 0;
                 }
 
             }
@@ -506,7 +551,7 @@ void ScrWindow::DrawStatesSection()
     
     }
 
-}
+};
 std::string interpret_move(char move) {
     //auto button_bits = move & ((4 << 1) - 1);
     auto button_bits = move & 0xf0;
@@ -733,11 +778,16 @@ void ScrWindow::draw_playback_slot_section(int slot) {
     if (ImGui::Button("Set as onhit action::experimental")) {
         slot_onhit = slot;
     }
+    ImGui::SameLine();
+    if (ImGui::Button("Set as tech action")) {
+        slot_throwtech = slot;
+    }
     if (ImGui::Button("Reset")) {
         slot_gap = 0;
         slot_wakeup = 0;
         slot_onblock = 0;
         slot_onhit = 0;
+        slot_throwtech = 0;
     }
     ImGui::InputInt("Buffer frames", &slot_buffer[0]);
     ImGui::TextWrapped("Buffer frames only works currently with non random wakeup actions");
@@ -974,6 +1024,14 @@ void ScrWindow::DrawPlaybackSection() {
                 memcpy(active_slot, &slot, 4);
                 memcpy(playback_control_ptr, &val_set, 2);
             }
+
+            auto throwtech__action_trigger_find = current_action.find("LockReject");
+            if (slot_throwtech != 0 && g_interfaces.player2.GetData()->timeAfterTechIsPerformed == 29 && throwtech__action_trigger_find != std::string::npos){
+                slot = slot_throwtech - 1;
+                memcpy(active_slot, &slot, 4);
+                memcpy(playback_control_ptr, &val_set, 2);
+            }
+
 
 
             //change to const later?

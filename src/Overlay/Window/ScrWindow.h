@@ -34,18 +34,23 @@ private:
 	std::vector<int> wakeup_register_delays{};
 	std::vector<scrState*> onhit_register{};
 	std::vector<int> onhit_register_delays{};
+	std::vector<scrState*> throwtech_register{};
+	std::vector<int> throwtech_register_delays{};
 	scrState* burst_action;
 	scrState* air_burst_action;
 
 
 
 	int states_wakeup_random_pos = 0;
-	int state_gap_random_pos = 0;
-	int states_onhitp_wakeup_random_pos = 0;
+	int states_gap_random_pos = 0;
+	int states_onhit_random_pos = 0;
+	int states_throwtech_random_pos = 0;
+
 
 	int frame_to_burst_onhit;
 	int states_wakeup_frame_to_do_action = 0;
 	int states_gap_frame_to_do_action = 0;
+	int states_throwtech_frame_to_do_action = 0;
 
 
 	char fpath_s1[1200] = "fpath";
@@ -56,6 +61,8 @@ private:
 	int slot_wakeup = 0; //0 for disabled, 1 for slot 1, 2 for slot 2, etc
 	int slot_onblock = 0; //0 for disabled, 1 for slot 1, 2 for slot 2, etc
 	int slot_onhit = 0; //0 for disabled, 1 for slot 1, 2 for slot 2, etc
+	int slot_throwtech = 0; //0 for disabled, 1 for slot 1, 2 for slot 2, etc
+	
 	bool random_gap_slot1 = false;
 	bool random_gap_slot2 = false;
 	bool random_gap_slot3 = false;
