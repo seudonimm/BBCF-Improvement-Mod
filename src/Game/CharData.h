@@ -188,8 +188,155 @@ public:
 	int32_t overdriveMaxtime; //0x5AF8
 	char pad_5AFC[8]; //0x5AFC
 	int32_t barrier; //0x5B04
-	char pad_5B08[102072]; //0x5b08
-	int32_t slot2_or_slot4; //0x1E9C0 referring to the scr SLOTs, naoto only for now until i figure out more about this shit 
+	//char pad_5B08[102072]; //0x5b08
+	char pad_5B08[101524]; //0x5b08
+
+
+
+
+
+	/*input buffers*/
+	char L_input_buffer_flag_base; //0x1e79c
+	/*input buffer for Left side, size=0x10A this will skip all the non motion inputs for now*/
+	char pad_1E79D[0xAB];//0x1e79d the "non-special" inputs should be here
+	/*motion buffers Left side, the offsets listed are the offsets from input_buffer_flag_base*/
+	int8_t buffer_L_236;//0x1e848, +ac
+	int8_t buffer_L_623;//0x1e849, +ad
+	int8_t buffer_L_214;//0x1e84A, +ae
+	int8_t buffer_L_41236;//0x1e84B, +af
+	int8_t buffer_L_421;//0x1e84C, + b0
+	int8_t buffer_L_63214;//0x1e84D, + b1
+	int8_t buffer_L_236236;//0x1e84E, + b2
+	int8_t buffer_L_214214;//0x1e84F, + b3
+	char padding_1E850;//0x1e850, + b4
+	int8_t buffer_L_6321463214;//0x1e851, + b5 (Double HCB, jubei astral)
+	int8_t buffer_L_632146_2;//0x1e852, + b6 (terumi 100 meter damage super)
+	char padding_1E853;//0x1E853, + b7
+	int8_t buffer_L_2141236;//0x1E854, + b8 susanoo astral
+	int8_t buffer_L_2363214;//0x1E855, + b9 rachel, makoto astraleliussomething
+	int8_t buffer_L_22;//0x1E856, + ba
+	int8_t buffer_L_46; //0x1E857, + bb
+	char padding_1e858;//0x1E858, + bc
+	int8_t buffer_L_2H6; //0x1E859, + BD 2H6 -> hold 2 -> 6, charge(?) its actually 2H8 it seems for an unreleased kagura special?
+	int8_t buffer_L_6428;//0x1E85A, +BE
+	int8_t buffer_L_4H128;//0x1E85B, + BF taokaka astral
+	int8_t buffer_L_64641236;//0x1E85C, + C0 carl astral
+	int8_t buffer_L_412364123641236;//0x1E85D, + C1   Triple HCF (412364123641236) Litchi OD astral
+	int8_t buffer_L_KS28_;//0x1E85E, + C2, kagura stance, maybe it includes all characters not just kagura as long as D is pressed?
+	int8_t buffer_L_646;//0x1E85F, + C3
+	char padding_1E860[2]; //0x1E860
+	int8_t buffer_L_CMASH;//0x1E862, + C6 susanoo's c mash special
+	char padding_1E863[3]; //0x1E863
+	int8_t buffer_L_360; //0x1E867, + CA
+	int8_t buffer_L_720; //0x1E868, + CB
+	char padding_1E869; //0x1E869
+	int8_t buffer_L_222;//0x1E86A, + CD
+	int8_t padding_1E86B;//0x1E86B
+	int8_t buffer_L_236236LambdaSuper;//0x1E86C, + CF specific to lambda-11 super it seems
+	int8_t padding_1E86D[9];//0x1E86D
+	int8_t buffer_L_8izanamifloat; //0x1E875, +D9 input for izanami float
+	int8_t buffer_L_66; //0x1E876, +DA
+	int8_t buffer_L_44; //0x1E877, +DB
+	char padding_1E878[3];//0x1E878
+
+	int8_t buffer_L_22jinsekkajin; //0x1E87B, +DF specific to jins sekkajin
+	char padding_1E87B;//0x1E87C
+	int8_t buffer_L_44nineseconddash; //0x1E87D, +E1 specific for nine's second dash
+	int8_t buffer_L_66nineseconddash; //0x1E87E, +E2 specific for nine's second dash
+	char padding_1E87F;//0x1E87F
+	int8_t buffer_L_88nineseconddash; //0x1E880, +E4 specific for nine's second dash
+	char padding_1E877[17];//0x1E881
+	int8_t buffer_L_1080; //0x1E892, +F6
+	int8_t buffer_L_1632143; //0x1E893, +F7
+	char padding_1E895; //0x1E894
+	int8_t buffer_L_632146; //0x1E895, +F9
+	char padding_1E897[3]; //0x1E896
+	int8_t buffer_L_takemikazuchi_shit; //0x1E899, +FD some specific stuff for the game's onslaught
+	int8_t buffer_L_4H6; //0x1E89A, +FE
+	int8_t buffer_L_2H8; //0x1E89B, +FF
+	char padding_1E89D; //0x1E89C
+	int8_t buffer_L_4H1236; //0x1E89D, +101
+	int8_t buffer_L_82; //0x1E89E, +102
+	int8_t buffer_L_8H2; //0x1E8AF, +103
+	char padding_1E8A0[4]; //0x1E8A0
+	int8_t buffer_L_236_5f; //0x1E8A4, +108 236 within 5 frames of input valid, for mai's enhanced thrust
+	int8_t buffer_L_214_5f; //0x1E8A5, +109 214 for mai backflip idk why its special
+
+	
+	char R_input_buffer_flag_base; //0x1E8A6
+	/*input buffer for Right side, size=0x10A this will skip all the non motion inputs for now*/
+	char pad_1E8A7[0xAB];//0x1E8A7 the "non-special" inputs should be here, they should be duplicated maybe?
+
+	/*motion buffers Right side, the offsets listed are the offsets from input_buffer_flag_base*/
+	int8_t buffer_R_236;//0x1E952, +ac +10A
+	int8_t buffer_R_623;//0x1E953, +ad +10A
+	int8_t buffer_R_214;//0x1E954, +ae +10A
+	int8_t buffer_R_41236;//0x1E955, +af +10A
+	int8_t buffer_R_421;//0x1E956, + b0 +10A
+	int8_t buffer_R_63214;//0x1E957, + b1 +10A
+	int8_t buffer_R_236236;//0x1E958, + b2 +10A
+	int8_t buffer_R_214214;//0x1E959, + b3 +10A
+	char padding_1E95A;//0x1E95A, + b4 +10A
+	int8_t buffer_R_6321463214;//0x1E95B, + b5 +10A(Double HCB, jubei astral)
+	int8_t buffer_R_632146_2;//0x1E95C, + b6 +10A(terumi 100 meter damage super)
+	char padding_1E95D;//0x1E95D, + b7 +10A
+	int8_t buffer_R_2141236;//0x1E95E, + b8 +10A susanoo astral
+	int8_t buffer_R_2363214;//0x1E95F, + b9 +10A rachel, makoto astraleliussomething
+	int8_t buffer_R_22;//0x1E960, + ba +10A
+	int8_t buffer_R_46; //0x1E961, + bb +10A
+	char padding_1E962;//0x1E962, + bc +10A
+	int8_t buffer_R_2H6; //0x1E963, + BD +10A 2H6 -> hold 2 -> 6, charge(?) its actually 2H8 it seems for an unreleased kagura special?
+	int8_t buffer_R_6428;//0x1E964, +BE +10A
+	int8_t buffer_R_4H128;//0x1E965, + BF +10A taokaka astral
+	int8_t buffer_R_64641236;//0x1E966, + C0 +10A carl astral
+	int8_t buffer_R_412364123641236;//0x1E967, + C1 +10A   Triple HCF (412364123641236) Litchi OD astral
+	int8_t buffer_R_KS28_;//0x1E968, + C2 +10A, kagura stance, maybe it includes all characters not just kagura as long as D is pressed?
+	int8_t buffer_R_646;//0x1E969, + C3 +10A
+	char padding_1E96A[2]; //0x1E96A
+	int8_t buffer_R_CMASH;//0x1E96C, + C6 +10A susanoo's c mash special
+	char padding_1E96D[3]; //0x1E96D
+	int8_t buffer_R_360; //0x1E970, + CA +10A
+	int8_t buffer_R_720; //0x1E971, + CB +10A
+	char padding_1E972; //0x1E972
+	int8_t buffer_R_222;//0x1E973, + CD +10A
+	char padding_1E974;//0x1E974
+	int8_t buffer_R_236236LambdaSuper;//0x1E975, + CF +10A specific to lambda-11 super it seems
+	char padding_1E976[9];//0x1E976
+	int8_t buffer_R_8izanamifloat; //0x1E97f, +D9 +10A input for izanami float
+	int8_t buffer_R_66; //0x1E980, +DA +10A
+	int8_t buffer_R_44; //0x1E981, +DB +10A
+	char padding_1E982[3];//0x1E982
+
+	int8_t buffer_R_22jinsekkajin; //0x1E985, +DF +10A specific to jins sekkajin
+	char padding_1E986;//0x1E986
+	int8_t buffer_R_44nineseconddash; //0x1E987, +E1 +10A specific for nine's second dash
+	int8_t buffer_R_66nineseconddash; //0x1E988, +E2 +10A specific for nine's second dash
+	char padding_1E989;//0x1E989
+	int8_t buffer_R_88nineseconddash; //0x1E98A, +E4 +10A specific for nine's second dash
+	char padding_1E98B[17];//0x1E98B
+	int8_t buffer_R_1080; //0x1E99C, +F6 +10A
+	int8_t buffer_R_1632143; //0x1E99D, +F7 +10A
+	char padding_1E99E; //0x1E99E
+	int8_t buffer_R_632146; //0x1E99F, +F9 +10A
+	char padding_1E9A0[3]; //0x1E9A0
+	int8_t buffer_R_takemikazuchi_shit; //0x1E9A3, +FD +10A some specific stuff for the game's onslaught
+	int8_t buffer_R_4H6; //0x1E9A4, +FE +10A
+	int8_t buffer_R_2H8; //0x1E9A5, +FF +10A
+	char padding_1E9A6; //0x1E9A6
+	int8_t buffer_R_4H1236; //0x1E9A7, +101 +10A
+	int8_t buffer_R_82; //0x1E9A8, +102 +10A
+	int8_t buffer_R_8H2; //0x1E9A9, +103 +10A
+	char padding_1E9AA[4]; //0x1E9AA
+	int8_t buffer_R_236_5f; //0x1E9AE, +108 +10A 236 within 5 frames of input valid, for mai's enhanced thrust
+	int8_t buffer_R_214_5f; //0x1E9AF, +109 +10A 214 for mai backflip idk why its special
+	char pad_1E9B0[16];//0x1E9B0
+	//char pad_1E9B0[5980];//0x1E9B0
+
+	/*MOTION INPUT BUFFERS SHOULD END AT 0x1E9B0*/
+	int32_t slot2_or_slot4; //0x1E9C0 referring to the scr SLOTs, naoto only for now until i figure out more about this shit !!! this is actually the buffer for dash
+
+
+
 	char pad_1E9C4[5960]; //0x1E9C4 108036
 	int32_t Drive1; //0x2010C
 	char pad_20110[12]; //0x20110

@@ -77,7 +77,7 @@ void replace_all(
                 file.seekg(0, std::ios::beg);
 
 
-                std::vector<char> fileData(fileSize);
+
                 file.read((char*)&replay_file, fileSize);
                 isLoaded = true;
                 return true;
