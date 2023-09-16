@@ -83,6 +83,8 @@ private:
 
 
 	int32_t wakeup_type = 0;
+	int wakeup_delay_skew = 0;
+	bool wakeup_delay_skew_change_flag = false;
 	int wakeup_delay = 0;
 	char* bbcf_base_adress = GetBbcfBaseAdress();
 };

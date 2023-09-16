@@ -18,7 +18,6 @@
 #include <iostream>
 #include <fstream>
 #include <array>
-//#include "Core/utils.h"
 #include "Core/info.h"
 #include <windows.h>
 #include "Game/ReplayFiles/ReplayFileManager.h"
@@ -50,19 +49,19 @@ void ScrWindow::DrawWakeupDelayControl() {
     const char* items[] = { "Disabled", "Neutral", "Forward", "Backward", "Quick", "Random" };
     static int32_t wakeup_delay_current_item = 0;
     //gets the start of the fourth page of training setup menu
-    //TrainingSetupMenu* menu = (TrainingSetupMenu*)(ScrWindow::bbcf_base_adress + 0x902BDC);
     ImGui::BeginChild("wakeup_delay_child##wakeup_delay", ImVec2(160, 30));
     ImGui::Text("Delay: ");
     ImGui::SameLine();
-    ImGui::InputInt("##wakeup_delay", &(ScrWindow::wakeup_delay));
-    if (ScrWindow::wakeup_delay > 39) {
-        ScrWindow::wakeup_delay = 39;
-    }
-    if (ScrWindow::wakeup_delay < 0) {
-        ScrWindow::wakeup_delay = 0;
+    if (ImGui::InputInt("##wakeup_delay", &(ScrWindow::wakeup_delay))) {
+        
+        if (ScrWindow::wakeup_delay > 39) {
+            ScrWindow::wakeup_delay = 39;
+        }
+        if (ScrWindow::wakeup_delay < 0) {
+            ScrWindow::wakeup_delay = 0;
+        }
     }
     ImGui::EndChild();
-    //ImGui::Text("Wakeup Type: ");
     ImGui::SameLine(); ImGui::HorizontalSpacing(30);
     ImGui::BeginChild("wakeup_type_child##wakeup_delay", ImVec2(190, 30));
     ImGui::Text("Wake-up: ");
@@ -70,22 +69,48 @@ void ScrWindow::DrawWakeupDelayControl() {
     if (ImGui::Combo("##wakeup_delay", &wakeup_delay_current_item, items, IM_ARRAYSIZE(items)))
     {
         ScrWindow::wakeup_type= wakeup_delay_current_item;
-        //menu->wake_up = wakeup_delay_current_item;
     }
-    //ImGui::InputInt("##wakeup_type", &(ScrWindow::wakeup_type));
     ImGui::EndChild();
+    ImGui::BeginChild("wakeup_skew_child##wakeup_delay", ImVec2(263, 30));
+    ImGui::Text("Skew range: ");
+    ImGui::SameLine();
+    if (ImGui::InputInt("##wakeup_skew", &(ScrWindow::wakeup_delay_skew))) {
+        ScrWindow::wakeup_delay_skew_change_flag = true;
+        if (ScrWindow::wakeup_delay_skew > 39) {
+            ScrWindow::wakeup_delay_skew = 39;
+        }
+        if (ScrWindow::wakeup_delay_skew < -39) {
+            ScrWindow::wakeup_delay_skew = -39;
+        }
+    };
+    ImGui::EndChild();
+
 }
 void ScrWindow::check_wakeup_delay() {
     TrainingSetupMenu* menu = (TrainingSetupMenu*)(ScrWindow::bbcf_base_adress + 0x902BDC);
     menu->emergency_roll = 0;
     auto current_action = std::string(g_interfaces.player2.GetData()->currentAction);
     auto action_time = g_interfaces.player2.GetData()->actionTime;
+    /*finds the random "skew" both for positiveand negative "skews".Yes I know this doesnt fit 
+    the true statistical definition of skew but I couldn't think of a better name fuck off*/
+    static int wakeup_delay_random_skew = 0;
+    //this is necessary to make sure people dont get stuck in unreacheable action_times when changing the skew
+    if (ScrWindow::wakeup_delay_skew_change_flag) {
+        wakeup_delay_random_skew = 0;
+        ScrWindow::wakeup_delay_skew_change_flag = false;
+    }
+    
+    if (ScrWindow::wakeup_delay_skew && !wakeup_delay_random_skew) {
+        wakeup_delay_random_skew = (std::rand() % std::abs(ScrWindow::wakeup_delay_skew))
+                                                            * (ScrWindow::wakeup_delay_skew / std::abs(ScrWindow::wakeup_delay_skew));
+    }
     //searches for CmnActFDownLoop and CmnActBDownLoop, this state after 10f is the one that allows for non emergency tech action
     auto wakeup_action_trigger_find = current_action.find("DownLoop");
     if (ScrWindow::wakeup_type
         && wakeup_action_trigger_find != std::string::npos
-        && action_time == 10 + ScrWindow::wakeup_delay) {
+        && action_time == 10 + ScrWindow::wakeup_delay + wakeup_delay_random_skew) {
         menu->wake_up = wakeup_type;
+        wakeup_delay_random_skew = 0;
     }
     else {
         menu->wake_up = 0;
