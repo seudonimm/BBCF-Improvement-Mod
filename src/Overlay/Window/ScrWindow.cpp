@@ -1829,8 +1829,8 @@ void ScrWindow::DrawVeryExperimentalSection2() {
 
 
 void ScrWindow::DrawRoomSection() {
-    const char* items[] = { "No Rematch", "No limit", "FT2", "FT3", "FT5", "FT10", " " };
-    static int currentItem = 6;
+    const char* items[] = { "No Rematch", "No limit", "FT2", "FT3", "FT5", "FT10"};
+    static int currentItem = 0;
 
     if (!ImGui::CollapsingHeader("Room Settings"))
         return;
@@ -1839,6 +1839,29 @@ void ScrWindow::DrawRoomSection() {
     {
         ImGui::TextUnformatted("Room is not available!");
         return;
+    }
+    //sets the selected value in the dropdown the actual value
+    switch (g_gameVals.pRoom->rematch) {
+    case RoomRematch::RematchType_Disabled:
+        currentItem = 0;
+        break;
+    case RoomRematch::RematchType_Unlimited:
+        currentItem = 1;
+        break;
+    case RoomRematch::RematchType_Ft2:
+        currentItem = 2;
+        break;
+    case RoomRematch::RematchType_Ft3:
+        currentItem = 3;
+        break;
+    case RoomRematch::RematchType_Ft5:
+        currentItem = 4;
+        break;
+    case RoomRematch::RematchType_Ft10:
+        currentItem = 5;
+        break;
+    default:
+        break;
     }
 
     if (ImGui::Combo("Rematch Settings##dropdown", &currentItem, items, IM_ARRAYSIZE(items)))
@@ -1868,8 +1891,7 @@ void ScrWindow::DrawRoomSection() {
             g_gameVals.pRoom->rematch = RoomRematch::RematchType_Ft10;
             break;
 
-        case 6:
-            break;
+
 
         default:
             break;
