@@ -7,22 +7,25 @@
 #include "Game/ReplayStates/FrameState.h"
 #include "Game/ReplayFiles/ReplayFile.h"
 #include "Game/ReplayFiles/ReplayFileManager.h"
+#include "Game/Menus/TrainingSetupMenu.h"
 #include "Overlay/NotificationBar/NotificationBar.h"
 #include "Overlay/WindowManager.h"
 #include "Overlay/Window/HitboxOverlay.h"
+#include "Overlay/imgui_utils.h"
 #include "Psapi.h"
 #include <ctime>
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <array>
-#include "Core/utils.h"
+//#include "Core/utils.h"
 #include "Core/info.h"
 #include <windows.h>
 #include "Game/ReplayFiles/ReplayFileManager.h"
 #include "Game/Playbacks/PlaybackManager.h"
 #include <cstdlib>
 #include <ctime>
+
 
 void ScrWindow::Draw()
 {
@@ -43,7 +46,52 @@ void ScrWindow::Draw()
     DrawVeryExperimentalSection2();
     DrawRoomSection();
 }
+void ScrWindow::DrawWakeupDelayControl() {
+    const char* items[] = { "Disabled", "Neutral", "Forward", "Backward", "Quick", "Random" };
+    static int32_t wakeup_delay_current_item = 0;
+    //gets the start of the fourth page of training setup menu
+    //TrainingSetupMenu* menu = (TrainingSetupMenu*)(ScrWindow::bbcf_base_adress + 0x902BDC);
+    ImGui::BeginChild("wakeup_delay_child##wakeup_delay", ImVec2(160, 30));
+    ImGui::Text("Delay: ");
+    ImGui::SameLine();
+    ImGui::InputInt("##wakeup_delay", &(ScrWindow::wakeup_delay));
+    if (ScrWindow::wakeup_delay > 39) {
+        ScrWindow::wakeup_delay = 39;
+    }
+    if (ScrWindow::wakeup_delay < 0) {
+        ScrWindow::wakeup_delay = 0;
+    }
+    ImGui::EndChild();
+    //ImGui::Text("Wakeup Type: ");
+    ImGui::SameLine(); ImGui::HorizontalSpacing(30);
+    ImGui::BeginChild("wakeup_type_child##wakeup_delay", ImVec2(190, 30));
+    ImGui::Text("Wake-up: ");
+    ImGui::SameLine();
+    if (ImGui::Combo("##wakeup_delay", &wakeup_delay_current_item, items, IM_ARRAYSIZE(items)))
+    {
+        ScrWindow::wakeup_type= wakeup_delay_current_item;
+        //menu->wake_up = wakeup_delay_current_item;
+    }
+    //ImGui::InputInt("##wakeup_type", &(ScrWindow::wakeup_type));
+    ImGui::EndChild();
+}
+void ScrWindow::check_wakeup_delay() {
+    TrainingSetupMenu* menu = (TrainingSetupMenu*)(ScrWindow::bbcf_base_adress + 0x902BDC);
+    menu->emergency_roll = 0;
+    auto current_action = std::string(g_interfaces.player2.GetData()->currentAction);
+    auto action_time = g_interfaces.player2.GetData()->actionTime;
+    //searches for CmnActFDownLoop and CmnActBDownLoop, this state after 10f is the one that allows for non emergency tech action
+    auto wakeup_action_trigger_find = current_action.find("DownLoop");
+    if (ScrWindow::wakeup_type
+        && wakeup_action_trigger_find != std::string::npos
+        && action_time == 10 + ScrWindow::wakeup_delay) {
+        menu->wake_up = wakeup_type;
+    }
+    else {
+        menu->wake_up = 0;
+    }
 
+}
 void ScrWindow::DrawGenericOptionsSection() {
     static bool check_dummy = g_gameVals.enableForeignPalettes;
     ImGui::TextWrapped("If you're having crash issues when joining ranked from training mode, disable this when searching in training mode, can be reenabled for any other situation. It stops your game from loading foreign palettes. This is just a stopgap, grim will come with the real fix.");
@@ -51,9 +99,14 @@ void ScrWindow::DrawGenericOptionsSection() {
         g_gameVals.enableForeignPalettes = !g_gameVals.enableForeignPalettes;
 
     }
- 
-
-
+    if (*g_gameVals.pGameMode == GameMode_Training && !g_interfaces.player2.IsCharDataNullPtr()) {
+        static bool check_enable_wakeup_delay = false;
+        ImGui::Checkbox("Enable wakeup delay override", &check_enable_wakeup_delay);
+        if (check_enable_wakeup_delay) {
+            DrawWakeupDelayControl();
+            check_wakeup_delay();
+        }
+    }
 }
 void ScrWindow::swap_character_coordinates() {
     CharData* p1 = g_interfaces.player1.GetData();
