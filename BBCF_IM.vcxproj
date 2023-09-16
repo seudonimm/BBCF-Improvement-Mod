@@ -81,6 +81,7 @@
     <ClCompile Include="src\Web\update_check.cpp" />
     <ClCompile Include="src\Core\utils.cpp" />
     <ClCompile Include="src\Web\url_downloader.cpp" />
+    <ClCompile Include="src\Game\Menus\TrainingSetupMenu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\imgui\imconfig.h" />
@@ -167,6 +168,7 @@
     <ClInclude Include="src\Web\update_check.h" />
     <ClInclude Include="src\Core\utils.h" />
     <ClInclude Include="src\Web\url_downloader.h" />
+    <ClInclude Include="src\Game\Menus\TrainingSetupMenu.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -243,7 +245,7 @@
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
       <PreprocessToFile>false</PreprocessToFile>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -269,7 +271,7 @@
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
       <AssemblerOutput>NoListing</AssemblerOutput>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
