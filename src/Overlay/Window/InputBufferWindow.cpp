@@ -57,6 +57,9 @@ void InputBufferWindow::Draw()
 	//if (fontAtlas->Fonts.size() > 1) {
 	//	ImGui::PushFont(fontAtlas->Fonts[0]);
 	//}
+
+	
+	//ImGui::SetWindowFontScale(1.5f);
     if (g_interfaces.player2.IsCharDataNullPtr() || g_interfaces.player1.IsCharDataNullPtr()) {
 		InputBufferWindow::input_buffer_map_left = {};
 		InputBufferWindow::input_buffer_map_right = {};
@@ -76,6 +79,13 @@ void InputBufferWindow::Draw()
 		initialize_buffer_maps(player);
 	}
 	draw_active_buffers(player);
+	if (ImGui::Button(" + ")) {
+		ImGui::SetWindowFontScale(1.5f);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button(" - ")) {
+		ImGui::SetWindowFontScale(1.0f);
+	}
 	//if (fontAtlas->Fonts.size() > 1) {
 	//	ImGui::PopFont();
 	//}
@@ -147,6 +157,8 @@ void InputBufferWindow::Draw()
 
 void InputBufferWindow::initialize_buffer_maps(CharData* player_data) {
 	InputBufferWindow::input_buffer_map_left = std::vector<std::pair< std::string, int8_t* >>{ 
+		{std::string("L_66 : %d"), &(player_data->buffer_L_66)},
+		{std::string("L_44 : %d"), &(player_data->buffer_L_44)},
 		{std::string("L_236 : %d"), &(player_data->buffer_L_236)},
 		{std::string("L_623 : %d"), &(player_data->buffer_L_623)},
 		{std::string("L_214 : %d"), &(player_data->buffer_L_214)},
@@ -184,8 +196,7 @@ void InputBufferWindow::initialize_buffer_maps(CharData* player_data) {
 		{std::string("L_CMASH : %d"),& (player_data->buffer_L_CMASH)},
 
 		{std::string("L_8izanamifloat : %d"),& (player_data->buffer_L_8izanamifloat)},
-		{std::string("L_66 : %d"), &(player_data->buffer_L_66)},
-		{std::string("L_44 : %d"), &(player_data->buffer_L_44)},
+		
 
 		{std::string("L_22jinsekkajin : %d"), &(player_data->buffer_L_22jinsekkajin)},
 
@@ -211,6 +222,8 @@ void InputBufferWindow::initialize_buffer_maps(CharData* player_data) {
 		{std::string("L_214_5f : %d"), &(player_data->buffer_L_214_5f)},
 	};
 	InputBufferWindow::input_buffer_map_right= std::vector<std::pair< std::string, int8_t* >>{
+		{std::string("R_66 : %d"), &(player_data->buffer_R_66)},
+		{std::string("R_44 : %d"), &(player_data->buffer_R_44)},
 		{std::string("R_236 : %d"), &(player_data->buffer_R_236)},
 		{std::string("R_623 : %d"), &(player_data->buffer_R_623)},
 		{std::string("R_214 : %d"), &(player_data->buffer_R_214)},
@@ -248,8 +261,7 @@ void InputBufferWindow::initialize_buffer_maps(CharData* player_data) {
 		{std::string("R_CMASH : %d"),&(player_data->buffer_R_CMASH)},
 
 		{std::string("R_8izanamifloat : %d"),&(player_data->buffer_R_8izanamifloat)},
-		{std::string("R_66 : %d"), &(player_data->buffer_R_66)},
-		{std::string("R_44 : %d"), &(player_data->buffer_R_44)},
+		
 
 		{std::string("R_22jinsekkajin : %d"), &(player_data->buffer_R_22jinsekkajin)},
 

@@ -218,9 +218,16 @@ void WindowManager::Render()
 		m_windowContainer->GetWindow(WindowType_Room)->IsOpen();
 	bool isDebugWindowOpen =
 		m_windowContainer->GetWindow(WindowType_Debug)->IsOpen();
+	bool isScrWindowOpen =
+		m_windowContainer->GetWindow(WindowType_Scr)->IsOpen();
+	bool isInputBufferP1WindowOpen =
+		m_windowContainer->GetWindow(WindowType_InputBufferP1)->IsOpen();
+	bool isInputBufferP2WindowOpen =
+		m_windowContainer->GetWindow(WindowType_InputBufferP2)->IsOpen();
 
 	ImGui::GetIO().MouseDrawCursor = isMainWindowOpen || isLogWindowOpen || isPaletteEditorWindowOpen
-		|| isUpdateNotifierWindowOpen || isRoomWindowOpen || isDebugWindowOpen;
+		|| isUpdateNotifierWindowOpen || isRoomWindowOpen || isDebugWindowOpen || 
+		isScrWindowOpen || isInputBufferP1WindowOpen || isInputBufferP2WindowOpen;
 
 	if (Settings::settingsIni.viewport == 2)
 	{
