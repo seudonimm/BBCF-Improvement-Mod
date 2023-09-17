@@ -8,6 +8,7 @@
 #include "Overlay/Window/RoomWindow.h"
 #include "Overlay/Window/UpdateNotifierWindow.h"
 #include "Overlay/Window/ScrWindow.h"
+#include "Overlay/Window/InputBufferWindow.h"
 
 #include "Core/info.h"
 #include "Core/logger.h"
@@ -39,5 +40,11 @@ WindowContainer::WindowContainer()
 		new RoomWindow("Online###Room", true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse));
 
 	AddWindow(WindowType_Scr,
-		new ScrWindow("States", true));
+		new ScrWindow("States", true, *this));
+
+	AddWindow(WindowType_InputBufferP1,
+		new InputBufferWindow("Input Buffer P1", true, 1));
+
+	AddWindow(WindowType_InputBufferP2,
+		new InputBufferWindow("Input Buffer P2", true, 2));
 }

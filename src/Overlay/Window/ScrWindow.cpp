@@ -44,6 +44,18 @@ void ScrWindow::Draw()
     DrawReplayRewind();
     DrawVeryExperimentalSection2();
     DrawRoomSection();
+    DrawInputBufferButton();
+}
+void ScrWindow::DrawInputBufferButton() {
+    if (ImGui::Button("Input Buffer P1"))
+    {
+        ScrWindow::m_pWindowContainer->GetWindow(WindowType_InputBufferP1)->ToggleOpen();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Input Buffer P2"))
+    {
+        ScrWindow::m_pWindowContainer->GetWindow(WindowType_InputBufferP2)->ToggleOpen();
+    }
 }
 void ScrWindow::DrawWakeupDelayControl() {
     const char* items[] = { "Disabled", "Neutral", "Forward", "Backward", "Quick", "Random" };

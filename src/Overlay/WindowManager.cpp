@@ -106,6 +106,8 @@ bool WindowManager::Initialize(void *hwnd, IDirect3DDevice9 *device)
 	ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(mplusMedium_compressed_data, mplusMedium_compressed_size,
 		unicodeFontSize, &config, ranges);
 
+
+	//ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(DroidSans_compressed_data, DroidSans_compressed_size, 20);
 	// Set up toggle buttons
 
 	keyToggleMainWindow = Settings::getButtonValue(Settings::settingsIni.togglebutton);

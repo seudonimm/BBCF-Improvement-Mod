@@ -6,6 +6,7 @@
 #include "Core/utils.h"
 #include "Game/characters.h"
 #include "Overlay/Logger/ImGuiLogger.h"
+#include "impl_templates.cpp"
 
 #include <atlstr.h>
 

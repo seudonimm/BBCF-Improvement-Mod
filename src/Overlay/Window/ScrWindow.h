@@ -4,12 +4,14 @@
 #include "Game/Scr/ScrStateReader.h"
 #include "Game/Playbacks/PlaybackManager.h"
 #include "Core/utils.h"
+#include "Overlay/WindowContainer/WindowContainer.h"
+
 class ScrWindow : public IWindow
 {
 public:
 	ScrWindow(const std::string& windowTitle, bool windowClosable,
-		ImGuiWindowFlags windowFlags = 0)
-		: IWindow(windowTitle, windowClosable, windowFlags) {}
+		WindowContainer& windowContainer, ImGuiWindowFlags windowFlags = 0)
+		: IWindow(windowTitle, windowClosable,windowFlags), m_pWindowContainer(&windowContainer) {}
 	~ScrWindow() override = default;
 
 protected:
@@ -28,6 +30,7 @@ private:
 	void DrawVeryExperimentalSection2();
 	void DrawRoomSection();
 	void DrawWakeupDelayControl();
+	void DrawInputBufferButton();
 	PlaybackManager playback_manager;
 	bool m_showDemoWindow = false;
 	void* p2_old_char_data = NULL;
@@ -87,4 +90,5 @@ private:
 	bool wakeup_delay_skew_change_flag = false;
 	int wakeup_delay = 0;
 	char* bbcf_base_adress = GetBbcfBaseAdress();
+	WindowContainer* m_pWindowContainer = nullptr;
 };
