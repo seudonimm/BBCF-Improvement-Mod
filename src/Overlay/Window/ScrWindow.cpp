@@ -59,6 +59,7 @@ void ScrWindow::DrawInputBufferButton() {
 }
 void ScrWindow::DrawWakeupDelayControl() {
     const char* items[] = { "Disabled", "Neutral", "Forward", "Backward", "Quick", "Random" };
+    
     static int32_t wakeup_delay_current_item = 0;
     //gets the start of the fourth page of training setup menu
     ImGui::BeginChild("wakeup_delay_child##wakeup_delay", ImVec2(160, 30));
@@ -83,6 +84,7 @@ void ScrWindow::DrawWakeupDelayControl() {
         ScrWindow::wakeup_type= wakeup_delay_current_item;
     }
     ImGui::EndChild();
+    
     ImGui::BeginChild("wakeup_skew_child##wakeup_delay", ImVec2(263, 30));
     ImGui::Text("Skew range: ");
     ImGui::SameLine();
@@ -96,6 +98,29 @@ void ScrWindow::DrawWakeupDelayControl() {
         }
     };
     ImGui::EndChild();
+    ImGui::SameLine();
+    static bool selected[6] = {};
+    ImGui::BeginChild("tst##wakeup_delay", ImVec2(263, 80));
+    for (int i = 0; i < 6; i++)
+    {
+        char label[15];
+        sprintf(label, items[i]);
+        //if (i % 2) { ImGui::NextColumn(); ImGui::SameLine(); }  //ImGui::NextColumn(); }
+        ImGui::Selectable(label, &selected[i]); // FIXME-TABLE: Selection overlap
+    }
+    //I should probably make it so that all cases are random tbh
+    std::vector<int> selected_index = {};
+    for (int i = 0; i < 6; i++) {
+        if (selected[i]) {
+            selected_index.push_back(i);
+        }
+    }
+    if (!selected_index.empty()) {
+        ScrWindow::wakeup_type = selected_index[std::rand() % selected_index.size()];
+    }
+    ImGui::EndChild();
+    
+   
 
 }
 void ScrWindow::check_wakeup_delay() {
