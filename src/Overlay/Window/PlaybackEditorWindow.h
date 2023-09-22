@@ -14,14 +14,17 @@ public:
 	}
 
 	~PlaybackEditorWindow() override = default;
-	std::string interpret_move(char move);
+	std::string interpret_move_absolute(char move);
+	std::string interpret_move_L_R(char move, int side);
 
 	PlaybackManager playback_manager;
-
+	//std::vector<char>::iterator line_edit_ptr;
+	char* line_edit_ptr=nullptr;
 
 protected:
 	void Draw() override;
-	void DrawEditLinePopup();
+	void DrawEditLinePopup(char* line);
+	//void DrawEditLinePopup();
 
 private:
 

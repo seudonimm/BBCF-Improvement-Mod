@@ -59,8 +59,9 @@ void PlaybackEditorWindow::Draw() {
 
         ImGui::NextColumn();
         ImGui::Text("%d", counter+1); ImGui::NextColumn();
-        if (ImGui::SmallButton(PlaybackEditorWindow::interpret_move(*it).c_str())) {
-            ImGui::OpenPopup("Delete?");
+        if (ImGui::SmallButton(PlaybackEditorWindow::interpret_move_absolute(*it).c_str())) {
+            PlaybackEditorWindow::line_edit_ptr = &(*it);
+            ImGui::OpenPopup("Edit Input");
 
         }; ImGui::NextColumn();
         ImGui::Text("0x%x", *it); ImGui::NextColumn();
@@ -68,11 +69,13 @@ void PlaybackEditorWindow::Draw() {
 
         ImGui::Separator();
 
-        ImGui::SetNextWindowPos(ImGui::GetMousePos(), ImGuiCond_FirstUseEver );
+        //ImGui::SetNextWindowPos(ImGui::GetMousePos(), ImGuiCond_FirstUseEver );
         if (ImGui::BeginPopupModal("Edit Input", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-
-            PlaybackEditorWindow::DrawEditLinePopup();
+            if (PlaybackEditorWindow::line_edit_ptr != nullptr) {
+                PlaybackEditorWindow::DrawEditLinePopup(PlaybackEditorWindow::line_edit_ptr);
+                //PlaybackEditorWindow::DrawEditLinePopup();
+            }
 
         }
         ImGui::PopID();
@@ -83,17 +86,19 @@ void PlaybackEditorWindow::Draw() {
 
     ImGui::EndChild();
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 60);
+    
     if (ImGui::Button("SAVE##playback_editor", ImVec2(60, 29))) {
         PlaybackEditorWindow::playback_manager.load_into_slot(*selected_slot_buffer, selected_slot + 1);
     }
     return;
 }
-void PlaybackEditorWindow::DrawEditLinePopup() {
+void PlaybackEditorWindow::DrawEditLinePopup(char* line) {
+//void PlaybackEditorWindow::DrawEditLinePopup() {
     ImGui::SetNextWindowPos(ImGui::GetMousePos());
     ImGui::PushID("draw_edit_line_popup");
     //static std::vector<bool> selected_dir = { false,false ,false ,false ,false ,false ,false ,false ,false };
     static bool selected_button[4] = { false,false ,false ,false };
-    static int selected_dir = 0;
+    static int selected_dir = 4;
     const char* direction[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9"};
     //ImGui::Combo("Directions##playback_editor_window", &selected_dir, direction, IM_ARRAYSIZE(direction));
     //ImGui::Columns(1);
@@ -134,12 +139,27 @@ void PlaybackEditorWindow::DrawEditLinePopup() {
 
     ImGui::Separator();
 
-    static bool dont_ask_me_next_time = false;
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-    ImGui::Checkbox("Don't ask me next time", &dont_ask_me_next_time);
-    ImGui::PopStyleVar();
 
     if (ImGui::Button("OK", ImVec2(120, 0))) {
+        char input = 0;
+        input = selected_dir + 1;
+        if (selected_button[0]) {
+            //A is selected
+            input += 0x10;
+        }
+        if (selected_button[1]) {
+            //B is selected
+            input += 0x20;
+        }
+        if (selected_button[2]) {
+            //C is selected
+            input += 0x40;
+        }
+        if (selected_button[3]) {
+            //D is selected
+            input += 0x80;
+        }
+        *line = input;
         //selected_dir = { false,false ,false ,false ,false ,false ,false ,false ,false };
         ImGui::CloseCurrentPopup();
     }
@@ -154,7 +174,92 @@ void PlaybackEditorWindow::DrawEditLinePopup() {
 
 
 }
-std::string PlaybackEditorWindow::interpret_move(char move) {
+std::string PlaybackEditorWindow::interpret_move_absolute(char move) {
+    auto button_bits = move & 0xf0;
+    auto direction_bits = move & 0x0f;
+    std::string move_t{ "" };
+    bool abs = true;
+    switch (direction_bits) {
+    case 0x5:
+        move_t += "Neutral";
+        break;
+    case 0x4:
+        move_t += "Left";
+        break;
+    case 0x1:
+        move_t += "DownLeft";
+        break;
+    case 0x2:
+        move_t += "Down";
+        break;
+    case 0x3:
+        move_t += "DownRight";
+        break;
+    case 0x6:
+        move_t += "Right";
+        break;
+    case 0x9:
+        move_t += "UpRight";
+        break;
+    case 0x8:
+        move_t += "Up";
+        break;
+    case 0x7:
+        move_t += "UpLeft";
+        break;
+    }
+    switch (button_bits) {
+    case 0x10:
+        move_t += "+A";
+        break;
+    case 0x20:
+        move_t += "+B";
+        break;
+    case 0x40:
+        move_t += "+C";
+        break;
+    case 0x80:
+        move_t += "+D";
+        break;
+    case 0x30:
+        move_t += "+A+B";
+        break;
+    case 0x50:
+        move_t += "+A+C";
+        break;
+    case 0x90:
+        move_t += "+A+D";
+        break;
+    case 0x60:
+        move_t += "+B+C";
+        break;
+    case 0xA0:
+        move_t += "+B+D";
+        break;
+    case 0xC0:
+        move_t += "+C+D";
+        break;
+    case 0xB0:
+        move_t += "+A+B+D";
+        break;
+    case 0x70:
+        move_t += "+A+B+D";
+        break;
+    case 0xD0:
+        move_t += "+A+C+D";
+        break;
+    case 0xE0:
+        move_t += "+B+C+D";
+        break;
+    case 0xF0:
+        move_t += "+A+B+C+D";
+        break;
+    }
+
+    return move_t;
+}
+
+std::string PlaybackEditorWindow::interpret_move_L_R(char move, int side) {
     auto button_bits = move & 0xf0;
     auto direction_bits = move & 0x0f;
     std::string move_t{ "" };

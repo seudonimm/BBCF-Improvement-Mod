@@ -47,13 +47,8 @@ void ScrWindow::Draw()
     DrawVeryExperimentalSection2();
     DrawRoomSection();
     DrawInputBufferButton();
-    DrawPlaybackEditor();
 }
-void ScrWindow::DrawPlaybackEditor() {
-    if (ImGui::Button("Open Playback Editor")) {
-        ScrWindow::m_pWindowContainer->GetWindow(WindowType_PlaybackEditor)->ToggleOpen();
-    }
-}
+
 void ScrWindow::DrawInputBufferButton() {
     if (ImGui::Button("Input Buffer P1"))
     {
@@ -66,6 +61,7 @@ void ScrWindow::DrawInputBufferButton() {
     }
 }
 void ScrWindow::DrawWakeupDelayControl() {
+    //ImGui::BeginChild("zbmjxc");
     const char* items[] = { "Disabled", "Neutral", "Forward", "Backward", "Quick", "Random" };
     
     static int32_t wakeup_delay_current_item = 0;
@@ -83,16 +79,7 @@ void ScrWindow::DrawWakeupDelayControl() {
         }
     }
     ImGui::EndChild();
-    ImGui::SameLine(); ImGui::HorizontalSpacing(30);
-    ImGui::BeginChild("wakeup_type_child##wakeup_delay", ImVec2(190, 30));
-    ImGui::Text("Wake-up: ");
     ImGui::SameLine();
-    if (ImGui::Combo("##wakeup_delay", &wakeup_delay_current_item, items, IM_ARRAYSIZE(items)))
-    {
-        ScrWindow::wakeup_type= wakeup_delay_current_item;
-    }
-    ImGui::EndChild();
-    
     ImGui::BeginChild("wakeup_skew_child##wakeup_delay", ImVec2(263, 30));
     ImGui::Text("Skew range: ");
     ImGui::SameLine();
@@ -106,9 +93,13 @@ void ScrWindow::DrawWakeupDelayControl() {
         }
     };
     ImGui::EndChild();
+    //ImGui::SameLine(); 
+    //ImGui::HorizontalSpacing(30);
+    //ImGui::BeginChild("wakeup_type_child##wakeup_delay", ImVec2(190, 30));
+    ImGui::Text("Wake-up: ");
     ImGui::SameLine();
+    ImGui::BeginChild("tst##wakeup_delay", ImVec2(263, 100));
     static bool selected[6] = {};
-    ImGui::BeginChild("tst##wakeup_delay", ImVec2(263, 80));
     for (int i = 0; i < 6; i++)
     {
         char label[15];
@@ -127,8 +118,19 @@ void ScrWindow::DrawWakeupDelayControl() {
         ScrWindow::wakeup_type = selected_index[std::rand() % selected_index.size()];
     }
     ImGui::EndChild();
+
+   // if (ImGui::Combo("##wakeup_delay", &wakeup_delay_current_item, items, IM_ARRAYSIZE(items)))
+  //  {
+   //     ScrWindow::wakeup_type= wakeup_delay_current_item;
+  //  }
+    //ImGui::EndChild();
     
-   
+  
+    //ImGui::SameLine();
+    
+    
+    
+    //ImGui::EndChild();
 
 }
 void ScrWindow::check_wakeup_delay() {
@@ -926,10 +928,17 @@ void ScrWindow::draw_playback_slot_section(int slot) {
     }
     ImGui::PopID();
 };
+void ScrWindow::DrawPlaybackEditor() {
+    if (ImGui::Button("Open Playback Editor")) {
+        ScrWindow::m_pWindowContainer->GetWindow(WindowType_PlaybackEditor)->ToggleOpen();
+    }
+}
 void ScrWindow::DrawPlaybackSection() {
     char* bbcf_base_adress = GetBbcfBaseAdress();
     char* active_slot = bbcf_base_adress + 0x902C3C;
+    //ScrWindow::DrawPlaybackEditor();
     if (ImGui::CollapsingHeader("Playback")) {
+        ScrWindow::DrawPlaybackEditor();
         if (ImGui::CollapsingHeader("SLOT_1")) {
             draw_playback_slot_section(1);
 
