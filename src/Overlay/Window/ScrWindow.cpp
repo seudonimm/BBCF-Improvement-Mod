@@ -26,6 +26,8 @@
 #include <ctime>
 
 
+
+
 void ScrWindow::Draw()
 {
     static bool random_seeded = false;
@@ -45,6 +47,12 @@ void ScrWindow::Draw()
     DrawVeryExperimentalSection2();
     DrawRoomSection();
     DrawInputBufferButton();
+    DrawPlaybackEditor();
+}
+void ScrWindow::DrawPlaybackEditor() {
+    if (ImGui::Button("Open Playback Editor")) {
+        ScrWindow::m_pWindowContainer->GetWindow(WindowType_PlaybackEditor)->ToggleOpen();
+    }
 }
 void ScrWindow::DrawInputBufferButton() {
     if (ImGui::Button("Input Buffer P1"))

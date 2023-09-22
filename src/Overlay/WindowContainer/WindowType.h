@@ -11,5 +11,6 @@ enum WindowType_
 	WindowType_Room,
 	WindowType_Scr,
 	WindowType_InputBufferP1,
-	WindowType_InputBufferP2
+	WindowType_InputBufferP2,
+	WindowType_PlaybackEditor
 };

@@ -143,6 +143,7 @@
     <ClCompile Include="src\Overlay\Window\framedata.cpp" />
     <ClCompile Include="src\Game\Menus\TrainingSetupMenu.cpp" />
     <ClCompile Include="src\Overlay\Window\InputBufferWindow.cpp" />
+    <ClCompile Include="src\Overlay\Window\PlaybackEditorWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\imgui\imgui.h" />
@@ -271,6 +272,7 @@
     <ClInclude Include="src\Game\ReplayStates\FrameState.h" />
     <ClInclude Include="src\Game\Menus\TrainingSetupMenu.h" />
     <ClInclude Include="src\Overlay\Window\InputBufferWindow.h" />
+    <ClInclude Include="src\Overlay\Window\PlaybackEditorWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="export\dinput8.def">

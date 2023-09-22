@@ -31,6 +31,7 @@ private:
 	void DrawRoomSection();
 	void DrawWakeupDelayControl();
 	void DrawInputBufferButton();
+	void DrawPlaybackEditor();
 	PlaybackManager playback_manager;
 	bool m_showDemoWindow = false;
 	void* p2_old_char_data = NULL;
