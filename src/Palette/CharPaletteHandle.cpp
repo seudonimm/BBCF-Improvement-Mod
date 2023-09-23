@@ -1,6 +1,7 @@
 #include "CharPaletteHandle.h"
 
 #include "Core/logger.h"
+//#include "impl_templates.cpp"
 
 #define BLOOM_PALETTE_INDEX 21
 
