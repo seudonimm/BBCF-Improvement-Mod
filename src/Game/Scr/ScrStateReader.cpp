@@ -4,6 +4,8 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+
+
 constexpr auto OFFSET_FROM_FPAC = 0x60;
 constexpr auto FPAC_OFFSET_FROM_BBCF_P1 = 0x88E6F0;
 constexpr auto FPAC_OFFSET_FROM_BBCF_P2 = 0x88E750;
@@ -33,7 +35,7 @@ std::vector<scrState*> parse_scr(char* bbcf_base_addr, int player_num) {
 	else {
 		return std::vector<scrState*>{};
 	}
-	
+	std::map<std::string, JonbDBEntry> jonbin_map = JonbDBReader().parse_all_jonbins(bbcf_base_addr, player_num);
 	std::vector<scrState*> states_parsed;
 
 		int n_funcs;
@@ -51,7 +53,7 @@ std::vector<scrState*> parse_scr(char* bbcf_base_addr, int player_num) {
 			i += 4;
 
 			char* addr = (*scr_preinit_offset+ pos_before_offset);
-			parse_state(addr, states_parsed);
+			parse_state(addr, states_parsed, jonbin_map);
 			func_num += 1;
 		}
 
@@ -64,7 +66,7 @@ std::vector<scrState*> parse_scr(char* bbcf_base_addr, int player_num) {
 }
 
 
-int parse_state(char* addr, std::vector<scrState*>& states_parsed) {
+int parse_state(char* addr, std::vector<scrState*>& states_parsed, std::map<std::string, JonbDBEntry> jonbin_map) {
 	scrState* s = new scrState();
 	if (states_parsed.size() == 162) {
 		std::cout << "oi" << std::endl;
@@ -86,6 +88,19 @@ int parse_state(char* addr, std::vector<scrState*>& states_parsed) {
 		///remember to check for the configuration of defaults, 17000 up to 17006
 		if (CMD == 0x2) {
 			///sprite call(string[32],char) name of sprite and frames
+
+
+			/*
+			 //here begins the example of how to access it 
+			std::string cmd_str32(addr + offset);
+			auto match = jonbin_map.find(cmd_str32); //try to find the string[32] of the command in the map
+			if (match != jonbin_map.end()) { //safety check
+				JonbDBEntry entry = jonbin_map.at(cmd_str32); // if its in the map access it and do whatever you wanna do with it
+				bool is_active = entry.hitbox_count;
+				...etc
+			}
+			*/
+			
 			offset += 32;
 			unsigned int frames;
 			/////memcpy(&frames, addr + offset, 4);
