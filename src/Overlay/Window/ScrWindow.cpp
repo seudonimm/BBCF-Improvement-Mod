@@ -301,6 +301,29 @@ void ScrWindow::DrawStatesSection()
             ImGui::Text("Hit_low: %d", selected_state->hit_low);
             ImGui::Text("Hit_air_ublockable: %d", selected_state->hit_air_unblockable);
             ImGui::Text("fatal_counter: %d", selected_state->fatal_counter);
+            //ImGui::TreePush("Active frames");
+            auto iter_scr_frames = 1;
+            float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+            ImGuiStyle& style = ImGui::GetStyle();
+            for (auto& frame : selected_state->frame_activity_status) {
+
+
+              
+                auto color = IM_COL32(0, 0, 255, 255);
+                if (frame == "A") {
+                    color = IM_COL32(255, 0, 0, 255);
+                }
+                ImGui::PushStyleColor(ImGuiCol_Text, color);
+                ImGui::Text("%d", iter_scr_frames);
+                ImGui::PopStyleColor();
+                float last_button_x2 = ImGui::GetItemRectMax().x;
+                float next_button_x2 = last_button_x2 + style.ItemSpacing.x + 5.0f; // Expected position if next button was on same line
+                if (iter_scr_frames < selected_state->frame_activity_status.size() && next_button_x2 < window_visible_x2)
+                    ImGui::SameLine();
+                iter_scr_frames++;
+            }
+            //ImGui::TreePop();
+            ImGui::Text("%s", " ");
             ImGui::Text("Whiff_cancels:", selected_state->fatal_counter);
             for (std::string name : selected_state->whiff_cancel) {
                 ImGui::Text("    %s", name.c_str());
