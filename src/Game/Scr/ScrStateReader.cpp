@@ -138,18 +138,7 @@ int parse_state(char* addr, std::vector<scrState*>& states_parsed, std::map<std:
 		if (CMD == 0x2) {
 			///sprite call(string[32],char) name of sprite and frames
 
-
-			/*
-			 //here begins the example of how to access it 
-			std::string cmd_str32(addr + offset);
-			auto match = jonbin_map.find(cmd_str32); //try to find the string[32] of the command in the map
-			if (match != jonbin_map.end()) { //safety check
-				JonbDBEntry entry = jonbin_map.at(cmd_str32); // if its in the map access it and do whatever you wanna do with it
-				bool is_active = entry->hitbox_count;
-				...etc
-			}
-			*/
-			bool is_active = is_sprite_active_frame(addr + offset, jonbin_map);
+			bool is_active = is_sprite_active_frame(addr + offset, jonbin_map);//there's some weirdness on some moves, such as izayoi's "CmdActFDash", showing hitboxes when there shouldn't be
 			offset += 32;
 			unsigned int frames;
 			/////memcpy(&frames, addr + offset, 4);
@@ -159,7 +148,7 @@ int parse_state(char* addr, std::vector<scrState*>& states_parsed, std::map<std:
 			s->frames += frames;
 			for (int i = 0; i < frames;  i++) {
 				s->frame_activity_status.push_back(activity_status);
-				if (i > 100) {//need to figure out why some are having absurdly long frames, its a parsing issue 100%
+				if (i > 100) {/*I still don't know why some sprites have absurdly long durations, such as jin's and izayoi's 6B, don't think its a parsing issue tbh*/
 					break;
 				}
 			}
