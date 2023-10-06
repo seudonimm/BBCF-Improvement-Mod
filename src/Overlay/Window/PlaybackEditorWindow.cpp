@@ -28,14 +28,24 @@ void PlaybackEditorWindow::Draw() {
     ImGui::Text("Command"); ImGui::NextColumn();
     ImGui::Separator();
     int counter = 0;
-
-    
+    static float initialScrollPosition = 0.0f;
+    static bool apply_scroll_pos = false;
+    if (apply_scroll_pos) {
+        auto scrollmax = ImGui::GetScrollMaxY();
+        //if (initialScrollPosition < ImGui::GetScrollMaxY()) {
+        ImGui::SetScrollY(initialScrollPosition); //if an element was removed or added, keep the same scroll position as last time
+   // }
+        apply_scroll_pos = false;
+    }
+    initialScrollPosition = ImGui::GetScrollY();
     for (std::vector<char>::iterator it = selected_slot_buffer->begin(); it != selected_slot_buffer->end(); it++)
     {
+        
         ImGui::PushID((int)"playback_editor" + counter);
         //auto remove_row_button_pressed = ImGui::SmallButton("-");
         if (ImGui::SmallButton("-")) {
             //will remove current
+            apply_scroll_pos = true;
             it = selected_slot_buffer->erase(it);
             ImGui::PopID();
             break;
@@ -43,6 +53,7 @@ void PlaybackEditorWindow::Draw() {
         ImGui::SameLine();
         if (ImGui::SmallButton("+B")) {
             //will copy current to below
+            apply_scroll_pos = true;
             it = selected_slot_buffer->insert(it, *it);
             ImGui::PopID();
             break;
@@ -51,6 +62,7 @@ void PlaybackEditorWindow::Draw() {
         ImGui::SameLine();
         if (ImGui::SmallButton("+A")) {
             //will copy current to above
+            apply_scroll_pos = true;
             it = selected_slot_buffer->insert(it + 1, *it);
             ImGui::PopID();
             break;
@@ -78,8 +90,11 @@ void PlaybackEditorWindow::Draw() {
             }
 
         }
+        
         ImGui::PopID();
         counter++;
+        
+        
     }
     ImGui::Columns(1);
     ImGui::Separator();
