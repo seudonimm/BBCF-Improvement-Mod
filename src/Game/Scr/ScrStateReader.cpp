@@ -57,6 +57,7 @@ std::vector<scrState*> parse_scr(char* bbcf_base_addr, int player_num) {
 	std::vector<scrState*> states_parsed;
 	std::vector<scrState*> ea_states_parsed;
 	/*doing the EA before the main states*/
+	std::map<std::string, scrState*> ea_state_map = {};  //ea_sstate_map to reference in the main state parsing. This way recursive ea_states(ea states called from ea state) won't work, I need to find a better way later.
 	int ea_n_funcs;
 	int ea_func_num = 0;
 	int ea_i = 0;
@@ -71,12 +72,14 @@ std::vector<scrState*> parse_scr(char* bbcf_base_addr, int player_num) {
 		ea_i += 4;
 
 		char* ea_addr = (*ea_scr_preinit_offset + ea_pos_before_offset);
-		parse_state(ea_addr, ea_states_parsed, &jonbin_map);
+		parse_state(ea_addr, ea_states_parsed, &jonbin_map, &ea_state_map);
 		ea_func_num += 1;
 	}
 
-
-
+	//builds ea_state_map to reference in the main state parsing.
+	for (auto& state : ea_states_parsed) {
+		ea_state_map[state->name] =  state ;
+	}
 
 	/*ending the EA*/
 
@@ -95,18 +98,18 @@ std::vector<scrState*> parse_scr(char* bbcf_base_addr, int player_num) {
 			i += 4;
 
 			char* addr = (*scr_preinit_offset+ pos_before_offset);
-			parse_state(addr, states_parsed, &jonbin_map);
+			parse_state(addr, states_parsed, &jonbin_map, &ea_state_map);
 			func_num += 1;
 		}
 
 
-		std::cout << "worked" << std::endl;
-		std::cout << n_funcs << std::endl;
 
 	//states_parsed.insert(states_parsed.end(), ea_states_parsed.begin(), ea_states_parsed.end());
+		
 	return states_parsed;
 }
 bool is_sprite_active_frame(char* name_addr, std::map<std::string, JonbDBEntry>* jonbin_map) {
+	if (name_addr == nullptr) { return false; }
 	std::string cmd_str32(name_addr);
 	auto match = jonbin_map->find(cmd_str32); //try to find the string[32] of the command in the map
 	if (match != jonbin_map->end()) { //safety check
@@ -115,14 +118,19 @@ bool is_sprite_active_frame(char* name_addr, std::map<std::string, JonbDBEntry>*
 		//bool is_active = entry->hitbox_count;
 		//...etc
 	}
+	return false;
 }
 
-int parse_state(char* addr, std::vector<scrState*>& states_parsed, std::map<std::string, JonbDBEntry>* jonbin_map) {
+int parse_state(char* addr, 
+				std::vector<scrState*>& states_parsed, 
+				std::map<std::string, JonbDBEntry>* jonbin_map, 
+				std::map<std::string, scrState*>* ea_state_map) {
 	scrState* s = new scrState();
 
 	s->addr = addr;
 	unsigned long CMD;
 	unsigned int offset = 0;
+	unsigned int prev_frames = 0; //saving the frames before the call to sprite, because functions that apply to those begin at the start of the sprite(), not at the end, such as invuln frames and spawning EA effects
 	//memcpy(&s->name, addr + offset, 32);
 	offset += 4;
 	s->name = addr + offset;
@@ -133,6 +141,7 @@ int parse_state(char* addr, std::vector<scrState*>& states_parsed, std::map<std:
 	//CMD = *(addr + offset);
 	offset += 4;
 	//int iter = 0;
+	//PS: I may have been calling uint32 char for some reason here, not sure why tbh, gotta double check before changing the comments
 	while (CMD != 0x1) {
 		///remember to check for the configuration of defaults, 17000 up to 17006
 		if (CMD == 0x2) {
@@ -145,6 +154,7 @@ int parse_state(char* addr, std::vector<scrState*>& states_parsed, std::map<std:
 			frames = *(addr + offset);
 			std::string activity_status = is_active? "A":"I";
 			offset += 4;
+			prev_frames = s->frames;
 			s->frames += frames;
 			for (int i = 0; i < frames;  i++) {
 				s->frame_activity_status.push_back(activity_status);
@@ -153,6 +163,20 @@ int parse_state(char* addr, std::vector<scrState*>& states_parsed, std::map<std:
 				}
 			}
 						
+		}
+		else if (CMD == 4000) {
+			//EA state call(string[32],char); name of EA state and position
+			if (!ea_state_map->empty()) {
+				std::string cmd_str32(addr + offset);
+				auto match = ea_state_map->find(cmd_str32); //try to find the string[32] of the command in the map
+				if (match != ea_state_map->end()) { //safety check
+					scrState* entry = ea_state_map->at(cmd_str32);
+					s->frame_EA_effect_pairs.push_back({ prev_frames, *entry });
+				}
+			}
+			offset += 32;
+			//offsets the position
+			offset += 4;
 		}
 		else if (CMD == 9003) {
 			///Damage call(char) set dmg 

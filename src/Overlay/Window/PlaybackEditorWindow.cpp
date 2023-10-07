@@ -31,10 +31,7 @@ void PlaybackEditorWindow::Draw() {
     static float initialScrollPosition = 0.0f;
     static bool apply_scroll_pos = false;
     if (apply_scroll_pos) {
-        auto scrollmax = ImGui::GetScrollMaxY();
-        //if (initialScrollPosition < ImGui::GetScrollMaxY()) {
         ImGui::SetScrollY(initialScrollPosition); //if an element was removed or added, keep the same scroll position as last time
-   // }
         apply_scroll_pos = false;
     }
     initialScrollPosition = ImGui::GetScrollY();

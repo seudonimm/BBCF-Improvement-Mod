@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 
+
 //gotta remember to clean up the memory afterwards
 struct scrState {
 	std::string name = "";
@@ -23,5 +24,6 @@ struct scrState {
 	std::vector<std::string> whiff_cancel = {};
 	std::vector<std::string> hit_or_block_cancel = {};
 	std::vector<std::string> frame_activity_status = {};
+	std::vector<std::pair<unsigned int, scrState> >frame_EA_effect_pairs = {};// holds all the EA states the script spawns. First is the frame where it spawns, second is the scState of the EA state.
 	char* replaced_state_script[36]{};
 };
