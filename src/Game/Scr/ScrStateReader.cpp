@@ -150,7 +150,9 @@ int parse_state(char* addr,
 
 			bool is_active = is_sprite_active_frame(addr + offset, jonbin_map);//there's some weirdness on some moves, such as izayoi's "CmdActFDash", showing hitboxes when there shouldn't be
 			offset += 32;
-			unsigned int frames;
+			//unsigned int frames;
+			uint32_t frames;
+			char* address = (addr + offset);
 			/////memcpy(&frames, addr + offset, 4);
 			frames = *(addr + offset);
 			FrameActivity activity_status = is_active? FrameActivity::Active: FrameActivity::Inactive;
@@ -158,6 +160,12 @@ int parse_state(char* addr,
 			prev_frames = s->frames;
 			s->frames += frames;
 			for (int i = 0; i < frames;  i++) {
+				//if (frames == 32767){
+				if (frames == 0xffffffff || frames == 32767 || frames == (uint32_t)"keep") {
+					s->frame_activity_status.push_back((FrameActivity)(0x10 | (uint16_t)activity_status));
+					s->frame_invuln_status.push_back(invuln);
+					break;
+				}
 				s->frame_activity_status.push_back(activity_status);
 				//sets the invuln
 				s->frame_invuln_status.push_back(invuln);

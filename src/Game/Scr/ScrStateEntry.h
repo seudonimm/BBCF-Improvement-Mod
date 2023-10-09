@@ -6,7 +6,9 @@ enum class FrameActivity {
 	Active = 0x0, //used when there are active hitboxes
 	Inactive = 0x1, //used when there aren't active hitboxes
 	Padding = 0x2, //used for the padding for summoned stuff from the EA
-	
+	NonDeterministicAcive = 0x10 | Active, // used for the cases where the sprite length is 32767
+	NonDeterministicInactive = 0x10 | Inactive, // used for the cases where the sprite length is 32767
+
 };
 enum class FrameInvuln {
 	// 0x1 - 0f second 4 bits are invul/guard point 

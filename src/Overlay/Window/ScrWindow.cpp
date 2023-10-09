@@ -345,21 +345,32 @@ void ScrWindow::DrawStatesSection()
                 auto iter_scr_frames = 1;
                 float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
                 ImGuiStyle& style = ImGui::GetStyle();
-
+                int after_non_deterministic = 0;
                 for (auto& frame_activity : selected_state->frame_activity_status) {
 
 
 
                     auto color = IM_COL32(0, 255, 255, 255);
-                    
-                    if (frame_activity == FrameActivity::Active) {
+
+                    if (frame_activity == FrameActivity::Active || frame_activity == FrameActivity::NonDeterministicAcive) {
                         color = IM_COL32(255, 0, 0, 255);
                     }
 
                     ImGui::PushStyleColor(ImGuiCol_Text, color);
                     //ImGui::PushStyleColor(ImGuiCol_TextBg, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
-
-                    ImGui::Text("%d", iter_scr_frames);
+                    if (frame_activity == FrameActivity::NonDeterministicAcive || frame_activity == FrameActivity::NonDeterministicInactive) {
+                        ImGui::Text("Non Deterministic");// check jin's NmlAtk5B, seems to be wrong, should start hitbox at frame 7 not 8. jn201_03's sprite call says 2 frames, but actually is 3 frames long
+                        after_non_deterministic = 1;
+                    }
+                    else {
+                        if (after_non_deterministic) {
+                            ImGui::Text("+%d", after_non_deterministic);
+                            after_non_deterministic++;
+                        }
+                        else {
+                            ImGui::Text("%d", iter_scr_frames);
+                        }
+                    }
                     auto invuln_color = IM_COL32(50, 50, 50, 255);
                     if (selected_state->frame_invuln_status.at(iter_scr_frames - 1) == FrameInvuln::All) {
                         invuln_color = IM_COL32(200, 200, 200, 255);
@@ -389,7 +400,8 @@ void ScrWindow::DrawStatesSection()
                 }
 
                 for (auto& ea_state_pair : selected_state->frame_EA_effect_pairs) {
-                    
+                    if (selected_state->frame_EA_effect_pairs.size() > 10) { break;//this is necessary because if you spawn an enourmous amount, the vertices crash. Happened with arakunes "UltimateAntiAirShotOD"
+                    }
                     iter_scr_frames = 1;
                     auto frames_before_ptr = &ea_state_pair.first;
                     std::vector<FrameActivity>* frame_activity_status_ptr = &ea_state_pair.second.frame_activity_status;
