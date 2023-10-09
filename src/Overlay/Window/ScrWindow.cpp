@@ -193,6 +193,44 @@ void ScrWindow::swap_character_coordinates() {
     p2->position_y = posy1;
     p2->facingLeft = !p2->facingLeft;
 }
+std::string interpret_frame_invuln_enum(FrameInvuln value) {
+    switch (value) {
+    case FrameInvuln::None:
+        return "None";
+    case FrameInvuln::Head:
+        return "Head";
+    case FrameInvuln::Body:
+        return "Body";
+    case FrameInvuln::Foot:
+        return "Foot";
+    case FrameInvuln::Throw:
+        return "Throw";
+    case FrameInvuln::HeadBody:
+        return "HeadBody";
+    case FrameInvuln::HeadFoot:
+        return "HeadFoot";
+    case FrameInvuln::HeadThrow:
+        return "HeadThrow";
+    case FrameInvuln::BodyFoot:
+        return "BodyFoot";
+    case FrameInvuln::BodyThrow:
+        return "BodyThrow";
+    case FrameInvuln::FootThrow:
+        return "FootThrow";
+    case FrameInvuln::HeadBodyFoot:
+        return "HeadBodyFoot";
+    case FrameInvuln::HeadBodyThrow:
+        return "HeadBodyThrow";
+    case FrameInvuln::HeadFootThrow:
+        return "HeadFootThrow";
+    case FrameInvuln::BodyFootThrow:
+        return "BodyFootThrow";
+    case FrameInvuln::All:
+        return "All";
+    default:
+        return "Unknown";
+    }
+}
 void ScrWindow::DrawStatesSection()
 {
     if (*g_gameVals.pGameMode == GameMode_Training) {
@@ -303,25 +341,45 @@ void ScrWindow::DrawStatesSection()
             ImGui::Text("Hit_air_ublockable: %d", selected_state->hit_air_unblockable);
             ImGui::Text("fatal_counter: %d", selected_state->fatal_counter);
             if (ImGui::TreeNode("Frame Breakdown")) {
-                ImGui::ShowHelpMarker("Red are active frames, blue are startup/recovery, black are inactive. Some are incorrect, however they should be pretty obvious, around 85% are done so far.");
+                ImGui::ShowHelpMarker("Red numbers are active frames, blue numbers are startup/recovery, black numbers are inactive. White borders are full invul/GP, green borders are partial invul/GP(hover for details). Some are incorrect, however they should be pretty obvious, around 85% are done so far.");
                 auto iter_scr_frames = 1;
                 float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
                 ImGuiStyle& style = ImGui::GetStyle();
-                for (auto& frame : selected_state->frame_activity_status) {
+
+                for (auto& frame_activity : selected_state->frame_activity_status) {
 
 
 
                     auto color = IM_COL32(0, 255, 255, 255);
-                    if (frame == "A") {
+                    
+                    if (frame_activity == FrameActivity::Active) {
                         color = IM_COL32(255, 0, 0, 255);
                     }
 
                     ImGui::PushStyleColor(ImGuiCol_Text, color);
                     //ImGui::PushStyleColor(ImGuiCol_TextBg, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+
                     ImGui::Text("%d", iter_scr_frames);
+                    auto invuln_color = IM_COL32(50, 50, 50, 255);
+                    if (selected_state->frame_invuln_status.at(iter_scr_frames - 1) == FrameInvuln::All) {
+                        invuln_color = IM_COL32(200, 200, 200, 255);
+                    }
+                    else if (selected_state->frame_invuln_status.at(iter_scr_frames - 1) != FrameInvuln::None) {//its not none and its not full invuln, this is where the permutations come in
+                        invuln_color = IM_COL32(100, 200, 100, 255);
+                    }
                     ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemRectMin().x - 1.5f, ImGui::GetItemRectMin().y - 1),
                         ImVec2(ImGui::GetItemRectMax().x + 2, ImGui::GetItemRectMax().y + 1),
-                        IM_COL32(50, 50, 50, 255));//draws the square around
+                        invuln_color);//draws the square around representing invuln
+                    ImVec2 mousePos = ImGui::GetMousePos();
+                    if ((mousePos.x >= ImGui::GetItemRectMin().x - 1.5f && mousePos.x <= ImGui::GetItemRectMax().x + 2 &&
+                        mousePos.y >= ImGui::GetItemRectMin().y - 1 && mousePos.y <= ImGui::GetItemRectMax().y + 1))
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::PushTextWrapPos(450.0f);
+                        ImGui::Text("Invuln/GP: %s", interpret_frame_invuln_enum(selected_state->frame_invuln_status.at(iter_scr_frames - 1)).c_str());
+                        ImGui::PopTextWrapPos();
+                        ImGui::EndTooltip();
+                    }
                     ImGui::PopStyleColor();
                     float last_button_x2 = ImGui::GetItemRectMax().x;
                     float next_button_x2 = last_button_x2 + style.ItemSpacing.x + 10.0f; // Expected position if next button was on same line
@@ -334,12 +392,12 @@ void ScrWindow::DrawStatesSection()
                     
                     iter_scr_frames = 1;
                     auto frames_before_ptr = &ea_state_pair.first;
-                    std::vector<std::string>* frame_activity_status_ptr = &ea_state_pair.second.frame_activity_status;
-                    std::string fstring = "A";
+                    std::vector<FrameActivity>* frame_activity_status_ptr = &ea_state_pair.second.frame_activity_status;
+                    //std::string fstring = "A";
                     if (!std::any_of(frame_activity_status_ptr->begin(), 
                         frame_activity_status_ptr->end(), 
-                        [](std::string frame_activity) {
-                            return frame_activity == "A";})
+                        [](FrameActivity frame_activity) {
+                            return frame_activity == FrameActivity::Active;})
                         ) {
                         continue;
                     }
@@ -349,17 +407,17 @@ void ScrWindow::DrawStatesSection()
                     ImGui::Text("%s", ea_state_pair.second.name.c_str());
                     //will not draw unless there are active frames on the EA state
                     
-                    std::vector<std::string> temp_vect = {};
+                    std::vector<FrameActivity> temp_vect = {};
                     for (int i = 0; i < *frames_before_ptr; i++) {
-                        temp_vect.push_back("P"); //adds the padding frames
+                        temp_vect.push_back(FrameActivity::Padding); //adds the padding frames
                     }
                     temp_vect.insert(temp_vect.end(), frame_activity_status_ptr->begin(), frame_activity_status_ptr->end());
-                    for (auto& frame : temp_vect) {
+                    for (auto& frame_activity : temp_vect) {
                         auto color = IM_COL32(0, 255, 255, 255);
-                        if (frame == "A") {
+                        if (frame_activity == FrameActivity::Active) {
                             color = IM_COL32(255, 0, 0, 255);
                         }
-                        else if (frame == "P") {
+                        else if (frame_activity == FrameActivity::Padding) {
                             color = IM_COL32(0, 0, 0, 255);
                         }
 

@@ -1,8 +1,38 @@
 #pragma once
 #include <vector>
 #include <string>
+enum class FrameActivity {
+	// 0x0 - 0xf first 4 bits are frame activity
+	Active = 0x0, //used when there are active hitboxes
+	Inactive = 0x1, //used when there aren't active hitboxes
+	Padding = 0x2, //used for the padding for summoned stuff from the EA
+	
+};
+enum class FrameInvuln {
+	// 0x1 - 0f second 4 bits are invul/guard point 
+	None = 0,
+	Head = 0x1,
+	Body = 0x2,
+	Foot = 0x4,
+	Throw = 0x8,
+	// permutations
+	HeadBody = Head | Body,
+	HeadFoot = Head | Foot,
+	HeadThrow = Head | Throw,
 
+	BodyFoot = Body | Foot,
+	BodyThrow = Body | Throw,
 
+	FootThrow = Foot | Throw,
+
+	HeadBodyFoot = HeadBody | Foot,
+	HeadBodyThrow = HeadBody | Throw,
+	HeadFootThrow = Head | Foot | Throw,
+	BodyFootThrow = Body | Foot | Throw,
+
+	All = Head | Body | Foot | Throw,
+	// missing projectile invuln
+};
 //gotta remember to clean up the memory afterwards
 struct scrState {
 	std::string name = "";
@@ -23,7 +53,9 @@ struct scrState {
 	unsigned int fatal_counter = 0;
 	std::vector<std::string> whiff_cancel = {};
 	std::vector<std::string> hit_or_block_cancel = {};
-	std::vector<std::string> frame_activity_status = {};
+	//std::vector<std::string> frame_activity_status = {};
+	std::vector<FrameActivity> frame_activity_status = {}; //vector of combinations from FrameActivity
+	std::vector<FrameInvuln> frame_invuln_status = {}; //vector of combinations from Frameinvuln
 	std::vector<std::pair<unsigned int, scrState> >frame_EA_effect_pairs = {};// holds all the EA states the script spawns. First is the frame where it spawns, second is the scState of the EA state.
 	char* replaced_state_script[36]{};
 };

@@ -140,6 +140,7 @@ int parse_state(char* addr,
 
 	//CMD = *(addr + offset);
 	offset += 4;
+	FrameInvuln invuln = FrameInvuln::None; //flag to turn on/off invuln windows
 	//int iter = 0;
 	//PS: I may have been calling uint32 char for some reason here, not sure why tbh, gotta double check before changing the comments
 	while (CMD != 0x1) {
@@ -152,17 +153,18 @@ int parse_state(char* addr,
 			unsigned int frames;
 			/////memcpy(&frames, addr + offset, 4);
 			frames = *(addr + offset);
-			std::string activity_status = is_active? "A":"I";
+			FrameActivity activity_status = is_active? FrameActivity::Active: FrameActivity::Inactive;
 			offset += 4;
 			prev_frames = s->frames;
 			s->frames += frames;
 			for (int i = 0; i < frames;  i++) {
 				s->frame_activity_status.push_back(activity_status);
-				if (i > 100) {/*I still don't know why some sprites have absurdly long durations, such as jin's and izayoi's 6B, don't think its a parsing issue tbh*/
+				//sets the invuln
+				s->frame_invuln_status.push_back(invuln);
+				if (i > 100) {/*I still don't know why some sprites have absurdly long durations(well, actually is -1), such as jin's and izayoi's 6B, don't think its a parsing issue tbh*/
 					break;
 				}
 			}
-						
 		}
 		else if (CMD == 4000) {
 			//EA state call(string[32],char); name of EA state and position
@@ -178,6 +180,57 @@ int parse_state(char* addr,
 			//offsets the position
 			offset += 4;
 		}
+		else if (CMD == 22007) {
+			//setInvincible call(char); 0 if not set invincible, 1 if set. If CMD 22019 doesnt appear later assume full invincibility
+			uint32_t argument = *(uint32_t*)(addr + offset);
+			if (argument == 1) {//when invuln is turned on/off I need to retroactively remove the last sprite length added, since it applies its effect to the start, not end of the sprite
+				invuln = FrameInvuln::All;
+				for (int i = prev_frames; i < s->frames; i++) {
+					s->frame_invuln_status.at(i) = invuln;
+				}
+			}
+			else {
+				//when invuln is turned on/off I need to retroactively remove the last sprite length added, since it applies its effect to the start, not end of the sprite
+				invuln = FrameInvuln::None;
+				for (int i = prev_frames; i < s->frames; i++) {
+					s->frame_invuln_status.at(i) = invuln;
+				}
+			}
+			
+			offset += 4;
+		}
+		else if (CMD == 22019) {
+			//setInvincibleArgs call(char,char,char,char,char); they are equivalent to the flags for each property, head, body, leg, approach, throw. 0 for not set 1 for set.
+			uint16_t head = *(uint32_t*)(addr + offset) * (uint16_t)FrameInvuln::Head;
+			offset += 4;
+			uint16_t body = *(uint32_t*)(addr + offset) * (uint16_t)FrameInvuln::Body;
+			offset += 4;
+			uint16_t leg = *(uint32_t*)(addr + offset) * (uint16_t)FrameInvuln::Foot;
+			offset += 4;
+			uint16_t approach = *(uint32_t*)(addr + offset); //idk what approach is, I assume its projectile which is not implemented yet
+			offset += 4;
+			uint16_t thro = *(uint32_t*)(addr + offset) * (uint16_t)FrameInvuln::Throw; //thro is throw, throw is a reserved word
+			offset += 4;
+			invuln = (FrameInvuln)(head | body | leg  | thro);// note the missing projectile assumed "approach" since its not implemented yet
+			for (int i = prev_frames; i < s->frames; i++) {//when invuln is turned on/off I need to retroactively remove the last sprite length added, since it applies its effect to the start, not end of the sprite
+				s->frame_invuln_status.at(i) = invuln;
+			}
+
+		}
+		else if (CMD == 2002) {
+			//refreshMultihit(more like disableHitbox)  call() 
+			//this will disable the hitbox of the last sprite, its listed by dantation as startMultihit but its more akin to disablehitbox.
+			for (int i = prev_frames; i < s->frames; i++) {//when invuln is turned on/off I need to retroactively remove the last sprite length added, since it applies its effect to the start, not end of the sprite
+				if (i < s->frame_activity_status.size()) {//need to check due to edge cases where sprites last absurdly wrong(or are -1)
+				s->frame_activity_status.at(i) = FrameActivity::Inactive;
+			}
+				else {
+					auto tst = 1;
+				}
+			}
+		}
+		//still need to get the guard point CMD
+
 		else if (CMD == 9003) {
 			///Damage call(char) set dmg 
 			memcpy(&s->damage, addr + offset, 4);
