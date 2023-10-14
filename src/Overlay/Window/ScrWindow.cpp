@@ -341,7 +341,7 @@ void ScrWindow::DrawStatesSection()
             ImGui::Text("Hit_air_ublockable: %d", selected_state->hit_air_unblockable);
             ImGui::Text("fatal_counter: %d", selected_state->fatal_counter);
             if (ImGui::TreeNode("Frame Breakdown")) {
-                ImGui::ShowHelpMarker("Red numbers are active frames, blue numbers are startup/recovery, black numbers are inactive. White borders are full invul/GP, green borders are partial invul/GP(hover for details). Some are incorrect, however they should be pretty obvious, around 85% are done so far.");
+                ImGui::ShowHelpMarker("Red numbers are active frames, blue numbers are startup/recovery, black numbers are inactive. \n\nWhite borders are full invul/GP, green borders are partial invul/GP(hover for details).\n\n\"Non-deterministic\" frame length means that it is not fixed, landing recovery for example. After a non-deterministic state all values will be +\"n\", representing that would be n frames after the frames in question. They are not wrong, they just can't be statically computed.  \n\nSome are still incorrect, however they should be for the most part pretty obvious, around ~85% are done so far.");
                 auto iter_scr_frames = 1;
                 float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
                 ImGuiStyle& style = ImGui::GetStyle();
