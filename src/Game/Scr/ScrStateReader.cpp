@@ -147,7 +147,10 @@ int parse_state(char* addr,
 		///remember to check for the configuration of defaults, 17000 up to 17006
 		if (CMD == 0x2) {
 			///sprite call(string[32],char) name of sprite and frames
-
+			if (s->name == "NmlAtk5B") {
+				auto tsts = 1;
+				std::string cmd_str32(addr + offset);
+			}
 			bool is_active = is_sprite_active_frame(addr + offset, jonbin_map);//there's some weirdness on some moves, such as izayoi's "CmdActFDash", showing hitboxes when there shouldn't be
 			offset += 32;
 			//unsigned int frames;
