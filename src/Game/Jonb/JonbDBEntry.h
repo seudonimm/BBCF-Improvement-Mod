@@ -73,4 +73,13 @@ public:
 	uint32_t offset_from_first_full_entry1; //see comment above
 	char pad_2[8];
 };
+class JonbDBIndexEntryJubei {
+public:
+	// you need to specify if it is jubei or not because for some reason his jonb index is spaced differently
+	char jonbin_name[24]; //for ex ae030_08ex00.jonbin
+	char pad_1[16];
+	uint32_t offset_from_first_full_entry2; //some characters use the offset from this, others from the one after, idk what causes it to happen
+	uint32_t offset_from_first_full_entry1; //see comment above
+	char pad_2[16];
+};
 	
