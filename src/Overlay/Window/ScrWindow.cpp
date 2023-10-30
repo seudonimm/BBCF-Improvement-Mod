@@ -683,7 +683,8 @@ void ScrWindow::DrawStatesSection()
             {"CmnActUkemiLandF",30 },
             {"CmnActUkemiLandB",30 },
             {"CmnActFDown2Stand", 14},
-            {"CmnActBDown2Stand", 14} };
+            {"CmnActBDown2Stand", 14},
+        {"CmnActUkemiStagger",7} }; //this in theory should be an on hit trigger, but its an ukemi so i'll consider it wakeup due to how it works
         //"CmnActFDown2Stand", 14 seems to be 20 so far
         //"CmnActFDown2Stand", 14
         if (!wakeup_register.empty()) {
