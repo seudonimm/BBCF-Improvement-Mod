@@ -1156,7 +1156,7 @@ void ScrWindow::DrawPlaybackSection() {
             }
 
             auto onhit_action_trigger_find = [&]()-> size_t {
-                for (auto& el : std::vector<std::string>{ "CmnActHit", "CmnActBDown", "CmnActFDown", "CmnActVDown" }) {
+                for (auto& el : std::vector<std::string>{ "CmnActHit", "CmnActBDown", "CmnActFDown", "CmnActVDown", "CmnActStaggerLoop"}) {
                     if (current_action.find(el) != std::string::npos) {
                         return current_action.find(el);
                     }
