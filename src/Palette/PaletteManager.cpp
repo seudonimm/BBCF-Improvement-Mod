@@ -9,6 +9,7 @@
 #include "impl_templates.cpp"
 
 #include <atlstr.h>
+#include <sstream>
 
 #define MAX_NUM_OF_PAL_SLOTS 24
 const char* implTemplates[]
@@ -139,6 +140,21 @@ void PaletteManager::ApplyDefaultCustomPalette(CharIndex charIndex, CharPaletteH
 	if (strncmp(curPalName, "Random", IMPL_PALNAME_LENGTH) == 0)
 	{
 		foundCustomPalIndex = rand() % m_customPalettes[charIndex].size();
+	}
+	else if (std::strchr(curPalName, ',') != nullptr)
+	{
+		std::vector<std::string> v;
+		std::stringstream ss(curPalName);
+
+		while (ss.good()) {
+			std::string substr;
+			getline(ss, substr, ',');
+			v.push_back(substr);
+		}
+		int ranIndex = rand() % v.size();
+		const char* ranName = v[ranIndex].c_str();
+
+		foundCustomPalIndex = FindCustomPalIndex(charIndex, ranName);
 	}
 	else
 	{
