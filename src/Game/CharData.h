@@ -35,6 +35,24 @@ public:
 	int32_t actionTimeNoHitstop; //0x0170
 	char pad_0174[56]; //0x0174
 
+/*
+to double check, just note.
+	char pad_0174[8]; //0x0174
+	int32_t SLOT_31; //0x17C //EsBuff
+ 	int32_t SLOT_51; //0x0180 //bang kite float time
+ 	int32_t SLOT_52; //0x0184
+ 	int32_t SLOT_53; //0x0188
+ 	int32_t SLOT_54; //0x018C
+ 	int32_t SLOT_55; //0x0190
+ 	int32_t SLOT_56; //0x0194
+ 	int32_t SLOT_57; //0x0198
+ 	int32_t SLOT_58; //0x019C
+	int32_t SLOT_59; //0x1A0 //bang seal //azrael fireball /Plat item type
+	int32_t SLOT_60; //0x1A4 //bang seal
+	int32_t SLOT_61; //0x1A8 //bang seal
+	int32_t SLOT_62; //0x01AC//bang seal /lambda_nu_drive_hitcount
+
+*/
 	int32_t lambda_nu_drive_hitcount; //0x01AC
 	char pad_01B0[16]; //0x01B0
 	int32_t overdriveTimeleft; //0x01C0
