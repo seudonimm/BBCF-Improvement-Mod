@@ -31,16 +31,17 @@ void OnlinePaletteManager::RecvPaletteDataPacket(Packet* packet)
 
 	uint16_t matchPlayerIndex = m_pRoomManager->GetPlayerMatchPlayerIndexByRoomMemberIndex(packet->roomMemberIndex);
 	CharPaletteHandle& charPalHandle = GetPlayerCharPaletteHandle(matchPlayerIndex);
-
-	if (charPalHandle.IsNullPointerPalBasePtr())
-	{
-		m_unprocessedPaletteFiles.push(UnprocessedPaletteFile(matchPlayerIndex, (PaletteFile)packet->part, (char*)packet->data));
-		return;
-	}
 	if (g_gameVals.enableForeignPalettes) {
-		m_pPaletteManager->ReplacePaletteFile((const char*)packet->data, (PaletteFile)packet->part, charPalHandle);
+		if (charPalHandle.IsNullPointerPalBasePtr())
+		{
+			m_unprocessedPaletteFiles.push(UnprocessedPaletteFile(matchPlayerIndex, (PaletteFile)packet->part, (char*)packet->data));
+			return;
+		}
+		if (g_gameVals.enableForeignPalettes) {
+			m_pPaletteManager->ReplacePaletteFile((const char*)packet->data, (PaletteFile)packet->part, charPalHandle);
+		}
+
 	}
-	
 }
 
 void OnlinePaletteManager::RecvPaletteInfoPacket(Packet* packet)
@@ -49,14 +50,15 @@ void OnlinePaletteManager::RecvPaletteInfoPacket(Packet* packet)
 
 	uint16_t matchPlayerIndex = m_pRoomManager->GetPlayerMatchPlayerIndexByRoomMemberIndex(packet->roomMemberIndex);
 	CharPaletteHandle& charPalHandle = GetPlayerCharPaletteHandle(matchPlayerIndex);
-
-	if (charPalHandle.IsNullPointerPalBasePtr())
-	{
-		m_unprocessedPaletteInfos.push(UnprocessedPaletteInfo(matchPlayerIndex, (IMPL_info_t*)packet->data));
-		return;
-	}
 	if (g_gameVals.enableForeignPalettes) {
-		m_pPaletteManager->SetCurrentPalInfo(charPalHandle, *(IMPL_info_t*)packet->data);
+		if (charPalHandle.IsNullPointerPalBasePtr())
+		{
+			m_unprocessedPaletteInfos.push(UnprocessedPaletteInfo(matchPlayerIndex, (IMPL_info_t*)packet->data));
+			return;
+		}
+		if (g_gameVals.enableForeignPalettes) {
+			m_pPaletteManager->SetCurrentPalInfo(charPalHandle, *(IMPL_info_t*)packet->data);
+		}
 	}
 }
 
