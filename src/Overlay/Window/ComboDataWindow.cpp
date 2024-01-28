@@ -16,6 +16,19 @@ void ComboDataWindow::DrawMainSection() {
 		CharData* p1 = g_interfaces.player1.GetData();
 		CharData* p2 = g_interfaces.player2.GetData();
 		auto starter_rating = ""; int histun_decay = 0;
+		static int player_radio = 0;
+		ImGui::RadioButton("P1", &player_radio, 0);
+		ImGui::SameLine();
+		ImGui::RadioButton("P2", &player_radio, 1);
+		//make it clearer later
+		if (player_radio == 0) {
+			p1 = g_interfaces.player1.GetData();
+			p2 = g_interfaces.player2.GetData();
+		}
+		else {
+			p1 = g_interfaces.player2.GetData();
+			p2 = g_interfaces.player1.GetData();
+		}
 		if (p2->starterRating == 1) {
 			starter_rating = "short";
 		}
