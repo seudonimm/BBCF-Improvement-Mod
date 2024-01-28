@@ -48,8 +48,14 @@ void ScrWindow::Draw()
     DrawVeryExperimentalSection2();
     DrawRoomSection();
     DrawInputBufferButton();
+    DrawComboDataButton();
 }
-
+void ScrWindow::DrawComboDataButton() {
+    if (ImGui::Button("Combo Data"))
+    {
+        ScrWindow::m_pWindowContainer->GetWindow(WindowType_ComboData)->ToggleOpen();
+    }
+}
 void ScrWindow::DrawInputBufferButton() {
     if (ImGui::Button("Input Buffer P1"))
     {

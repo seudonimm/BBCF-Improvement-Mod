@@ -15,6 +15,7 @@
     <ClCompile Include="depends\imgui\imgui_demo.cpp" />
     <ClCompile Include="depends\imgui\imgui_draw.cpp" />
     <ClCompile Include="depends\imgui\imgui_impl_dx9.cpp" />
+    <ClCompile Include="src\Overlay\Window\ComboDataWindow.cpp" />
     <ClCompile Include="src\Overlay\Window\FrameAdvantage\PlayerExtendedData.cpp" />
     <ClCompile Include="src\Game\Jonb\JonbDBReader.cpp" />
     <ClCompile Include="src\Game\Playbacks\PlaybackSlot.cpp" />
@@ -97,6 +98,7 @@
     <ClInclude Include="depends\imgui\stb_rect_pack.h" />
     <ClInclude Include="depends\imgui\stb_textedit.h" />
     <ClInclude Include="depends\imgui\stb_truetype.h" />
+    <ClInclude Include="src\Overlay\Window\ComboDataWindow.h" />
     <ClInclude Include="src\Overlay\Window\FrameAdvantage\PlayerExtendedData.h" />
     <ClInclude Include="src\Game\Jonb\JonbDBEntry.h" />
     <ClInclude Include="src\Game\Jonb\JonbDBReader.h" />
