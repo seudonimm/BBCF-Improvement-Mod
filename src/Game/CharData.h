@@ -33,10 +33,8 @@ public:
 	int32_t actionTime; //0x0160
 	int32_t actionTime2; //0x0164
 	int32_t actionTimeNoHitstop; //0x0170
-	char pad_0174[56]; //0x0174
+	//char pad_0174[56]; //0x0174
 
-/*
-to double check, just note.
 	char pad_0174[8]; //0x0174
 	int32_t SLOT_31; //0x17C //EsBuff
  	int32_t SLOT_51; //0x0180 //bang kite float time
@@ -52,8 +50,8 @@ to double check, just note.
 	int32_t SLOT_61; //0x1A8 //bang seal
 	int32_t SLOT_62; //0x01AC//bang seal /lambda_nu_drive_hitcount
 
-*/
-	int32_t lambda_nu_drive_hitcount; //0x01AC
+
+	//int32_t lambda_nu_drive_hitcount; //0x01AC
 	char pad_01B0[16]; //0x01B0
 	int32_t overdriveTimeleft; //0x01C0
 	int32_t overdriveTimerStartedAt; //0x01C4
