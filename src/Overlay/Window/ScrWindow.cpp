@@ -1269,7 +1269,7 @@ void ScrWindow::DrawPlaybackSection() {
                             if (random_wakeup_slot_toggle && !random_wakeup.empty()) {
 
                           
-                                slot = slot_to_run;
+                                slot = slot_to_run + 1; //slot_to_run has the value already adjusted for 0 start, need to add 1 so that it becomes 1,2,3,4 as set_active_slot expects.
                                 if (*playback_control_ptr != 3) {
                                     PlaybackManager().set_active_slot(slot);
                                     PlaybackManager().set_playback_control(val_set);
@@ -1290,7 +1290,7 @@ void ScrWindow::DrawPlaybackSection() {
                 }
                 else if (frame_count_to_activate_vector[slot_to_run] != 0 && *g_gameVals.pFrameCount == frame_count_to_activate_vector[slot_to_run]) {
 
-                    slot = slot_to_run;
+                    slot = slot_to_run+ 1; //slot_to_run has the value already adjusted for 0 start, need to add 1 so that it becomes 1,2,3,4 as set_active_slot expects.
 
               
                     if (*playback_control_ptr != 3) {
