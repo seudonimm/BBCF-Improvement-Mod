@@ -136,6 +136,13 @@ void DebugWindow::DrawImGuiSection()
 
 void DebugWindow::DrawGameValuesSection()
 {
+	if (ImGui::Button("load_rollback_frames")) {
+		//_asm {
+			//must figure ou the arguments for the function
+		//	call 0xB13F20
+		//};
+		return;
+	}
 	if (!ImGui::CollapsingHeader("Game values"))
 		return;
 
