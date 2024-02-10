@@ -1024,7 +1024,7 @@ void ScrWindow::draw_playback_slot_section(int slot) {
         slot_throwtech = 0;
     }
     ImGui::InputInt("Buffer frames", &slot_buffer[slot-1]);
-    ImGui::TextWrapped("Buffer frames only works currently with non random wakeup actions");
+    ImGui::TextWrapped("Buffer frames only works currently with wakeup actions");
     ImGui::Separator();
     auto old_val = 0; auto frame_counter = 0;
     for (auto el : slot_recording_frames) {
