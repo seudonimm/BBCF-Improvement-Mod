@@ -361,7 +361,9 @@ void ScrWindow::DrawStatesSection()
                 ImGuiStyle& style = ImGui::GetStyle();
                 int after_non_deterministic = 0;
                 for (auto& frame_activity : selected_state->frame_activity_status) {
-
+                    if (iter_scr_frames > 500) {//needed to limit the amount of drawn frames to keep it from crashing on way too long states(rp based probably/too many branches prob)
+                        ImGui::Text("+ Too long to show all"); 
+                        break; }
 
 
                     auto color = IM_COL32(0, 255, 255, 255);
