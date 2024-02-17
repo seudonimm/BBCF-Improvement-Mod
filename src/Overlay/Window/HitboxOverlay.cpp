@@ -154,6 +154,12 @@ void HitboxOverlay::DrawCollisionAreas(const CharData* charObj, const ImVec2 pla
 
 	for (const JonbEntry &entry : entries)
 	{
+		//this will skip the rendering of an inactive hitbox due to multihit script call.
+		if (entry.type == JonbChunkType_Hitbox 
+			&& 
+			(charObj->bitflags_for_curr_state_properties_or_smth & 0x400) == 0x400) {
+			continue;
+		}
 		float scaleX = charObj->scaleX / 1000.0f;
 		float scaleY = charObj->scaleY / 1000.0f;
 		float offsetX =  floor(entry.offsetX * m_scale * scaleX);

@@ -69,14 +69,16 @@ public:
 	//exp
 	char pad_01EC[4];
 	class CharData* enemyChar; //0x01F0 dont know exactly what it is yet, just that it is checked and I need to save it 
-	char pad_01F4[54]; //0x01F4 
+	char pad_01F4[54]; //0x01F4 maybe this should be 56?
 	//char pad_01EC[64];
 	class CharData* last_child_entity_spawned; // 0x022C 
 	class CharData* extra_child_entities[7]; // 0x0230 should hold up to 7(?) idk extra child entities
 	class CharData* main_child_entity; // 0x024C holds the main child entity, varies by character but its the puppets, arakune curse circle over enemy, etc. Some characters dont have it
-	char pad_0250[20]; // 0x0250
-
+	//char pad_0250[20]; // 0x0250
+	char pad_0250[0xC];// 0x0250
 	//0x0254 significant?
+	uint32_t bitflags_for_curr_state_properties_or_smth; // 0x025c holds some properties of attacks it seems in something like bitfields. To check for inactive hitboxes from multihits use the mask xxxxx400.
+	char pad_0260[4];//0x0260
 	//exp 
 	int32_t facingLeft; //0x0264 is it not facing right?
 	int32_t position_x; //0x0268
