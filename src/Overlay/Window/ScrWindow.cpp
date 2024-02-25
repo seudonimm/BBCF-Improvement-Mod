@@ -175,11 +175,12 @@ void ScrWindow::check_wakeup_delay() {
 }
 void ScrWindow::DrawGenericOptionsSection() {
     static bool check_dummy = g_modVals.enableForeignPalettes;
-    ImGui::TextWrapped("If you're having crash issues when joining ranked from training mode, disable this when searching in training mode, can be reenabled for any other situation. It stops your game from loading foreign palettes. This is just a stopgap, grim will come with the real fix.");
     if (ImGui::Checkbox("Load foreign palettes", &check_dummy)) {
         g_modVals.enableForeignPalettes = !g_modVals.enableForeignPalettes;
 
     }
+    ImGui::SameLine();
+    ImGui::ShowHelpMarker("If you're having crash issues when joining ranked from training mode, disable this when searching in training mode, can be reenabled for any other situation. It stops your game from loading foreign palettes. This is just a stopgap, grim will come with the real fix.");
     if (*g_gameVals.pGameMode == GameMode_Training && !g_interfaces.player2.IsCharDataNullPtr()) {
         static bool check_enable_wakeup_delay = false;
         ImGui::Checkbox("Enable wakeup delay override", &check_enable_wakeup_delay);
