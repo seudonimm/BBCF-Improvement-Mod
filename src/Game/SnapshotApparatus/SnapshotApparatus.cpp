@@ -10,9 +10,11 @@
 #include <map>
 #include <memory>
 #include "SnapshotApparatus.h"
-
+//#include "Core/Interfaces.h"
 
 SnapshotApparatus::SnapshotApparatus() {
+	this->p1_ptr = g_interfaces.player1.GetData();
+	this->p2_ptr = g_interfaces.player2.GetData();
 	this->snapshot_count = 0;
 		char* base_addr = GetBbcfBaseAdress();
 		void* addr = base_addr + 0x65bd08;
@@ -64,9 +66,8 @@ SnapshotApparatus::SnapshotApparatus() {
 		}
 	}
 
-bool SnapshotApparatus::save_snapshot(Snapshot** pbuf)
-{
-	//saves to slot 0 of rollback
+bool SnapshotApparatus::save_snapshot(Snapshot** pbuf_mine)
+{/* leave pbuf_mine as zero to not involve out own buffers and just the "built in" snapshot buffer of 10*/
 	char* base_addr = GetBbcfBaseAdress();
 	//memcpy(&temp_savestate_loc, savedstate_mine[savegame_index], 4);
 	//callbacks_ptr->load_game_state((unsigned char*)temp_savestate_loc);
@@ -79,25 +80,29 @@ bool SnapshotApparatus::save_snapshot(Snapshot** pbuf)
 	else {
 		return false;
 	}
-	if (pbuf == 0) {
-		pbuf = (Snapshot**)&snap_manager->_saved_states_related_struct[this->snapshot_count%10]._ptr_buf_saved_frame;
-	}
+
+	unsigned char** pbuf = &snap_manager->_saved_states_related_struct[this->snapshot_count%10]._ptr_buf_saved_frame;
+	
 	//unsigned char** pbuf = (unsigned char**)&snap_manager->_saved_states_related_struct[0]._ptr_buf_saved_frame;
 	int checksum = 0;
 	int counter_of_some_sort = 1;
 	int sizeofstate = 0xa10000;
+	
 	this->callbacks_ptr->free_buffer((unsigned char*)*pbuf);
 	this->callbacks_ptr->save_game_state((unsigned char**)pbuf,
-		&sizeofstate, //&counter_of_some_sort,
-		&checksum);
+		&sizeofstate, //&counter_of_some_sort, I still dont know for sure if this is supposed to be the counter or the sie 
+		&checksum); //I assume this is supposed to be checksum but idk
 	this->snapshot_count += 1;
-	//savegame_index = (savegame_index + 1) % 10;
-	//savegame_count += 1;
+	if (pbuf_mine != 0) {
+		memcpy(*pbuf_mine, *pbuf, 0xa10000);
+	}
+
 	return true;
 }
 
 bool SnapshotApparatus::load_snapshot(Snapshot* buf)
 {
+	/* leave buf as zero to not involve our own buffers and just the "built in" snapshot buffer of 10*/
 	char* base_addr = GetBbcfBaseAdress();
 	
 	//memcpy(&temp_savestate_loc, savedstate_mine[savegame_index], 4);
@@ -113,7 +118,7 @@ bool SnapshotApparatus::load_snapshot(Snapshot* buf)
 	}
 	unsigned char* dest_buf = (unsigned char*)snap_manager->_saved_states_related_struct[(snapshot_count-1)%10]._ptr_buf_saved_frame;
 	if (buf != 0) {
-		memcpy(dest_buf, buf, 0xA1000);
+		memcpy(dest_buf, buf, 0xA10000);
 	}
 	
 	/// COPIES_FROM_OUR_BUFFER_TO_FIRST_ROLLBACK_SLOT_END
@@ -139,4 +144,12 @@ bool SnapshotApparatus::load_snapshot(Snapshot* buf)
 	WriteToProtectedMemory((uintptr_t)ptr_oldmem_load, oldmem_load, 3);
 	///CLEANUP_END
 	return true;
+}
+
+bool SnapshotApparatus::check_if_valid(CharData* p1, CharData* p2)
+{
+	if (this->p1_ptr == p1 && this->p2_ptr == p2) {
+		return true;
+	}
+	return false;
 }

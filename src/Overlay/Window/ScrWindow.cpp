@@ -43,8 +43,10 @@ void ScrWindow::Draw()
     DrawGenericOptionsSection();
     DrawStatesSection();
     DrawPlaybackSection();
+    DrawSaveStates();
     DrawReplayTheaterSection();
     DrawReplayRewind();
+    
     DrawVeryExperimentalSection2();
     DrawRoomSection();
     DrawInputBufferButton();
@@ -172,10 +174,10 @@ void ScrWindow::check_wakeup_delay() {
 
 }
 void ScrWindow::DrawGenericOptionsSection() {
-    static bool check_dummy = g_gameVals.enableForeignPalettes;
+    static bool check_dummy = g_modVals.enableForeignPalettes;
     ImGui::TextWrapped("If you're having crash issues when joining ranked from training mode, disable this when searching in training mode, can be reenabled for any other situation. It stops your game from loading foreign palettes. This is just a stopgap, grim will come with the real fix.");
     if (ImGui::Checkbox("Load foreign palettes", &check_dummy)) {
-        g_gameVals.enableForeignPalettes = !g_gameVals.enableForeignPalettes;
+        g_modVals.enableForeignPalettes = !g_modVals.enableForeignPalettes;
 
     }
     if (*g_gameVals.pGameMode == GameMode_Training && !g_interfaces.player2.IsCharDataNullPtr()) {
@@ -1355,6 +1357,83 @@ void ScrWindow::DrawPlaybackSection() {
 //    }
 //}
 
+void ScrWindow::DrawSaveStates() {
+    static SnapshotApparatus* snap_apparatus = nullptr;
+    
+    if (!ImGui::CollapsingHeader("Save states"))
+        return;
+
+    if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
+        if (snap_apparatus == nullptr) {
+
+            snap_apparatus = new SnapshotApparatus();
+        }
+        if (!snap_apparatus->check_if_valid(g_interfaces.player1.GetData(),
+            g_interfaces.player2.GetData())) {
+            delete snap_apparatus;
+            snap_apparatus = new SnapshotApparatus();
+        }
+        static float wait_before_exec_s = 0;
+
+        if (ImGui::Button("Save snapshot") || ImGui::IsKeyPressed(g_modVals.save_states_save_keycode)) {
+            snap_apparatus->save_snapshot(0);
+        }
+        ImGui::SameLine();
+        ImGui::ShowHelpMarker("You can use a hotkey to activate it, default is F5 but can be changed in settings.ini between F1-9.");
+        ImGui::SameLine();
+        if (snap_apparatus->snapshot_count != 0) {
+            if (ImGui::Button("Load snapshot") || ImGui::IsKeyPressed(g_modVals.save_states_load_keycode)) {
+                snap_apparatus->load_snapshot(0);
+                if (wait_before_exec_s > 0) {
+                    g_gameVals.isFrameFrozen = true;
+
+                    this->is_setup_time_running = true;
+                    this->base_time = wait_before_exec_s; 
+                }
+              
+            }
+        }
+        else {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+            ImGui::Button("Load snapshot");
+            ImGui::PopStyleColor();
+            
+        }
+        ImGui::SameLine();
+        ImGui::ShowHelpMarker("You can use a hotkey to activate it, default is F9 but can be changed in settings.ini between F1-9.");
+    
+        ImGui::InputFloat("Setup time(s)", &wait_before_exec_s, 0.3f);
+        ImGui::SameLine();
+        ImGui::ShowHelpMarker("This pauses the game once you load a state for the amount set in order to adjust hand position. Set to 0 if no delay is desired.");
+        if (is_setup_time_running == true) {
+            this->base_time -= ImGui::GetIO().DeltaTime;
+            ImGui::OpenPopup("progress_bar");
+            //ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+            //ImGui::SetNextWindowSize(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+            if (ImGui::BeginPopupModal("progress_bar",NULL, ImGuiWindowFlags_NoTitleBar)) {
+                
+                float progress = this->base_time / (wait_before_exec_s);
+                ImGui::ProgressBar(progress);// , ImVec2(0.0f, 0.0f));
+                if (progress <= 0) {
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
+           
+           // float progress = this->base_time/( wait_before_exec_s);
+            //ImGui::ProgressBar(progress, ImVec2(0.0f, 0.0f));
+            if (this->base_time <0){
+                g_gameVals.isFrameFrozen = false;
+                this->is_setup_time_running = false;
+            }
+        }
+    }
+    else {
+        ImGui::Text("You must be in a mode where state can be saved");
+    }
+
+   
+}
 bool compareFiles(const std::string& p1, const std::string& p2) {
     std::ifstream f1(p1, std::ifstream::binary | std::ifstream::ate);
     std::ifstream f2(p2, std::ifstream::binary | std::ifstream::ate);
@@ -1800,10 +1879,10 @@ void ScrWindow::DrawVeryExperimentalSection2() {
     static std::vector<char> replay_action_load{};
     char* r1p1_start = bbcf_base + 0x115B470 + 0x8d4;
     char* r1p2_start = bbcf_base + 0x115B470 + 0x8d4 + 0x7080;
-    if (!ImGui::CollapsingHeader("Replay takeover/save states::experimental"))
+    if (!ImGui::CollapsingHeader("Replay takeover::experimental"))
         return;
     ImGui::Text("time: %d", *g_gameVals.pMatchTimer);
-    if (ImGui::Button("save state")
+    if (ImGui::Button("save replay state")
           || ImGui::IsKeyPressed(119)
         ) {
         if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
@@ -1846,7 +1925,7 @@ void ScrWindow::DrawVeryExperimentalSection2() {
         }
 
     }
-    if (ImGui::Button("load state")
+    if (ImGui::Button("load replay state")
         || ImGui::IsKeyPressed(120)
         ) {
         if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
@@ -1916,7 +1995,7 @@ void ScrWindow::DrawVeryExperimentalSection2() {
 
 
     }
-    if (ImGui::Button("load state full")) {
+    if (ImGui::Button("load replay state full")) {
         if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
             if (g_gameVals.isP1CPU) {
                 auto p1 = g_interfaces.player1.GetData();

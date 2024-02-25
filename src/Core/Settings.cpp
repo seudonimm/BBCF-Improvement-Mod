@@ -35,7 +35,9 @@ void Settings::applySettingsIni(D3DPRESENT_PARAMETERS* pPresentationParameters)
 	default:
 		break;
 	}
-	g_gameVals.enableForeignPalettes = Settings::settingsIni.loadforeignpalettes;
+	g_modVals.enableForeignPalettes = Settings::settingsIni.loadforeignpalettes;
+	g_modVals.save_states_save_keycode = Settings::getButtonValue(settingsIni.saveStateKeybind);
+	g_modVals.save_states_load_keycode = Settings::getButtonValue(settingsIni.loadStateKeybind);
 	//pPresentationParameters->Windowed = !Settings::settingsIni.fullscreen;
 
 	pPresentationParameters->PresentationInterval = settingsIni.vsync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
@@ -109,6 +111,12 @@ bool Settings::loadSettingsFile()
 	if (settingsIni.toggleHUDbutton.length() != 2 || settingsIni.toggleHUDbutton[0] != 'F')
 		settingsIni.toggleHUDbutton = "F3";
 
+
+
+	
+	
+	//modValuessettingsIni.loadStateKeybind
+	
 	return true;
 }
 

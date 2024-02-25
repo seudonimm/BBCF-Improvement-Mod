@@ -1,11 +1,12 @@
 #pragma once
 #include "IWindow.h"
 #include <vector>
+#include <chrono>
 #include "Game/Scr/ScrStateReader.h"
 #include "Game/Playbacks/PlaybackManager.h"
 #include "Core/utils.h"
 #include "Overlay/WindowContainer/WindowContainer.h"
-
+#include "Game/SnapshotApparatus/SnapshotApparatus.h"
 class ScrWindow : public IWindow
 {
 public:
@@ -27,6 +28,7 @@ private:
 	void DrawPlaybackSection();
 	void DrawReplayTheaterSection();
 	void DrawReplayRewind();
+	void DrawSaveStates();
 	void DrawVeryExperimentalSection2();
 	void DrawRoomSection();
 	void DrawWakeupDelayControl();
@@ -91,6 +93,12 @@ private:
 	int wakeup_delay_skew = 0;
 	bool wakeup_delay_skew_change_flag = false;
 	int wakeup_delay = 0;
+
+
+
+	std::chrono::steady_clock::time_point start_time;
+	float base_time = 0;
+	bool is_setup_time_running = false;
 	char* bbcf_base_adress = GetBbcfBaseAdress();
 	WindowContainer* m_pWindowContainer = nullptr;
 };

@@ -252,7 +252,7 @@ struct GGPOSessionCallbacks {
     //undefined* begin_game;
     int (*begin_game)();//its an empty function for now, will point to the same as log
     //undefined* save_game_state;
-    int (*save_game_state)(unsigned char**, int*, int*); //idk yet what the parameters are
+    int (*save_game_state)(unsigned char**, int*, int*); //aside from param_1 being pbuf im not sure of the other parameters, param_2 is either counter_of_some_sort or size of buf and param_3 i think its checksum, can be left as an adress to 0
     //undefined* load_game_state;
     int (*load_game_state)(unsigned char*); // param_1 is the adress of the buf to load
     //undefined* maybe_log_game_state;
