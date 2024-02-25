@@ -1408,20 +1408,16 @@ void ScrWindow::DrawSaveStates() {
         if (is_setup_time_running == true) {
             this->base_time -= ImGui::GetIO().DeltaTime;
             ImGui::OpenPopup("progress_bar");
-            //ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-            //ImGui::SetNextWindowSize(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
             if (ImGui::BeginPopupModal("progress_bar",NULL, ImGuiWindowFlags_NoTitleBar)) {
                 
                 float progress = this->base_time / (wait_before_exec_s);
-                ImGui::ProgressBar(progress);// , ImVec2(0.0f, 0.0f));
+                ImGui::ProgressBar(progress);
                 if (progress <= 0) {
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
             }
-           
-           // float progress = this->base_time/( wait_before_exec_s);
-            //ImGui::ProgressBar(progress, ImVec2(0.0f, 0.0f));
+
             if (this->base_time <0){
                 g_gameVals.isFrameFrozen = false;
                 this->is_setup_time_running = false;
