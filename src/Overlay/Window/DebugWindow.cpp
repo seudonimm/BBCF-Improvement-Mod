@@ -141,11 +141,16 @@ void DebugWindow::DrawGameValuesSection()
 	//bbcf.exe+0x612888
 	//static unsigned char savedstate_mine[10][0xa10000] = {};
 	char* base_addr = GetBbcfBaseAdress();
+	if (ImGui::TreeNode("replay rewind testing")) {
+		ImGui::TreePop();
+	}
+
 	if (ImGui::TreeNode("snapshot testing")) {
 
 
 		void* DAT_01292888 = base_addr + 0x612888;
 		static SnapshotApparatus* snap_apparatus_debug = nullptr;
+		static int snapshot_position_counter = 0;
 		if (snap_apparatus_debug == nullptr) {
 			snap_apparatus_debug = new SnapshotApparatus();
 		}
@@ -159,14 +164,20 @@ void DebugWindow::DrawGameValuesSection()
 
 		}
 		if (ImGui::Button("Save snapshot replay mine struct")) {
-			Snapshot* buf = &snapshot_replay_pre_allocated[0];
+			Snapshot* buf = &snapshot_replay_pre_allocated[snapshot_position_counter %SNAPSHOT_PREALLOC_SIZE];
 			snap_apparatus_debug->save_snapshot(&buf);
 			//snap_apparatus_debug->save_snapshot((Snapshot**)savedstate_mine);
+			snapshot_position_counter += 1;
+
+		}
+		if (ImGui::Button("Load snapshot replay mine struct 0 ")) {
+			auto pos = &snapshot_replay_pre_allocated[0];
+			snap_apparatus_debug->load_snapshot(&snapshot_replay_pre_allocated[0]);
 
 		}
 		if (ImGui::Button("Load snapshot replay mine struct")) {
-
-			snap_apparatus_debug->load_snapshot(&snapshot_replay_pre_allocated[0]);
+			auto pos2 = &snapshot_replay_pre_allocated[(snapshot_position_counter-1) % SNAPSHOT_PREALLOC_SIZE];
+			snap_apparatus_debug->load_snapshot(&snapshot_replay_pre_allocated[(snapshot_position_counter-1)% SNAPSHOT_PREALLOC_SIZE]);
 
 		}
 		if (ImGui::TreeNode("Netcode stuff")) {
@@ -510,6 +521,9 @@ void DebugWindow::DrawGameValuesSection()
 
 	if (ImGui::TreeNode("Game and Match variables"))
 	{
+		ImGui::Text("adress static snapshot: 0x%x ", &snapshot_replay_pre_allocated);
+		ImGui::Text("sizeof chardata: 0x%d ", sizeof(CharData));
+		ImGui::Text("sizeof snapshot: 0x%d ", sizeof(Snapshot));
 		ImGui::Text("pGameState: 0x%p : %d", g_gameVals.pGameState, SafeDereferencePtr(g_gameVals.pGameState));
 		ImGui::Text("pGameMode: 0x%p : %d", g_gameVals.pGameMode, SafeDereferencePtr(g_gameVals.pGameMode));
 		ImGui::Text("pMatchState: 0x%p : %d", g_gameVals.pMatchState, SafeDereferencePtr(g_gameVals.pMatchState));

@@ -366,4 +366,6 @@ public:
 	char pad_20134[32]; //0x20134
 	int32_t Drive3; //0x20154
 	char pad_20158[4972]; //0x20158
-}; //Size: 0x214C4 !actual size seems to be 0x24978
+	char pad_214c4[0x34b4]; //0x214c4
+}; //Size: 0x24978 
+// old: Size: 0x214C4 !actual size seems to be 0x24978

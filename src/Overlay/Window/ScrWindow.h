@@ -28,6 +28,7 @@ private:
 	void DrawPlaybackSection();
 	void DrawReplayTheaterSection();
 	void DrawReplayRewind();
+	void DrawReplayRewind_old();
 	void DrawSaveStates();
 	void DrawVeryExperimentalSection2();
 	void DrawRoomSection();

@@ -31,6 +31,7 @@
 
 void ScrWindow::Draw()
 {
+    
     static bool random_seeded = false;
     if (!random_seeded){
         std::srand(static_cast<unsigned int>(std::time(nullptr)));
@@ -1576,6 +1577,167 @@ void ScrWindow::DrawReplayRewind() {
 
     if (!ImGui::CollapsingHeader("Replay Rewind"))
         return;
+    ImGui::Text("Active entities: %d", count_entities(false));
+    ImGui::Text("Active entities with unk_status2 = 2: %d", count_entities(true));
+    static int prev_match_state;
+    static bool rec = false;
+    const int FRAME_STEP = 60;
+    auto bbcf_base_adress = GetBbcfBaseAdress();
+    char* ptr_replay_theater_current_frame = bbcf_base_adress + 0x11C0348;
+    static bool playing = false;
+    static int curr_frame = *g_gameVals.pFrameCount;
+    static int prev_frame;
+    static int frames_recorded = 0;
+    static int rewind_pos = 0;
+    static int round_start_frame = 0;
+    static std::vector<unsigned int> frame_checkpoints = {};
+
+    //static std::vector<std::shared_ptr<FrameState>> framestates;
+    static SnapshotApparatus* snap_apparatus_replay_rewind = nullptr;
+
+
+    if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
+        if (snap_apparatus_replay_rewind == nullptr) {
+
+            snap_apparatus_replay_rewind = new SnapshotApparatus();
+        }
+        if (!snap_apparatus_replay_rewind->check_if_valid(g_interfaces.player1.GetData(),
+            g_interfaces.player2.GetData())) {
+            delete snap_apparatus_replay_rewind;
+            snap_apparatus_replay_rewind = new SnapshotApparatus();
+        }
+        /*if (*g_gameVals.pGameMode == GameMode_ReplayTheater && *g_gameVals.pMatchState == MatchState_Fight) {
+            toggle_unknown2_asm_code();
+        }*/
+        curr_frame = *g_gameVals.pFrameCount;
+
+        if (*g_gameVals.pGameMode != GameMode_ReplayTheater ||
+            (*g_gameVals.pMatchState != MatchState_Fight && *g_gameVals.pMatchState != MatchState_RebelActionRoundSign && *g_gameVals.pMatchState != MatchState_FinishSign) ||
+            *g_gameVals.pGameState != GameState_InMatch) {
+            if (rec) {
+                rec = false;
+                //framestates = {};
+                snap_apparatus_replay_rewind->clear_count();
+
+                frames_recorded = 0;
+                rewind_pos = 0;
+                frame_checkpoints.clear();
+                //force clear the vectors
+                return;
+            }
+            else {
+                ImGui::Text("Only works during a running replay");
+
+                return;
+            }
+        }
+
+
+
+
+
+
+
+        //*ptr_replay_theater_current_frame = *g_gameVals.pFrameCount;
+        memcpy(ptr_replay_theater_current_frame, g_gameVals.pFrameCount, sizeof(unsigned int));
+        ///grabs the frame count on round start
+        if (*g_gameVals.pGameMode == GameMode_ReplayTheater && prev_match_state && prev_match_state == MatchState_RebelActionRoundSign &&
+            *g_gameVals.pMatchState == MatchState_Fight && !g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
+            round_start_frame = *g_gameVals.pFrameCount;
+
+        }
+        ///automatic start rec on round start + 4 frames to alleviate the loss of buffering during countdown
+        if (*g_gameVals.pFrameCount == round_start_frame  && *g_gameVals.pMatchState == MatchState_Fight && rec == false) {
+            rec = true;
+            frames_recorded += 1;
+            //framestates.push_back(std::make_shared<FrameState>());
+            snap_apparatus_replay_rewind->save_snapshot_prealloc();
+            frame_checkpoints.push_back(*g_gameVals.pFrameCount);
+            prev_frame = *g_gameVals.pFrameCount;
+
+        }
+        //automatic clear vector if change round or leave abruptly
+        if ((*g_gameVals.pGameMode == GameMode_ReplayTheater && prev_match_state == MatchState_Fight &&
+            *g_gameVals.pMatchState == MatchState_FinishSign && !g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr())
+            ||
+            *g_gameVals.pGameState != GameState_InMatch) {
+            rec = false;
+            //framestates = {};
+            frames_recorded = 0;
+            rewind_pos = 0;
+            frame_checkpoints.clear();
+            snap_apparatus_replay_rewind->clear_count();
+        }
+
+        if (rec && (*g_gameVals.pGameMode != GameMode_ReplayTheater || *g_gameVals.pMatchState != MatchState_Fight)) {
+            rec = false;
+        }
+        prev_match_state = *g_gameVals.pMatchState;
+
+        ImGui::Text("Frame stack: +%d", frames_recorded * FRAME_STEP);
+        ImGui::Text("Rewind pos: +%d", rewind_pos);
+        auto nearest_pos = find_nearest_checkpoint(frame_checkpoints);
+        ImGui::Text("Rewind checkpoint: %d    FF checkpoint(nearest): %d", nearest_pos[0], nearest_pos[1]);
+        ImGui::Text("snap_apparatus snapshot_count: %d", snap_apparatus_replay_rewind->snapshot_count);
+
+
+        if (ImGui::Button("Rewind")) {
+            
+                int pos = find_nearest_checkpoint(frame_checkpoints)[0];
+                if (pos != -1) {
+
+                    snap_apparatus_replay_rewind->load_snapshot_prealloc(pos);
+                    //framestates[pos]->load_frame_state(false);
+                    //starts the replay
+                    char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
+                    *replay_theather_speed = 0;
+                    rewind_pos = pos;
+                }
+           // }
+        }
+        
+       
+        if (ImGui::Button("Restart Round")) {
+
+            //if (!framestates.empty()) {
+                auto pos = 0;
+                if (pos != -1) {
+
+                    //framestates[pos]->load_frame_state(true);
+                    snap_apparatus_replay_rewind->load_snapshot_prealloc(0);
+                    //starts the replay
+                    char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
+                    *replay_theather_speed = 0;
+                    rewind_pos = pos;
+                }
+            //}
+        }
+
+        if (rec) {
+            auto save = true;
+            for (auto saved_frame : frame_checkpoints) {
+                if (curr_frame ==saved_frame) {
+                    save= false;
+                }
+            }
+           // if (curr_frame >= prev_frame + FRAME_STEP && save==true) {
+            if (curr_frame%FRAME_STEP == 0  && save == true) {
+               // framestates.push_back(std::make_shared<FrameState>());
+                snap_apparatus_replay_rewind->save_snapshot_prealloc();
+                frame_checkpoints.push_back(*g_gameVals.pFrameCount);
+                frames_recorded += 1;
+                rewind_pos += 1;
+                prev_frame = curr_frame;
+            }
+        }
+        //prev_frame = curr_frame;
+        return;
+    }
+}
+void ScrWindow::DrawReplayRewind_old() {
+
+    if (!ImGui::CollapsingHeader("Replay Rewind"))
+        return;
     ImGui::Text("Active entities: %d",count_entities(false));
     ImGui::Text("Active entities with unk_status2 = 2: %d", count_entities(true));
     static int prev_match_state;
@@ -1828,11 +1990,11 @@ std::vector<int> find_nearest_checkpoint(std::vector<unsigned int> frameCount) {
     int nearest_fwd_pos = 0;
     int i = 0;
     for (auto frameCheckpoint : frameCount) {
-        if ((fc - frameCheckpoint < fc - nearest_back && fc - frameCheckpoint >0)|| nearest_back == 0) {
+        if ((fc - frameCheckpoint < fc - nearest_back && fc - frameCheckpoint >60)|| nearest_back == 0) {
             nearest_back = frameCheckpoint;
             nearest_back_pos = i;
         }
-        if ((frameCheckpoint - fc < nearest_fwd - fc && frameCheckpoint-fc >0) || nearest_fwd == 0) {
+        if ((frameCheckpoint - fc < nearest_fwd - fc && frameCheckpoint-fc >60) || nearest_fwd == 0) {
             nearest_fwd = frameCheckpoint;
             nearest_fwd_pos = i;
         }
