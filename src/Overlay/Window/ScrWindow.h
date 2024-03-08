@@ -30,7 +30,7 @@ private:
 	void DrawReplayRewind();
 	void DrawReplayRewind_old();
 	void DrawSaveStates();
-	void DrawVeryExperimentalSection2();
+	void DrawReplayTakeover();
 	void DrawRoomSection();
 	void DrawWakeupDelayControl();
 	void DrawInputBufferButton();

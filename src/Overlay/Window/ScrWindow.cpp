@@ -48,7 +48,7 @@ void ScrWindow::Draw()
     DrawReplayTheaterSection();
     DrawReplayRewind();
     
-    DrawVeryExperimentalSection2();
+    DrawReplayTakeover();
     DrawRoomSection();
     DrawInputBufferButton();
     DrawComboDataButton();
@@ -1410,6 +1410,7 @@ void ScrWindow::DrawSaveStates() {
             if (is_setup_time_running == true) {
                 this->base_time -= ImGui::GetIO().DeltaTime;
                 ImGui::OpenPopup("progress_bar");
+                ImGui::SetNextWindowSize(ImVec2(400, 50));
                 if (ImGui::BeginPopupModal("progress_bar", NULL, ImGuiWindowFlags_NoTitleBar)) {
 
                     float progress = this->base_time / (wait_before_exec_s);
@@ -2020,7 +2021,7 @@ std::vector<int> find_nearest_checkpoint(std::vector<unsigned int> frameCount) {
 
 
 
-void ScrWindow::DrawVeryExperimentalSection2() {
+void ScrWindow::DrawReplayTakeover() {
    // if(ImGui::Button("load other people pallettes")) {
  //       enableForeignPalettes = !enableForeignPalettes;
  //   }
@@ -2054,9 +2055,11 @@ void ScrWindow::DrawVeryExperimentalSection2() {
     char* r2p2_start = bbcf_base + 0x115B470 + 0x8d4 + 0x7080 + 0x7080 + 0x7080;
     char* r3p1_start = bbcf_base + 0x115B470 + 0x8d4 + 0x7080 + 0x7080 + 0x7080 + 0x7080;
     char* r3p2_start = bbcf_base + 0x115B470 + 0x8d4 + 0x7080 + 0x7080 + 0x7080 + 0x7080 + 0x7080;
+    static float wait_before_exec_s2 = 0; //for the little load delay bar
+
     if (!ImGui::CollapsingHeader("Replay Takeover"))
         return;
-    if (*(bbcf_base_adress + 0x8F7758) == 0) {
+    if (*(bbcf_base_adress + 0x8F7758) == 0) { //checks if it is searching for a ranked match
         if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
             if (snap_apparatus_takeover == nullptr) {
 
@@ -2068,12 +2071,14 @@ void ScrWindow::DrawVeryExperimentalSection2() {
                 snap_apparatus_takeover = new SnapshotApparatus();
             }
         }
+        else {
+            ImGui::Text("Cannot access replay takeover outside of a replay");
+        }
         ImGui::Text("time: %d", *g_gameVals.pMatchTimer);
         if (*g_gameVals.pGameMode == GameMode_ReplayTheater) {
-            if (ImGui::Button("takeover as P1")) {
+            if (ImGui::Button("Takeover as P1")) {
                 if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
                     *g_gameVals.pGameMode = GameMode_Training;
-                    //framestate = std::make_unique<FrameState>(FrameState());
                     snap_apparatus_takeover->save_snapshot(0);
                     int player_to_playback = 1;
                     char* rpstart = r1p1_start + (0x7080 * player_to_playback) + (0xE100 * current_round);
@@ -2087,16 +2092,14 @@ void ScrWindow::DrawVeryExperimentalSection2() {
                     }
                     auto len_replay = replay_action_load.size();
                     memcpy(bbcf_base + 0x9075D8, &g_interfaces.player2.GetData()->facingLeft, 4);
-                    //*(bbcf_base + 0x9075D8) = !*(bbcf_base + 0x9075D8);
                     memcpy(bbcf_base + 0x9075E8, &len_replay, 4);
                 }
 
             }
             ImGui::SameLine();
-            if (ImGui::Button("takeover as P2")) {
+            if (ImGui::Button("Takeover as P2")) {
                 if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
                     *g_gameVals.pGameMode = GameMode_Training;
-                    //framestate = std::make_unique<FrameState>(FrameState());
                     snap_apparatus_takeover->save_snapshot(0);
                     int player_to_playback = 0;
                     char* rpstart = r1p1_start + (0x7080 * player_to_playback) + (0xE100 * current_round);
@@ -2111,7 +2114,6 @@ void ScrWindow::DrawVeryExperimentalSection2() {
                     auto len_replay = replay_action_load.size();
 
                     memcpy(bbcf_base + 0x9075D8, &g_interfaces.player1.GetData()->facingLeft, 4);
-                    //*(bbcf_base + 0x9075D8) = !*(bbcf_base + 0x9075D8);
                     memcpy(bbcf_base + 0x9075E8, &len_replay, 4);
                     //bypasses necessary to make p2 control 
                     *(bbcf_base + 0x891A38) = 1; // sets training mode to be "p2" sided
@@ -2121,32 +2123,60 @@ void ScrWindow::DrawVeryExperimentalSection2() {
                 }
             }
         }
-        if (ImGui::Button("Load Replay State")) {
+        if (ImGui::Button("Load Replay State") && snap_apparatus_takeover->snapshot_count > 0) {
             if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
-
+                playback_manager.set_playback_control(0); //makes sure the previous playback is stopped
                 snap_apparatus_takeover->load_snapshot(0);
-                char* active_slot = bbcf_base + 0x902C3C;
-                char* playback_control_ptr = bbcf_base + 0x1392d10 + 0x1ac2c; //set to 3 to start playback without direction adjustment, 0 for dummy, 1 for recording standby, 2 for bugged recording, 3 for playback, 4 for controller, 5 for cpu, 6 for continuous playback
-                int val_set = 3;
-                int slot = 0;
                 playback_manager.load_into_slot(replay_action_load, facing_left_replay_takeover, 1);
-                memcpy(active_slot, &slot, 4);
-                memcpy(playback_control_ptr, &val_set, 2);
+                playback_manager.set_active_slot(1);
+                playback_manager.set_playback_control(3); //activates the playback
+                if (wait_before_exec_s2 > 0) {
+                    g_gameVals.isFrameFrozen = true;
+
+                    this->is_setup_time_running = true;
+                    this->base_time = wait_before_exec_s2;
+                }
+
+            }
+        }
+        ImGui::SameLine();
+        ImGui::ShowHelpMarker("You can use a hotkey to activate it, default is F4 but can be changed in settings.ini between F1-9.");
+
+        ImGui::InputFloat("Setup time(s)", &wait_before_exec_s2, 0.3f);
+        ImGui::SameLine();
+        ImGui::ShowHelpMarker("This pauses the game once you load a state for the amount set in order to adjust hand position. Set to 0 if no delay is desired.");
+        if (is_setup_time_running == true) {
+            this->base_time -= ImGui::GetIO().DeltaTime;
+            ImGui::OpenPopup("progress_bar");
+            ImGui::SetNextWindowSize(ImVec2(400, 50)); 
+            if (ImGui::BeginPopupModal("progress_bar", NULL, ImGuiWindowFlags_NoTitleBar)) {
+
+                float progress = this->base_time / (wait_before_exec_s2);
+                ImGui::ProgressBar(progress);
+                if (progress <= 0) {
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
+
+            if (this->base_time < 0) {
+                g_gameVals.isFrameFrozen = false;
+                this->is_setup_time_running = false;
             }
         }
         if (*g_gameVals.pGameMode == GameMode_Training) {
-
-
-            if (ImGui::Button("FIX TAKEOVER PLAYBACK")) {
-                playback_manager.load_into_slot(replay_action_load, !facing_left_replay_takeover, 1);
-            }
-            ImGui::SameLine();
-            ImGui::ShowHelpMarker("Use this if the takeover appears to be faulty before reporting an issue, it should correct it most of the time. \n\nIf you use it when it is already working it will make it appear faulty, clicking again should return it to the previous state.");
             if (ImGui::Button("Return to replay")) {
                 playback_manager.set_playback_control(0); //makes sure the playback is stopped before going back to the replay
                 *g_gameVals.pGameMode = GameMode_ReplayTheater;
                 snap_apparatus_takeover->load_snapshot(0);
             }
+
+            if (ImGui::Button("FIX TAKEOVER PLAYBACK")) {
+                facing_left_replay_takeover = !facing_left_replay_takeover;
+            }
+            ImGui::SameLine();
+            ImGui::ShowHelpMarker("Use this if the takeover appears to be faulty before reporting an issue, it should correct it most of the time. \n\nIf you use it when it is already working it will make it appear faulty, clicking again should return it to the previous state.");
+            
         }
 
         if (*g_gameVals.pGameMode == GameMode_Training) {
