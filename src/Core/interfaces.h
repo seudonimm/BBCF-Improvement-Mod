@@ -99,6 +99,7 @@ struct modValues_t {
 	bool enableForeignPalettes = true; 
 	int save_states_save_keycode;
 	int save_states_load_keycode;
+	int replay_takeover_load_keycode;
 };
 //temporary placeholders until wrappers are created / final addresses updated
 struct temps_t

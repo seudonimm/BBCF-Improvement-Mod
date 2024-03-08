@@ -2123,7 +2123,8 @@ void ScrWindow::DrawReplayTakeover() {
                 }
             }
         }
-        if (ImGui::Button("Load Replay State") && snap_apparatus_takeover->snapshot_count > 0) {
+        if ((ImGui::Button("Load Replay State") || ImGui::IsKeyPressed(g_modVals.replay_takeover_load_keycode) )
+                && snap_apparatus_takeover->snapshot_count > 0) {
             if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
                 playback_manager.set_playback_control(0); //makes sure the previous playback is stopped
                 snap_apparatus_takeover->load_snapshot(0);

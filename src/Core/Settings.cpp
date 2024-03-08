@@ -38,6 +38,7 @@ void Settings::applySettingsIni(D3DPRESENT_PARAMETERS* pPresentationParameters)
 	g_modVals.enableForeignPalettes = Settings::settingsIni.loadforeignpalettes;
 	g_modVals.save_states_save_keycode = Settings::getButtonValue(settingsIni.saveStateKeybind);
 	g_modVals.save_states_load_keycode = Settings::getButtonValue(settingsIni.loadStateKeybind);
+	g_modVals.replay_takeover_load_keycode = Settings::getButtonValue(settingsIni.loadReplayStateKeybind);
 	//pPresentationParameters->Windowed = !Settings::settingsIni.fullscreen;
 
 	pPresentationParameters->PresentationInterval = settingsIni.vsync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
