@@ -159,8 +159,10 @@ public:
 	char currentAction[20]; //0x2070
 	char pad_2084[452]; //0x2084
 	char char_abbr[4]; //0x2248
-	char pad_224C[40]; //0x224C
-
+	//char pad_224C[40]; //0x224C
+	char pad_224C[20]; //0x224C
+	int facingLeft2; //0x2260 used for checking if playback should flip side or not?
+	char pad2264[16];//0x2264
 	//thanks to kding0
 	int32_t blockstun; //0x2274
 	char pad_2278[12024]; //0x2278
