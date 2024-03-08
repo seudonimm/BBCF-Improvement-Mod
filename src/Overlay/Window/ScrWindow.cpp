@@ -1585,7 +1585,7 @@ void ScrWindow::DrawReplayRewind() {
     ImGui::Text("Active entities with unk_status2 = 2: %d", count_entities(true));
     static int prev_match_state;
     static bool rec = false;
-    const int FRAME_STEP = 60;
+    const int FRAME_STEP = 1800;
     auto bbcf_base_adress = GetBbcfBaseAdress();
     char* ptr_replay_theater_current_frame = bbcf_base_adress + 0x11C0348;
     static bool playing = false;
@@ -2073,6 +2073,7 @@ void ScrWindow::DrawReplayTakeover() {
         }
         else {
             ImGui::Text("Cannot access replay takeover outside of a replay");
+            return;
         }
         ImGui::Text("time: %d", *g_gameVals.pMatchTimer);
         if (*g_gameVals.pGameMode == GameMode_ReplayTheater) {
@@ -2090,9 +2091,10 @@ void ScrWindow::DrawReplayTakeover() {
                         char* recorded_input = rpstart + (*g_gameVals.pFrameCount + i) * 2;
                         replay_action_load.push_back(*recorded_input);
                     }
-                    auto len_replay = replay_action_load.size();
-                    memcpy(bbcf_base + 0x9075D8, &g_interfaces.player2.GetData()->facingLeft, 4);
-                    memcpy(bbcf_base + 0x9075E8, &len_replay, 4);
+                    facing_left_replay_takeover = g_interfaces.player2.GetData()->facingLeft2;
+                    *(bbcf_base + 0x891A38) = 0; // sets training mode to be "p1" sided
+                    *(bbcf_base + 0x8929A8) = 1; //p1 control related
+                    *(bbcf_base + 0x8929A4) = 0; //p1 control related
                 }
 
             }
@@ -2112,9 +2114,7 @@ void ScrWindow::DrawReplayTakeover() {
                         replay_action_load.push_back(*recorded_input);
                     }
                     auto len_replay = replay_action_load.size();
-
-                    memcpy(bbcf_base + 0x9075D8, &g_interfaces.player1.GetData()->facingLeft, 4);
-                    memcpy(bbcf_base + 0x9075E8, &len_replay, 4);
+                    facing_left_replay_takeover = g_interfaces.player1.GetData()->facingLeft2;
                     //bypasses necessary to make p2 control 
                     *(bbcf_base + 0x891A38) = 1; // sets training mode to be "p2" sided
                     *(bbcf_base + 0x8929A8) = 0; //p2 control related
@@ -2171,7 +2171,7 @@ void ScrWindow::DrawReplayTakeover() {
                 snap_apparatus_takeover->load_snapshot(0);
             }
 
-            if (ImGui::Button("FIX TAKEOVER PLAYBACK")) {
+            if (ImGui::Button("FIX PLAYBACK")) {
                 facing_left_replay_takeover = !facing_left_replay_takeover;
             }
             ImGui::SameLine();
