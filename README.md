@@ -8,7 +8,7 @@ Join the [BB Improvement Mod Discord Server](https://discord.gg/j2mCX9s) to disc
 ## What this mod provides
 - Adds extra game modes
 - Adds hitbox overlay
-
+- Adds replay takeover
 - Adds P2 State Library
 - Adds wakeup action thru state library
 - Adds gap action thru state library
