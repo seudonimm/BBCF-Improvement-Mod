@@ -2126,10 +2126,11 @@ void ScrWindow::DrawReplayTakeover() {
         if ((ImGui::Button("Load Replay State") || ImGui::IsKeyPressed(g_modVals.replay_takeover_load_keycode) )
                 && snap_apparatus_takeover->snapshot_count > 0) {
             if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
-                playback_manager.set_playback_control(0); //makes sure the previous playback is stopped
                 snap_apparatus_takeover->load_snapshot(0);
                 playback_manager.load_into_slot(replay_action_load, facing_left_replay_takeover, 1);
                 playback_manager.set_active_slot(1);
+                playback_manager.set_playback_type(0); //forces playback type to be "normal" instead of "random"
+                playback_manager.set_playback_position(0); //makes sure the playback is in frame zero
                 playback_manager.set_playback_control(3); //activates the playback
                 if (wait_before_exec_s2 > 0) {
                     g_gameVals.isFrameFrozen = true;
