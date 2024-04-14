@@ -1685,7 +1685,7 @@ void ScrWindow::DrawReplayRewind() {
             ImGui::Text("Frame stack: +%d", frames_recorded * FRAME_STEP);
             ImGui::Text("Rewind pos: +%d", rewind_pos);
             auto nearest_pos = find_nearest_checkpoint(frame_checkpoints);
-            ImGui::Text("Rewind checkpoint: %d    FF checkpoint(nearest): %d", nearest_pos[0], nearest_pos[1]);
+            ImGui::Text("Rewind checkpoint: %d    FF checkpoint(nearest): %d", nearest_pos[0], nearest_pos[1]); 
             ImGui::Text("snap_apparatus snapshot_count: %d", snap_apparatus_replay_rewind->snapshot_count);
 
 
