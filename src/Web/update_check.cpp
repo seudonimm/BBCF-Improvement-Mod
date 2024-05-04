@@ -92,5 +92,9 @@ void StartAsyncUpdateCheck()
 
 
 void StartAsyncReplayUpload() {
-	CloseHandle(CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)UploadReplayBinary, nullptr, 0, nullptr));
+	if (!Settings::settingsIni.uploadReplayData) {
+		return;
+	}
+		CloseHandle(CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)UploadReplayBinary, nullptr, 0, nullptr));
+	
 }

@@ -655,17 +655,16 @@ DWORD UploadReplayToEndpointJmpBackAddr = 0;
 void __declspec(naked)UploadReplayToEndpoint()
 {
 	_asm {
-		mov esi,ecx
+		mov esi, ecx
 		mov[esi + 18h], 00000001h
 		pushad
 	}
-	if (g_modVals.uploadReplayData) {
+
 		LOG_ASM(2, "UploadReplayToEndpoint\n");
 		//static char* format_string = "\n GameMode: %d, GameScene: %d, GameSceneStatus: %d \n Improvement Mod loaded \n Version: "  MOD_VERSION_NUM;
 		StartAsyncReplayUpload();
 
 
-	}
 	_asm
 	{
 		popad
