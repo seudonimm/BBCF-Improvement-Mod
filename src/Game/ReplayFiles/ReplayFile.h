@@ -21,10 +21,11 @@ public:
 	uint32_t p2_toon; //0x234
 	uint64_t recorder_steamID64; //0x238
 	wchar_t recorder_name[0x12]; //0x240
-	//replay data
+	char pad_264[0x66c];// 0x264
+	//replay_inputs
 	/*	Here you have one frame represented every 4 bytes, 2 bytes for each player.
 		0x00000100 signals end of round. 
 		You will always have 10(?) of these "separators" in this section section regardless of 
 		how many round actually elapsed in the game.*/
-	char pad_all[0xFDC0]; 
+	char replay_inputs[0xF730]; //0x8D0
 };
