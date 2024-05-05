@@ -393,6 +393,7 @@ void MainWindow::DrawGameplaySettingSection() const
 
 void MainWindow::DrawLinkButtons() const
 {
+	ImGui::ButtonUrl("Replay Database", REPLAY_DB_FRONTEND, BTN_SIZE);
 	ImGui::ButtonUrl("Discord", MOD_LINK_DISCORD, BTN_SIZE);
 
 	ImGui::SameLine();
@@ -400,6 +401,7 @@ void MainWindow::DrawLinkButtons() const
 
 	ImGui::SameLine();
 	ImGui::ButtonUrl("GitHub", MOD_LINK_GITHUB, BTN_SIZE);
+	
 }
 
 void MainWindow::DrawLoadedSettingsValuesSection() const
