@@ -178,7 +178,8 @@ int UploadReplayBinary() {
 
      //Get replay file data adress from memory
     int bbcf_base_adress = (int)GetBbcfBaseAdress();
-    char* file_data_in_mem = (char*)(bbcf_base_adress + 0x115b478);
+    //char* file_data_in_mem = (char*)(bbcf_base_adress + 0x115b478);
+    char* file_data_in_mem = (char*)(bbcf_base_adress + 0x11B0348);
     DWORD fileSize = 0x10000; //all replays without exception are 64kib
     // Allocate memory for file data
     LPBYTE fileData = new BYTE[fileSize];
@@ -187,6 +188,7 @@ int UploadReplayBinary() {
         delete[] fileData;
         return 1;
     }
+   
     memcpy(fileData, file_data_in_mem, fileSize);
     //ok
     // Step 5: Send the request
