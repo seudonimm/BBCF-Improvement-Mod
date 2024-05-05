@@ -127,7 +127,7 @@ int UploadReplayBinary() {
             error_num);
         return error_num;
     }
-    return 0;
+   //ok
    //  Step 2: Connect to the server
     hConnect = InternetConnect(hInternet, serverAddress, port, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0);
     if (!hConnect) {
@@ -141,7 +141,7 @@ int UploadReplayBinary() {
             error_num);
         return GetLastError();
     }
- 
+    //ok
     // Step 3: Open the request
     hRequest = HttpOpenRequest(hConnect, L"POST", urlPath, NULL, NULL, NULL, 0, 0);
     if (!hRequest) {
@@ -157,6 +157,7 @@ int UploadReplayBinary() {
         return GetLastError();
     }
 
+    //ok
     // Step 4: Set request headers
     LPCWSTR headers = L"Content-Type: application/octet-stream\r\n";//L"Content-Type: multipart/form-data"; //L"Content-Type: application/octet-stream\r\n";
     if (!HttpAddRequestHeaders(hRequest, headers, wcslen(headers), HTTP_ADDREQ_FLAG_REPLACE | HTTP_ADDREQ_FLAG_ADD)) {
@@ -187,7 +188,7 @@ int UploadReplayBinary() {
         return 1;
     }
     memcpy(fileData, file_data_in_mem, fileSize);
-
+    //ok
     // Step 5: Send the request
     if (!HttpSendRequest(hRequest, NULL, 0, fileData, fileSize)) {
         //std::cerr << "Failed to send request: " << GetLastError() << std::endl;
@@ -204,7 +205,7 @@ int UploadReplayBinary() {
         return GetLastError();
     }
 
-    
+    //ok 
 
     // Step 6: Close handles
     InternetCloseHandle(hRequest);
