@@ -56,6 +56,9 @@ public:
 	std::vector<IMPlayer> GetIMPlayersInCurrentRoom() const;
 	std::vector<const RoomMemberEntry*> GetOtherRoomMemberEntriesInCurrentMatch() const;
 
+	std::vector<IMPlayer> GetIMPlayersInCurrentMatchNonSpec() const;
+
+
 private:
 	void SendAnnounce();
 	void AddIMPlayerToRoom(const IMPlayer& player);

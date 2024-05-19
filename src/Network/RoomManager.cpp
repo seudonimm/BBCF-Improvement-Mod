@@ -256,6 +256,17 @@ std::vector<const RoomMemberEntry*> RoomManager::GetOtherRoomMemberEntriesInCurr
 
 	return currentMatchRoomMembers;
 }
+std::vector<IMPlayer> RoomManager::GetIMPlayersInCurrentMatchNonSpec() const
+{
+	std::vector<IMPlayer> currentMatchIMPlayers = GetIMPlayersInCurrentMatch();
+	std::vector<IMPlayer> non_spec_im_players;
+	for (auto& player : currentMatchIMPlayers) {
+		if (player.matchPlayerIndex < 2) {
+			non_spec_im_players.push_back(player);
+		}
+	}
+	return non_spec_im_players;
+}
 
 void RoomManager::AddIMPlayerToRoom(const IMPlayer& imPlayer)
 {

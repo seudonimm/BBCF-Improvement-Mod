@@ -655,6 +655,25 @@ void DebugWindow::DrawRoomSection()
 					ImGui::TreePop();
 				}
 			}
+			ImGui::Text("---------------------------GetIMPlayersInCurrentMatchNonSpec------------------------------------------");
+			ImGui::Text("MatchID: %d", g_interfaces.pRoomManager->GetThisPlayerRoomMemberEntry()->matchId);
+
+			for (const IMPlayer& player : g_interfaces.pRoomManager->GetIMPlayersInCurrentMatchNonSpec())
+			{
+				const RoomMemberEntry* member = g_interfaces.pRoomManager->GetRoomMemberEntryByIndex(player.roomMemberIndex);
+
+				char buf[128];
+				sprintf_s(buf, "%s##%d", player.steamName.c_str(), player.roomMemberIndex);
+
+				if (ImGui::TreeNode(buf))
+				{
+					ImGui::Text("MemberIndex: %d", player.roomMemberIndex);
+					ImGui::Text("MatchPlayerIndex: %d", member->matchPlayerIndex);
+					ImGui::Text("SteamID: %llu", player.steamID.ConvertToUint64());
+
+					ImGui::TreePop();
+				}
+			}
 		}
 		else
 		{
