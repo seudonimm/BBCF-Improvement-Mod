@@ -86,6 +86,8 @@ void DebugWindow::Draw()
 
 	DrawRoomSection();
 
+	DrawSettingsSection();
+
 	DrawNotificationSection();
 }
 
@@ -557,7 +559,7 @@ void DebugWindow::DrawRoomSection()
 {
 	if (!ImGui::CollapsingHeader("Room"))
 		return;
-
+	ImGui::Text("g_modValsReplayUploadVeto: %d", g_modVals.uploadReplayDataVeto);
 	if (!g_gameVals.pRoom || g_gameVals.pRoom->roomStatus == RoomStatus_Unavailable)
 	{
 		ImGui::TextUnformatted("Room is not available!");
@@ -717,7 +719,16 @@ void DebugWindow::DrawRoomSection()
 		g_interfaces.pSteamFriendsWrapper->ClearRichPresence();
 	}
 }
+void DebugWindow::DrawSettingsSection() {
+	if (!ImGui::CollapsingHeader("Settings"))
+		return;
+	if (ImGui::Button("Disable UploadReplayData")) {
+		Settings::changeSetting("UploadReplayData", std::to_string(0));
+		Settings::loadSettingsFile();
 
+	}
+	
+}
 void DebugWindow::DrawNotificationSection()
 {
 	if (!ImGui::CollapsingHeader("Notification"))

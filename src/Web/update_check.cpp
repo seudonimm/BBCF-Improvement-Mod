@@ -4,6 +4,7 @@
 
 #include "Core/info.h"
 #include "Core/logger.h"
+#include "Core/interfaces.h"
 #include "Overlay/Logger/ImGuiLogger.h"
 #include "Overlay/WindowManager.h"
 
@@ -92,7 +93,7 @@ void StartAsyncUpdateCheck()
 
 
 void StartAsyncReplayUpload() {
-	if (!Settings::settingsIni.uploadReplayData) {
+	if (!Settings::settingsIni.uploadReplayData || g_modVals.uploadReplayDataVeto) {
 		return;
 	}
 		CloseHandle(CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)UploadReplayBinary, nullptr, 0, nullptr));

@@ -395,6 +395,10 @@ void MainWindow::DrawLinkButtons() const
 {
 	//ImGui::ButtonUrl("Replay Database", REPLAY_DB_FRONTEND, BTN_SIZE);
 	ImGui::ButtonUrl("Replay Database", REPLAY_DB_FRONTEND);
+	ImGui::SameLine();
+	if (ImGui::Button("Enable/Disable Upload")) {
+		m_pWindowContainer->GetWindow(WindowType_ReplayDBPopup)->ToggleOpen();
+	}
 	ImGui::ButtonUrl("Discord", MOD_LINK_DISCORD, BTN_SIZE);
 
 	ImGui::SameLine();

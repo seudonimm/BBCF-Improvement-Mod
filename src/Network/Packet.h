@@ -14,6 +14,7 @@ enum PacketType : uint16_t
 	PacketType_PaletteInfo,
 	PacketType_PaletteData,
 	PacketType_GameMode,
+	PacketType_UploadReplayEnabled_Broadcast,
 	PacketType_UploadReplayEnabled_Check,
 	PacketType_UploadReplayEnabled_Response,
 };

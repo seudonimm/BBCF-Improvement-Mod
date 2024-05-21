@@ -82,11 +82,21 @@ void NetworkManager::RecvPacket(Packet* packet)
 			g_interfaces.pOnlineGameModeManager->RecvGameModePacket(packet);
 		}
 		break;
-	case PacketType_UploadReplayEnabled_Check:
-		//here will check if you have uploading enabled or not and send the Response. I probably need to make this blocking, but how.
+
+	case PacketType_UploadReplayEnabled_Broadcast:
+		//this packet will signal if either p1 or p2 in the match does not want to have the replay uploaded. Spectators won't send these broadcasts.
+		LOG(2, "RECEIVED PACKET PacketType_UploadReplayEnabled_Broadcast\n");
+		packet->data;
+		g_imGuiLogger->Log("Received PacketType_UploadReplayEnabled_Broadcast. \n\tdata: '%d'\n\t steamid: '%d'\n",
+			packet->data[packet->dataSize - 1],
+			packet->steamID
+			);
+		if (g_interfaces.pRoomManager->IsPacketFromSameMatchNonSpectator(packet)) 
+		{
+			g_interfaces.pReplayUploadManager->RecvReplayUploadEnabledBroadcastPacket(packet);
+		}
 		break;
-	case PacketType_UploadReplayEnabled_Response:
-		//will check if the guy has upload replay enabled or not. 
+
 	default:
 		LOG(2, "Unknown packet type received: %d\n", packet->packetType);
 		g_imGuiLogger->Log("[error] Unknown packet type received (%d)\n", packet->packetType);

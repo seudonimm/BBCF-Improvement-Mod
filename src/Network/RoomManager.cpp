@@ -92,7 +92,28 @@ void RoomManager::SendPacketToSameMatchIMPlayers(Packet* packet)
 		}
 	}
 }
+void RoomManager::SendPacketToSameMatchIMPlayersNonSpectator(Packet* packet)
+{
+	LOG(2, "RoomManager::SendPacketToSameMatchIMPlayers\n");
 
+	packet->roomMemberIndex = GetThisPlayerRoomMemberIndex();
+
+	for (IMPlayer& imPlayer : GetIMPlayersInCurrentMatchNonSpec())
+	{
+		// Remove from IM users list if player has left the room
+		if (!IsPlayerInRoom(imPlayer))
+		{
+			RemoveIMPlayerFromRoom(imPlayer.roomMemberIndex);
+			continue;
+		}
+
+		// Send to all other non spectating IM players
+		if (!IsThisPlayer(imPlayer.steamID.ConvertToUint64()))
+		{
+				m_pNetworkManager->SendPacket(&imPlayer.steamID, packet);
+		}
+	}
+}
 bool RoomManager::IsPacketFromSameRoom(Packet* packet) const
 {
 	LOG(7, "RoomManager::IsPacketFromSameRoom\n");

@@ -8,6 +8,7 @@
 #include "Network/NetworkManager.h"
 #include "Network/OnlineGameModeManager.h"
 #include "Network/OnlinePaletteManager.h"
+#include "Network/ReplayUploadManager.h"
 #include "Network/RoomManager.h"
 #include "Palette/PaletteManager.h"
 #include "SteamApiWrapper/SteamApiHelper.h"
@@ -38,6 +39,8 @@ struct interfaces_t
 
 	GameModeManager* pGameModeManager;
 	OnlineGameModeManager* pOnlineGameModeManager;
+
+	ReplayUploadManager* pReplayUploadManager;
 
 	Player player1;
 	Player player2;
@@ -100,10 +103,11 @@ struct modValues_t {
 	int save_states_save_keycode;
 	int save_states_load_keycode;
 	int replay_takeover_load_keycode;
-	bool uploadReplayData;
+	int uploadReplayData;
 	std::string uploadReplayDataHost; 
 	std::string uploadReplayDataEndpoint;
 	unsigned short uploadReplayDataPort;
+	bool uploadReplayDataVeto = false; //this refers to when other players disable replay upload
 };
 //temporary placeholders until wrappers are created / final addresses updated
 struct temps_t
