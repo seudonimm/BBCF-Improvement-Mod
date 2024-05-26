@@ -157,7 +157,10 @@ void DebugWindow::DrawGameValuesSection()
 			snap_apparatus_debug = new SnapshotApparatus();
 		}
 		if (ImGui::Button("Save snapshot")) {
-			snap_apparatus_debug->save_snapshot(0);
+			Snapshot* pbuf_mine = new Snapshot();
+			//snap_apparatus_debug->save_snapshot(0);
+			snap_apparatus_debug->save_snapshot(&pbuf_mine);
+
 
 
 		}

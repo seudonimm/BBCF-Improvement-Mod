@@ -1589,7 +1589,8 @@ void ScrWindow::DrawReplayRewind() {
     ImGui::Text("Active entities with unk_status2 = 2: %d", count_entities(true));
     static int prev_match_state;
     static bool rec = false;
-    const int FRAME_STEP = 1800;
+    //const int FRAME_STEP = 1800;
+    const int FRAME_STEP = 180;
     auto bbcf_base_adress = GetBbcfBaseAdress();
     char* ptr_replay_theater_current_frame = bbcf_base_adress + 0x11C0348;
     static bool playing = false;
@@ -1599,6 +1600,14 @@ void ScrWindow::DrawReplayRewind() {
     static int rewind_pos = 0;
     static int round_start_frame = 0;
     static std::vector<unsigned int> frame_checkpoints = {};
+    std::vector<unsigned int> frame_checkpoints_clipped;
+    if (frame_checkpoints.size() > 10) {
+        frame_checkpoints_clipped = std::vector<unsigned int>(frame_checkpoints.end() - 10, frame_checkpoints.end());
+    }
+    else {
+        frame_checkpoints_clipped = frame_checkpoints;
+    }
+    frame_checkpoints_clipped = std::vector<unsigned int>{};
 
     //static std::vector<std::shared_ptr<FrameState>> framestates;
     static SnapshotApparatus* snap_apparatus_replay_rewind = nullptr;
@@ -1619,14 +1628,14 @@ void ScrWindow::DrawReplayRewind() {
             }*/
             curr_frame = *g_gameVals.pFrameCount;
 
-            if (*g_gameVals.pGameMode != GameMode_ReplayTheater ||
-                (*g_gameVals.pMatchState != MatchState_Fight && *g_gameVals.pMatchState != MatchState_RebelActionRoundSign && *g_gameVals.pMatchState != MatchState_FinishSign) ||
-                *g_gameVals.pGameState != GameState_InMatch) {
+            if ((*g_gameVals.pGameMode != GameMode_ReplayTheater && *g_gameVals.pGameMode != GameMode_Training)
+                || (*g_gameVals.pMatchState != MatchState_Fight && *g_gameVals.pMatchState != MatchState_RebelActionRoundSign && *g_gameVals.pMatchState != MatchState_FinishSign)
+                || *g_gameVals.pGameState != GameState_InMatch) {
                 if (rec) {
                     rec = false;
                     //framestates = {};
                     snap_apparatus_replay_rewind->clear_count();
-
+                    //snap_apparatus_replay_rewind->save_snapshot
                     frames_recorded = 0;
                     rewind_pos = 0;
                     frame_checkpoints.clear();
@@ -1659,7 +1668,8 @@ void ScrWindow::DrawReplayRewind() {
                 rec = true;
                 frames_recorded += 1;
                 //framestates.push_back(std::make_shared<FrameState>());
-                snap_apparatus_replay_rewind->save_snapshot_prealloc();
+                //snap_apparatus_replay_rewind->save_snapshot_prealloc();
+                snap_apparatus_replay_rewind->save_snapshot(0);
                 frame_checkpoints.push_back(*g_gameVals.pFrameCount);
                 prev_frame = *g_gameVals.pFrameCount;
 
@@ -1677,24 +1687,41 @@ void ScrWindow::DrawReplayRewind() {
                 snap_apparatus_replay_rewind->clear_count();
             }
 
-            if (rec && (*g_gameVals.pGameMode != GameMode_ReplayTheater || *g_gameVals.pMatchState != MatchState_Fight)) {
+            if (rec && ((*g_gameVals.pGameMode != GameMode_Training && *g_gameVals.pGameMode != GameMode_ReplayTheater)
+                         || *g_gameVals.pMatchState != MatchState_Fight)) {
                 rec = false;
             }
             prev_match_state = *g_gameVals.pMatchState;
 
             ImGui::Text("Frame stack: +%d", frames_recorded * FRAME_STEP);
             ImGui::Text("Rewind pos: +%d", rewind_pos);
-            auto nearest_pos = find_nearest_checkpoint(frame_checkpoints);
+            auto nearest_pos = find_nearest_checkpoint(frame_checkpoints_clipped);
             ImGui::Text("Rewind checkpoint: %d    FF checkpoint(nearest): %d", nearest_pos[0], nearest_pos[1]); 
             ImGui::Text("snap_apparatus snapshot_count: %d", snap_apparatus_replay_rewind->snapshot_count);
+            if (snap_apparatus_replay_rewind != nullptr) {
+                static_DAT_of_PTR_on_load_4* DAT_on_load_4_addr = (static_DAT_of_PTR_on_load_4*)(bbcf_base_adress + 0x612718);
+                SnapshotManager* snap_manager = 0;
+                snap_manager = DAT_on_load_4_addr->ptr_snapshot_manager_mine;
+                int iter = 0;
+                for (auto& state : snap_manager->_saved_states_related_struct) {
 
+                    ImGui::Text("%d: Framecount:%d", iter, state._framecount);
+                    iter++;
+                }
+               
+            }
 
             if (ImGui::Button("Rewind")) {
 
-                int pos = find_nearest_checkpoint(frame_checkpoints)[0];
+                int pos = find_nearest_checkpoint(frame_checkpoints_clipped)[0];
                 if (pos != -1) {
-
-                    snap_apparatus_replay_rewind->load_snapshot_prealloc(pos);
+                    //static_DAT_of_PTR_on_load_4* DAT_on_load_4_addr = (static_DAT_of_PTR_on_load_4*)(bbcf_base_adress + 0x612718);
+                    //SnapshotManager* snap_manager = 0;
+                    //snap_manager = DAT_on_load_4_addr->ptr_snapshot_manager_mine;
+                    //Snapshot* pbuf = (Snapshot *)snap_manager->_saved_states_related_struct[pos % 10]._ptr_buf_saved_frame;
+                    //snap_apparatus_replay_rewind->load_snapshot(pbuf);
+                    snap_apparatus_replay_rewind->load_snapshot_index(pos);
+                    //snap_apparatus_replay_rewind->load_snapshot_prealloc(pos);
                     //framestates[pos]->load_frame_state(false);
                     //starts the replay
                     char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
@@ -1721,7 +1748,7 @@ void ScrWindow::DrawReplayRewind() {
                 //}
             }
 
-            if (rec) {
+            if (rec && *g_gameVals.pGameMode == GameMode_ReplayTheater) {
                 auto save = true;
                 for (auto saved_frame : frame_checkpoints) {
                     if (curr_frame == saved_frame) {
@@ -1731,9 +1758,11 @@ void ScrWindow::DrawReplayRewind() {
                 // if (curr_frame >= prev_frame + FRAME_STEP && save==true) {
                 if (curr_frame % FRAME_STEP == 0 && save == true) {
                     // framestates.push_back(std::make_shared<FrameState>());
-                    snap_apparatus_replay_rewind->save_snapshot_prealloc();
+                    //snap_apparatus_replay_rewind->save_snapshot_prealloc();
+                    snap_apparatus_replay_rewind->save_snapshot(0);
                     frame_checkpoints.push_back(*g_gameVals.pFrameCount);
-                    frames_recorded += 1;
+                  //  frame_checkpoints.insert(frame_checkpoints.begin() + )
+                   // frames_recorded += 1;
                     rewind_pos += 1;
                     prev_frame = curr_frame;
                 }
@@ -1996,17 +2025,27 @@ bool camera_adj_loop(CharData p1_prev_state,CharData p2_prev_state,unsigned int 
 std::vector<int> find_nearest_checkpoint(std::vector<unsigned int> frameCount) {
     //returns a vector with the fist being the nearest pos in the checkpoints for a backwards and the second for the fwd, -1 if not available
     auto fc = *g_gameVals.pFrameCount;
-    int nearest_back = 0;
-    int nearest_back_pos = 0;
-    int nearest_fwd = 0;
-    int nearest_fwd_pos = 0;
+    int nearest_back = 9999999;
+    int nearest_back_pos = -1;
+    int nearest_fwd = 9999999;
+    int nearest_fwd_pos = -1;
     int i = 0;
+    if (frameCount.size() == 0) {
+        static_DAT_of_PTR_on_load_4* DAT_on_load_4_addr = (static_DAT_of_PTR_on_load_4*)(GetBbcfBaseAdress() + 0x612718);
+        SnapshotManager* snap_manager = 0;
+        snap_manager = DAT_on_load_4_addr->ptr_snapshot_manager_mine;
+        auto stru = snap_manager->_saved_states_related_struct;
+        frameCount = std::vector<unsigned int>{};
+        for (int i = 0; i < 10; i++) {
+            frameCount.push_back(stru[i]._framecount);
+        }
+    }
     for (auto frameCheckpoint : frameCount) {
-        if ((fc - frameCheckpoint < fc - nearest_back && fc - frameCheckpoint >60)|| nearest_back == 0) {
+        if ((fc - frameCheckpoint < fc - nearest_back && fc - frameCheckpoint >60)) {
             nearest_back = frameCheckpoint;
             nearest_back_pos = i;
         }
-        if ((frameCheckpoint - fc < nearest_fwd - fc && frameCheckpoint-fc >60) || nearest_fwd == 0) {
+        if ((frameCheckpoint - fc < nearest_fwd - fc && frameCheckpoint-fc >60) ) {
             nearest_fwd = frameCheckpoint;
             nearest_fwd_pos = i;
         }
@@ -2084,7 +2123,10 @@ void ScrWindow::DrawReplayTakeover() {
             if (ImGui::Button("Takeover as P1")) {
                 if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
                     *g_gameVals.pGameMode = GameMode_Training;
-                    snap_apparatus_takeover->save_snapshot(0);
+                    //snap_apparatus_takeover->save_snapshot(0);
+                    Snapshot** ap = snap_apparatus_takeover->pp_snapshot_reseve;
+                    snap_apparatus_takeover->save_snapshot(ap);
+
                     int player_to_playback = 1;
                     char* rpstart = r1p1_start + (0x7080 * player_to_playback) + (0xE100 * current_round);
                     replay_action_load = {};
@@ -2106,7 +2148,11 @@ void ScrWindow::DrawReplayTakeover() {
             if (ImGui::Button("Takeover as P2")) {
                 if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
                     *g_gameVals.pGameMode = GameMode_Training;
-                    snap_apparatus_takeover->save_snapshot(0);
+                    //snap_apparatus_takeover->save_snapshot(0);
+                    Snapshot** ap = snap_apparatus_takeover->pp_snapshot_reseve;
+                    snap_apparatus_takeover->save_snapshot(ap);
+
+
                     int player_to_playback = 0;
                     char* rpstart = r1p1_start + (0x7080 * player_to_playback) + (0xE100 * current_round);
                     replay_action_load = {};
@@ -2130,7 +2176,10 @@ void ScrWindow::DrawReplayTakeover() {
         if ((ImGui::Button("Load Replay State") || ImGui::IsKeyPressed(g_modVals.replay_takeover_load_keycode) )
                 && snap_apparatus_takeover->snapshot_count > 0) {
             if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
-                snap_apparatus_takeover->load_snapshot(0);
+               // snap_apparatus_takeover->load_snapshot(0);
+
+                snap_apparatus_takeover->load_snapshot(snap_apparatus_takeover->p_snapshot_reseve);
+
                 playback_manager.load_into_slot(replay_action_load, facing_left_replay_takeover, 1);
                 playback_manager.set_active_slot(1);
                 playback_manager.set_playback_type(0); //forces playback type to be "normal" instead of "random"
