@@ -1591,7 +1591,12 @@ void ScrWindow::DrawReplayRewind() {
 #endif
     static int prev_match_state;
     static bool rec = false;
+    //static int first_checkpoint = 0;
+    static int FIRST_CHECKPOINT_FRAME = 0;
+    static  char LAST_SAVED_ROUND;// = *(bbcf_base_adress + 0x11C034C);
     static int FRAME_STEP = 540;
+    static CharData* p1_to_check;// = g_interfaces.player1.GetData;
+    static CharData* p2_to_check;// = g_interfaces.player1;
     auto bbcf_base_adress = GetBbcfBaseAdress();
     char* ptr_replay_theater_current_frame = bbcf_base_adress + 0x11C0348;
     static bool playing = false;
@@ -1605,7 +1610,11 @@ void ScrWindow::DrawReplayRewind() {
     frame_checkpoints_clipped = std::vector<unsigned int>{};
 
     static SnapshotApparatus* snap_apparatus_replay_rewind = nullptr;
+    if (*g_gameVals.pGameMode != GameMode_ReplayTheater || *g_gameVals.pGameState != GameState_InMatch) {
+        ImGui::Text("Only works during a running replay");
 
+        return;
+    }
     if (*(bbcf_base_adress + 0x8F7758) == 0) {
         if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
             if (snap_apparatus_replay_rewind == nullptr) {
@@ -1621,7 +1630,7 @@ void ScrWindow::DrawReplayRewind() {
                 toggle_unknown2_asm_code();
             }*/
             curr_frame = *g_gameVals.pFrameCount;
-
+           
             if ((*g_gameVals.pGameMode != GameMode_ReplayTheater && *g_gameVals.pGameMode != GameMode_Training)
                 || (*g_gameVals.pMatchState != MatchState_Fight && *g_gameVals.pMatchState != MatchState_RebelActionRoundSign && *g_gameVals.pMatchState != MatchState_FinishSign)
                 || *g_gameVals.pGameState != GameState_InMatch) {
@@ -1634,11 +1643,7 @@ void ScrWindow::DrawReplayRewind() {
                     //force clear the vectors
                     return;
                 }
-                else {
-                    ImGui::Text("Only works during a running replay");
-
-                    return;
-                }
+               
             }
 
 
@@ -1657,14 +1662,44 @@ void ScrWindow::DrawReplayRewind() {
                 round_start_frame = *g_gameVals.pFrameCount;
 
             }
-            ///automatic start rec on round start + 4 frames to alleviate the loss of buffering during countdown
-            if (*g_gameVals.pFrameCount == round_start_frame && *g_gameVals.pMatchState == MatchState_Fight && rec == false) {
+
+            //makes sure that as long as you're in the replay and it is inMatch the recording is activated
+            if ((*g_gameVals.pGameMode == GameMode_ReplayTheater && *g_gameVals.pMatchState == MatchState_Fight) 
+                && (rec == false 
+                    || (p2_to_check != g_interfaces.player2.GetData() && p1_to_check != g_interfaces.player1.GetData()) //this deals with inter replays
+                    || (LAST_SAVED_ROUND != *(bbcf_base_adress + 0x11C034C)) ) //this deals with intra replays
+                )
+            {
+
+                    rewind_pos = 0;
+                    frame_checkpoints.clear();
+                    snap_apparatus_replay_rewind->clear_framecounts();
+                    snap_apparatus_replay_rewind->clear_count();
+                    rec = true;
+                    snap_apparatus_replay_rewind->save_snapshot(0);
+                    FIRST_CHECKPOINT_FRAME = *g_gameVals.pFrameCount;
+                    LAST_SAVED_ROUND = *(bbcf_base_adress + 0x11C034C);
+                    frame_checkpoints.push_back(*g_gameVals.pFrameCount);
+                    prev_frame = *g_gameVals.pFrameCount;
+                    p2_to_check = g_interfaces.player2.GetData();
+                    p1_to_check = g_interfaces.player1.GetData();
+                
+            }
+
+            ///automatic start rec on round start + first snapshot there
+            if (*g_gameVals.pFrameCount == round_start_frame && *g_gameVals.pMatchState == MatchState_Fight && FIRST_CHECKPOINT_FRAME == 0) {
+                //snap_apparatus_replay_rewind->clear_framecounts();
                 rec = true;
                 snap_apparatus_replay_rewind->save_snapshot(0);
+                FIRST_CHECKPOINT_FRAME = *g_gameVals.pFrameCount;
+                LAST_SAVED_ROUND = *(bbcf_base_adress + 0x11C034C);
                 frame_checkpoints.push_back(*g_gameVals.pFrameCount);
                 prev_frame = *g_gameVals.pFrameCount;
 
             }
+
+            
+
             //automatic clear vector if change round or leave abruptly, currently removing the reset between rounds
             if (*g_gameVals.pGameState != GameState_InMatch
                  || (*g_gameVals.pGameMode == GameMode_ReplayTheater
@@ -1677,7 +1712,10 @@ void ScrWindow::DrawReplayRewind() {
                 //frames_recorded = 0;
                 rewind_pos = 0;
                 frame_checkpoints.clear();
+                snap_apparatus_replay_rewind->clear_framecounts();
                 snap_apparatus_replay_rewind->clear_count();
+                round_start_frame = 0;
+                FIRST_CHECKPOINT_FRAME = 0;
             }
 
             if (rec 
@@ -1689,43 +1727,56 @@ void ScrWindow::DrawReplayRewind() {
                 rec = false;
             }
             prev_match_state = *g_gameVals.pMatchState;
-            ImGui::Text("Rewind Interval");
+            ImGui::Text("Rewind Interval"); ImGui::SameLine(); ImGui::ShowHelpMarker("Defines the interval to save the rewind \"checkpoint\". For more info see the help bar on \"Rewind\" button");
             ImGui::RadioButton("1s", &FRAME_STEP, 60); ImGui::SameLine();
             ImGui::RadioButton("3s", &FRAME_STEP, 180); ImGui::SameLine();
             ImGui::RadioButton("9s", &FRAME_STEP, 540); 
             ImGui::Separator();
-#ifdef _DEBUG
-            //ImGui::Text("Frame stack: +%d", frames_recorded * FRAME_STEP);
-            ImGui::Text("Rewind pos: +%d", rewind_pos);
-            auto nearest_pos = find_nearest_checkpoint(frame_checkpoints_clipped);
-            ImGui::Text("Rewind checkpoint: %d    FF checkpoint(nearest): %d", nearest_pos[0], nearest_pos[1]); 
-            ImGui::Text("snap_apparatus snapshot_count: %d", snap_apparatus_replay_rewind->snapshot_count);
-#endif
-            if (snap_apparatus_replay_rewind != nullptr) {
-                static_DAT_of_PTR_on_load_4* DAT_on_load_4_addr = (static_DAT_of_PTR_on_load_4*)(bbcf_base_adress + 0x612718);
-                SnapshotManager* snap_manager = 0;
-                snap_manager = DAT_on_load_4_addr->ptr_snapshot_manager_mine;
-                int iter = 0;
-                for (auto& state : snap_manager->_saved_states_related_struct) {
 
-                    ImGui::Text("%d: Framecount:%d", iter, state._framecount);
-                    iter++;
+            if (ImGui::TreeNode("Saved Checkpoints Advanced Info")) {
+                ImGui::Text("Rewind pos: +%d", rewind_pos);
+                auto nearest_pos = find_nearest_checkpoint(frame_checkpoints_clipped);
+                ImGui::Text("Rewind checkpoint: %d    FF checkpoint(nearest): %d", nearest_pos[0], nearest_pos[1]);
+                ImGui::Text("snap_apparatus snapshot_count: %d", snap_apparatus_replay_rewind->snapshot_count);
+                if (snap_apparatus_replay_rewind != nullptr) {
+                    static_DAT_of_PTR_on_load_4* DAT_on_load_4_addr = (static_DAT_of_PTR_on_load_4*)(bbcf_base_adress + 0x612718);
+                    SnapshotManager* snap_manager = 0;
+                    snap_manager = DAT_on_load_4_addr->ptr_snapshot_manager_mine;
+                    int iter = 0;
+                    for (auto& state : snap_manager->_saved_states_related_struct) {
+
+                        ImGui::Text("%d: Framecount:%d", iter, state._framecount);
+                        iter++;
+                    }
+
                 }
-               
+                ImGui::TreePop();
             }
+            
+            if (*g_gameVals.pGameMode == GameMode_ReplayTheater) {
+                if (ImGui::Button("Rewind")) {
+                    
+                    int pos = find_nearest_checkpoint(frame_checkpoints_clipped)[0];
+                    if (pos != -1) {
+                        snap_apparatus_replay_rewind->load_snapshot_index(pos);
 
-            if (ImGui::Button("Rewind")) {
-
-                int pos = find_nearest_checkpoint(frame_checkpoints_clipped)[0];
-                if (pos != -1) {
-                    snap_apparatus_replay_rewind->load_snapshot_index(pos);
-
-                    //starts the replay
-                    char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
-                    *replay_theather_speed = 0;
-                    rewind_pos = pos;
+                        //starts the replay
+                        char* replay_theather_speed = bbcf_base_adress + 0x11C0350;
+                        *replay_theather_speed = 0;
+                        rewind_pos = pos;
+                    }
+                    // }
                 }
-                // }
+                ImGui::SameLine();
+                ImGui::ShowHelpMarker("Replay rewind can currently hold up to 10 \"checkpoints\" at a time to rewind to. These checkpoints are saved as the replay progresses at defined intervals(1s,3s or 9s). With replay interval set to 9s for example you will save checkpoints at second 0,9,18...,90.\n\
+\n\
+You can also change them during the replay itself to refine the rewind, say for example you found something interesting at second 16 while having rewind interval as 9s:\n\
+\n\
+\t - Rewind until you reach the checkpoint at second 9\n\
+\t - Change the rewind interval to 1s or 3s\n\
+\t - Now as it reaches the desired position it will have recorded the previous checkpoints in smaller intervals, allowing you to wait less to reach the desired part / analyze the lead up to it.\n\
+\n\
+You can see the frames of all saved checkpoints and more advanced info on the \"Saved Checkpoints Advanced Info\" section above.");
             }
 
 
@@ -1737,7 +1788,8 @@ void ScrWindow::DrawReplayRewind() {
                         save = false;
                     }
                 }
-                if (curr_frame % FRAME_STEP == 0 && save == true) {
+                if (((curr_frame- FIRST_CHECKPOINT_FRAME == 0) || (curr_frame - FIRST_CHECKPOINT_FRAME) % FRAME_STEP == 0)
+                    && save == true) {
 
                     snap_apparatus_replay_rewind->save_snapshot(0);
                     frame_checkpoints.push_back(*g_gameVals.pFrameCount);
@@ -2130,25 +2182,27 @@ void ScrWindow::DrawReplayTakeover() {
                 }
             }
         }
-        if ((ImGui::Button("Load Replay State") || ImGui::IsKeyPressed(g_modVals.replay_takeover_load_keycode) )
+        if (*g_gameVals.pGameMode == GameMode_Training) {
+            if ((ImGui::Button("Load Replay State") || ImGui::IsKeyPressed(g_modVals.replay_takeover_load_keycode))
                 && snap_apparatus_takeover->snapshot_count > 0) {
-            if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
-                snap_apparatus_takeover->load_snapshot(0);
+                if (!g_interfaces.player1.IsCharDataNullPtr() && !g_interfaces.player2.IsCharDataNullPtr()) {
+                    snap_apparatus_takeover->load_snapshot(0);
 
-                //snap_apparatus_takeover->load_snapshot(snap_apparatus_takeover->p_snapshot_reseve);
+                    //snap_apparatus_takeover->load_snapshot(snap_apparatus_takeover->p_snapshot_reseve);
 
-                playback_manager.load_into_slot(replay_action_load, facing_left_replay_takeover, 1);
-                playback_manager.set_active_slot(1);
-                playback_manager.set_playback_type(0); //forces playback type to be "normal" instead of "random"
-                playback_manager.set_playback_position(0); //makes sure the playback is in frame zero
-                playback_manager.set_playback_control(3); //activates the playback
-                if (wait_before_exec_s2 > 0) {
-                    g_gameVals.isFrameFrozen = true;
+                    playback_manager.load_into_slot(replay_action_load, facing_left_replay_takeover, 1);
+                    playback_manager.set_active_slot(1);
+                    playback_manager.set_playback_type(0); //forces playback type to be "normal" instead of "random"
+                    playback_manager.set_playback_position(0); //makes sure the playback is in frame zero
+                    playback_manager.set_playback_control(3); //activates the playback
+                    if (wait_before_exec_s2 > 0) {
+                        g_gameVals.isFrameFrozen = true;
 
-                    this->is_setup_time_running = true;
-                    this->base_time = wait_before_exec_s2;
+                        this->is_setup_time_running = true;
+                        this->base_time = wait_before_exec_s2;
+                    }
+
                 }
-
             }
         }
         ImGui::SameLine();

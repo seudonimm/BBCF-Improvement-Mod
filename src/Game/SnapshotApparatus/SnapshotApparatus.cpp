@@ -284,7 +284,22 @@ void SnapshotApparatus::clear_count()
 {
 	this->snapshot_count = 0;
 }
+bool SnapshotApparatus::clear_framecounts() {
+	char* base_addr = GetBbcfBaseAdress();
+	static_DAT_of_PTR_on_load_4* DAT_on_load_4_addr = (static_DAT_of_PTR_on_load_4*)(base_addr + 0x612718);
+	SnapshotManager* snap_manager = 0;
+	if (DAT_on_load_4_addr) {
+		snap_manager = DAT_on_load_4_addr->ptr_snapshot_manager_mine;
+	}
+	else {
+		return false;
+	}
+	for (auto& state : snap_manager->_saved_states_related_struct) {
 
+		state._framecount = 0;
+	}
+	return true;
+}
 
 int SnapshotApparatus::get_nearest_prealloc_frame(int current_frame, std::map<int, Snapshot*> frame_snap_map) {
 	
