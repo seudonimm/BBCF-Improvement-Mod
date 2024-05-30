@@ -24,8 +24,8 @@ public:
 	CharData* p2_ptr; //p2 CharData*
 	//p1 and p2 ptrs are used for now to determine when I need to remake the snapshot
 	GGPOSessionCallbacks*  callbacks_ptr;
-	Snapshot* p_snapshot_reseve;
-	Snapshot** pp_snapshot_reseve;
+	//Snapshot* p_snapshot_reseve;
+	//Snapshot** pp_snapshot_reseve;
 	SnapshotApparatus();
 
 	

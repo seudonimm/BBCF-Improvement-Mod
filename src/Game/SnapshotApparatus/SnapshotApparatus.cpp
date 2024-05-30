@@ -64,8 +64,8 @@ SnapshotApparatus::SnapshotApparatus() {
 			WriteToProtectedMemory((uintptr_t)ptr_oldmem_3, oldmem_3, 6);
 			//memcpy(ptr_oldmem_1, oldmem_1, 2);
 		}
-		this->p_snapshot_reseve = new Snapshot;
-		this->pp_snapshot_reseve = &this->p_snapshot_reseve;
+		//this->p_snapshot_reseve = new Snapshot;
+		//this->pp_snapshot_reseve = &this->p_snapshot_reseve;
 	}
 
 bool SnapshotApparatus::save_snapshot(Snapshot** pbuf_mine)
