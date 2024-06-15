@@ -86,9 +86,10 @@ void NetworkManager::RecvPacket(Packet* packet)
 	case PacketType_UploadReplayEnabled_Broadcast:
 		//this packet will signal if either p1 or p2 in the match does not want to have the replay uploaded. Spectators won't send these broadcasts.
 		LOG(2, "RECEIVED PACKET PacketType_UploadReplayEnabled_Broadcast\n");
-		packet->data;
+		int allowUpload;
+		memcpy(&allowUpload, packet->data, packet->dataSize);
 		g_imGuiLogger->Log("Received PacketType_UploadReplayEnabled_Broadcast. \n\tdata: '%d'\n\t steamid: '%d'\n",
-			packet->data[packet->dataSize - 1],
+			allowUpload,
 			packet->steamID
 			);
 		if (g_interfaces.pRoomManager->IsPacketFromSameMatchNonSpectator(packet)) 

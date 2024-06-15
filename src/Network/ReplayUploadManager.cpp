@@ -41,7 +41,8 @@ void ReplayUploadManager::SendReplayUploadEnabledBroadcastPacket()
 void ReplayUploadManager::RecvReplayUploadEnabledBroadcastPacket(Packet* packet)
 {
 	/*if either p1 or p2 don't want uploaded, disable it */
-	unsigned char allowUpload = packet->data[packet->dataSize - 1];
+	int allowUpload;
+	memcpy(&allowUpload, packet->data, packet->dataSize);
 	if (!allowUpload) {
 		g_modVals.uploadReplayDataVeto = true;
 	}
