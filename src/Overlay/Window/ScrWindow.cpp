@@ -642,6 +642,7 @@ void ScrWindow::DrawStatesSection()
             auto selected_state = states[selected];
             //auto tst = g_interfaces.player2.GetData();
             memcpy(&(g_interfaces.player2.GetData()->nextScriptLineLocationInMemory), &(selected_state->addr), 4);
+            g_interfaces.player2.GetData()->frameCounterCurrentSprite = g_interfaces.player2.GetData()->frameLengthCurrentSprite2 - 1;
         }
         ImGui::SameLine();
         if (ImGui::Button("Reset")) {
