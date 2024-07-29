@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#pragma pack(push, 1)
 class ReplayFile
 {
 public:
@@ -11,7 +12,7 @@ public:
 	char date2[0x18]; //0x78
 	char pad_0090[0x8]; //0x90
 	uint32_t winner_maybe; //0x98
-	uint64_t p1_steamID64; //0x98
+	uint64_t p1_steamID64; //0x9C
 	wchar_t p1_name[0x12]; //0xA4 its in utf-16
 	char pad_0xc8[0x9E]; //0xc8
 	uint64_t p2_steamID64; //0x166
@@ -29,3 +30,4 @@ public:
 		how many round actually elapsed in the game.*/
 	char replay_inputs[0xF730]; //0x8D0
 };
+#pragma pack(pop)
