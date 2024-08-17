@@ -1584,7 +1584,7 @@ unsigned int count_entities(bool unk_status2) {
 }
 void ScrWindow::DrawReplayRewind() {
 
-    if (!ImGui::CollapsingHeader("Replay Rewind::experimental"))
+    if (!ImGui::CollapsingHeader("Replay Rewind"))
         return;
 #ifdef _DEBUG
     ImGui::Text("Active entities: %d", count_entities(false));
