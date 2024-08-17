@@ -677,7 +677,15 @@ void __declspec(naked)UploadReplayToEndpoint()
 		jmp[UploadReplayToEndpointJmpBackAddr]
 	}
 }
-
+DWORD DelNetworkReqWatchReplaysJmpBackAddr = 0;
+void __declspec(naked)DelNetworkReqWatchReplays()
+{
+	_asm {
+		mov eax, 1
+		jmp[DelNetworkReqWatchReplaysJmpBackAddr]
+	}
+	LOG_ASM(2, "DelNetworkReqWatchReplays\n");
+}
 //DWORD DirectHookTestJmpBackAddr = 0;
 //void __declspec(naked)DirectHookTest() {
 //	_asm {
@@ -781,7 +789,7 @@ bool placeHooks_bbcf()
 	//UploadReplayToEndpointJmpBackAddr = HookManager::SetHook("UploadReplayToEndpoint", "\x8B\xF1\xC7\x46\x18\x01\x00\x00\x00", "xxxxxxxxx", 9, UploadReplayToEndpoint);
 	//UploadReplayToEndpointJmpBackAddr = HookManager::SetHook("UploadReplayToEndpoint", (DWORD)(GetBbcfBaseAdress() + 0xcb26e), 6, UploadReplayToEndpoint);
 	UploadReplayToEndpointJmpBackAddr = HookManager::SetHook("UploadReplayToEndpoint", (DWORD)(GetBbcfBaseAdress() + 0xcb0b0), 6, UploadReplayToEndpoint);
-	
+	DelNetworkReqWatchReplaysJmpBackAddr = HookManager::SetHook("DelNetworkReqWatchReplays", (DWORD)(GetBbcfBaseAdress() + 0x2c2f6f), 5, DelNetworkReqWatchReplays);
 	
 	//DirectHookTestJmpBackAddr = HookManager::SetHook("DirectHookTest",(DWORD)(GetBbcfBaseAdress() + 0x37c3b3) , 6, DirectHookTest);
 
