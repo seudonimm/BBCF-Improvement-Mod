@@ -239,7 +239,7 @@ public:
 	int8_t buffer_L_22;//0x1E856, + ba
 	int8_t buffer_L_46; //0x1E857, + bb
 	char padding_1e858;//0x1E858, + bc
-	int8_t buffer_L_2H6; //0x1E859, + BD 2H6 -> hold 2 -> 6, charge(?) its actually 2H8 it seems for an unreleased kagura special?
+	int8_t buffer_L_2H8jinastral; //0x1E859, + BD 2H8 -> hold 2 -> 8, 30f 28 charge, used for jin's astral?
 	int8_t buffer_L_6428;//0x1E85A, +BE
 	int8_t buffer_L_4H128;//0x1E85B, + BF taokaka astral
 	int8_t buffer_L_64641236;//0x1E85C, + C0 carl astral
@@ -307,7 +307,7 @@ public:
 	int8_t buffer_R_22;//0x1E960, + ba +10A
 	int8_t buffer_R_46; //0x1E961, + bb +10A
 	char padding_1E962;//0x1E962, + bc +10A
-	int8_t buffer_R_2H6; //0x1E963, + BD +10A 2H6 -> hold 2 -> 6, charge(?) its actually 2H8 it seems for an unreleased kagura special?
+	int8_t buffer_R_2H8jinastral; //0x1E859, + BD 2H8 -> hold 2 -> 8, 30f 28 charge, used for jin's astral?
 	int8_t buffer_R_6428;//0x1E964, +BE +10A
 	int8_t buffer_R_4H128;//0x1E965, + BF +10A taokaka astral
 	int8_t buffer_R_64641236;//0x1E966, + C0 +10A carl astral
