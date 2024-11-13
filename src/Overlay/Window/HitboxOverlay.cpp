@@ -4,6 +4,7 @@
 #include "Game/gamestates.h"
 #include "Game/Jonb/JonbReader.h"
 #include "imgui_internal.h"
+#include "Core/utils.h"
 
 void HitboxOverlay::Update()
 {
@@ -16,7 +17,7 @@ void HitboxOverlay::Update()
 	{
 		return;
 	}
-
+	this->aspectRatioAddress = GetBbcfBaseAdress() + 0x65A5E4;
 	BeforeDraw();
 
 	ImGui::Begin("##HitboxOverlay", nullptr, m_overlayWindowFlags);
@@ -162,7 +163,7 @@ void HitboxOverlay::DrawCollisionAreas(const CharData* charObj, const ImVec2 pla
 {
 			continue;
 		}
-		
+
 		float scaleX = charObj->scaleX / 1000.0f;
 		float scaleY = charObj->scaleY / 1000.0f;
 		float offsetX =  floor(entry.offsetX * m_scale * scaleX);
@@ -198,6 +199,32 @@ void HitboxOverlay::DrawCollisionAreas(const CharData* charObj, const ImVec2 pla
 		pointB = CalculateScreenPosition(pointB);
 		pointC = CalculateScreenPosition(pointC);
 		pointD = CalculateScreenPosition(pointD);
+
+		//Fixes aspect ratio when the game is in fullscreen/borderless
+		ImGuiIO& io = ImGui::GetIO();
+		float displayRatio = io.DisplaySize.x / io.DisplaySize.y;
+		float aspectRatio = 5.0f / 3.0f;
+
+		if (*this->aspectRatioAddress == 1) {
+			if (displayRatio > aspectRatio) {
+				float scaling = (io.DisplaySize.x / (io.DisplaySize.y * aspectRatio));
+				float offset = (io.DisplaySize.x - io.DisplaySize.y * aspectRatio) / 2;
+
+				pointA.x = pointA.x / scaling + offset;
+				pointB.x = pointB.x / scaling + offset;
+				pointC.x = pointC.x / scaling + offset;
+				pointD.x = pointD.x / scaling + offset;
+			}
+			else if (displayRatio < aspectRatio) {
+				float scaling = (io.DisplaySize.y / (io.DisplaySize.x / aspectRatio));
+				float offset = (io.DisplaySize.y - io.DisplaySize.x / aspectRatio) / 2;
+
+				pointA.y = pointA.y / scaling + offset;
+				pointB.y = pointB.y / scaling + offset;
+				pointC.y = pointC.y / scaling + offset;
+				pointD.y = pointD.y / scaling + offset;
+			}
+		}
 
 		const unsigned int colorBlue = 0xFF0033CC;
 		const unsigned int colorRed = 0xFFFF0000;

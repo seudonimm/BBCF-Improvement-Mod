@@ -11,6 +11,7 @@ typedef unsigned int uint32_t;
 class HitboxOverlay : public IWindow
 {
 public:
+	char* aspectRatioAddress;
 	bool drawOriginLine = false;
 	bool drawCharacterHitbox[2] = {true, true};
 
