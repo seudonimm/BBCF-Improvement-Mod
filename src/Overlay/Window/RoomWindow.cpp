@@ -49,6 +49,21 @@ void RoomWindow::Draw()
 
 	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
 
+	if (isInMenu() || isOnCharacterSelectionScreen())
+	{
+		ImGui::NewLine();
+
+		ImGui::Text("Online Input Delay");
+		ImGui::SameLine();
+		ImGui::SliderInt("##Rollback Delay", &g_gameVals.onlineDelay, 0, 5);
+	}
+
+	if (isInMatch())
+	{
+		ImGui::NewLine();
+		ImGui::Text("Online Input Delay: %d", g_gameVals.onlineDelay);
+	}
+
 	if (isStageSelectorEnabledInCurrentState())
 	{
 		ImGui::VerticalSpacing(10);
@@ -91,6 +106,7 @@ void RoomWindow::Draw()
 	}
 
 	ImGui::PopStyleVar();
+
 }
 
 void RoomWindow::SetWindowTitleRoomType(const std::string& roomTypeName)
