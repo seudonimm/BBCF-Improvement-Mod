@@ -13,6 +13,7 @@
 #include "Core/info.h"
 #include <string>
 #include "Web/update_check.h"
+#include "Game/ReplayFiles/ReplayFileManager.h"
 
 
 
@@ -341,6 +342,11 @@ void __declspec(naked)MatchIntroStartsPlayingFunc()
 	__asm pushad
 
 	g_interfaces.pGameModeManager->InitGameMode();
+
+	if (*g_gameVals.pGameMode != GameMode_ReplayTheater && *g_gameVals.pGameMode != GameMode_Training) {
+		if (g_rep_manager.template_modified)
+			g_rep_manager.load_replay_list_default();
+	}
 
 	__asm
 	{
