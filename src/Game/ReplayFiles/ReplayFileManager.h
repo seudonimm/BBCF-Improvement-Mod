@@ -18,4 +18,14 @@ public:
 	bool load_replay(std::string file_path); // return 1 means load sucessful, return -1 means error
 	std::string build_file_name();
 	void archive_replays();
+
+	bool template_modified = false;
+	
+	void bbcf_sort_replay_list();
+	void load_replay_list_default();
+	void load_replay_list_default_repair();
+	void load_replay_list_from_archive(int page);
+	void load_replay_list_from_db(int page, int character = -1, std::string player = "");
 };
+
+extern ReplayFileManager g_rep_manager;
