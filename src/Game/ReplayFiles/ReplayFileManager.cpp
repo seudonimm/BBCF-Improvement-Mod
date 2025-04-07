@@ -235,14 +235,14 @@ void ReplayFileManager::load_replay_list_default_repair() {
 
     WriteToProtectedMemory((uintptr_t)replay_file_template, "replay%02d.dat", 15);
     template_modified = false;
-        
+    
     int n = 0;
-    for (int j = 0; j < n; j++) {
+    for (int j = 0; j < 100; j++) {
         std::string name = std::to_string(j);
         name = "Save/Replay/replay" + std::string(2 - min(2, name.length()), '0') + name + ".dat";
         
         if (std::experimental::filesystem::exists(name)) {
-            std::ifstream f(REPLAY_ARCHIVE_FOLDER_PATH + name, std::ios::binary);
+            std::ifstream f(name, std::ios::binary);
             f.seekg(8, std::ios_base::beg);
             f.read((char*)&replay_list->replays[j], 0x390);
             f.close();
