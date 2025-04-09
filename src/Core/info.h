@@ -1,6 +1,7 @@
 #pragma once
-#define MOD_VERSION_NUM	"v3.0981"
-#define MOD_WINDOW_TITLE "BBCF Improvement Mod"
+#define MOD_VERSION	"v3.0982"
+#define MOD_VERSION_NUM	MOD_VERSION " BO BLEIS + delay slider edition"
+#define MOD_WINDOW_TITLE "BBCF IM"
 
 #define MOD_FORCE_DISABLE_UPDATE_CHECK 1
 

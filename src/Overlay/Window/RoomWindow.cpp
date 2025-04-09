@@ -36,8 +36,6 @@ void RoomWindow::Draw()
 {
 	if (!g_interfaces.pRoomManager->IsRoomFunctional())
 	{
-		ImGui::Text("Online type:");
-		ImGui::SameLine();
 		ImGui::TextDisabled("YOU ARE NOT IN A ROOM OR ONLINE MATCH!");
 		ImGui::NewLine();
 
