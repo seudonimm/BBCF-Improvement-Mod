@@ -311,8 +311,18 @@ void MainWindow::DrawHitboxOverlaySection() const
 		m_pWindowContainer->GetWindow<HitboxOverlay>(WindowType_HitboxOverlay)->DrawRectFillTransparencySlider();
 
 		ImGui::HorizontalSpacing();
+		ImGui::Checkbox("Draw hitbox/hurtbox",
+			&m_pWindowContainer->GetWindow<HitboxOverlay>(WindowType_HitboxOverlay)->drawHitboxHurtbox);
+		ImGui::HorizontalSpacing();
 		ImGui::Checkbox("Draw origin",
 			&m_pWindowContainer->GetWindow<HitboxOverlay>(WindowType_HitboxOverlay)->drawOriginLine);
+		ImGui::HorizontalSpacing();
+		ImGui::Checkbox("Draw collision",
+			&m_pWindowContainer->GetWindow<HitboxOverlay>(WindowType_HitboxOverlay)->drawCollisionBoxes);
+		ImGui::HorizontalSpacing();
+		ImGui::Checkbox("Draw throw/range check",
+			&m_pWindowContainer->GetWindow<HitboxOverlay>(WindowType_HitboxOverlay)->drawRangeCheckBoxes);
+
 
 		ImGui::VerticalSpacing();
 
