@@ -11,7 +11,11 @@ typedef unsigned int uint32_t;
 class HitboxOverlay : public IWindow
 {
 public:
+	bool drawHitboxHurtbox = true;
 	bool drawOriginLine = false;
+	bool drawBoundingBoxes = false;
+	bool drawCollisionBoxes = false;
+	bool drawRangeCheckBoxes = false;
 	bool drawCharacterHitbox[2] = {true, true};
 
 	HitboxOverlay(const std::string& windowTitle, bool windowClosable,
@@ -31,6 +35,8 @@ protected:
 private:
 	void fixAspectRatio(ImVec2& point);
 	void DrawOriginLine(ImVec2 worldPos, float rotationRad);
+	void DrawRangeCheckBoxes(ImVec2 worldPos, float rotationRad, const CharData* charObj);
+	void DrawCollisionBoxes(ImVec2 worldPos, float rotationRad, const CharData* charObj);
 	void DrawCollisionAreas(const CharData* charObj, const ImVec2 playerWorldPos);
 
 	bool IsOwnerEnabled(CharData* ownerCharInfo);
