@@ -268,7 +268,18 @@ void ReplayFileManager::load_replay_list_default_repair() {
     // tell bbcf to write this to file later
     *(base + 0x1304BA4) = 1;
 }
-
+bool ReplayFileManager::check_file_validity(ReplayFile* file) {
+    if (file->p1_toon < 0x0 || file->p1_toon > 0x24) {
+        return false;
+    }
+    if (file->p2_toon < 0x0 || file->p2_toon > 0x24) {
+        return false;
+    }
+    if (file->winner_maybe < 0 || file->winner_maybe >2) {
+        return false;
+    }
+    return true;
+}
 void ReplayFileManager::load_replay_list_from_archive(int page) {
     // load filenames
     std::vector<std::string> all_filenames;
@@ -294,25 +305,34 @@ void ReplayFileManager::load_replay_list_from_archive(int page) {
 
     int n = page_filenames.size();
     int j = 0;
+    int valid_replay_count = 0;
     for (; j < n; j++) {
-        std::string new_name = std::to_string(j);
-        new_name = "Save/Replay/tmp/rp" + std::string(2 - min(2, new_name.length()), '0') + new_name + ".dat";
+        
+  
         //std::filesystem::copy_file(std::filesystem::path(replay_dir + "/" + page_filenames[j]), std::filesystem::path(new_name)); // crashes?
         // copy file with basic C++
         std::ifstream f(REPLAY_ARCHIVE_FOLDER_PATH + page_filenames[j], std::ios::binary);
-        std::ofstream dest(new_name, std::ios::binary);
-        dest << f.rdbuf();
-        dest.close();
+
 
         f.seekg(8, std::ios_base::beg);
-        f.read((char*)&replay_list->replays[j], 0x390);
-        f.close();
+        f.read((char*)&replay_list->replays[valid_replay_count], 0x390);
 
+        if (check_file_validity( (replay_list->replays[valid_replay_count].data()) )) {
+            //only copy the file to tmp if it's valid
+            std::string new_name = std::to_string(valid_replay_count);
+            new_name = "Save/Replay/tmp/rp" + std::string(2 - min(2, new_name.length()), '0') + new_name + ".dat";
+            f.seekg(0, std::ios_base::beg);
+            std::ofstream dest(new_name, std::ios::binary);
+            dest << f.rdbuf();
+            dest.close();
+            valid_replay_count += 1;
+        }
+        f.close();
         //replay_list->order[j] = n - 1 - j; // set order, most recent replay first
     }
     // if we have less than 100 replays, hide the rest
-    for (; j < 100; j++) {
-        replay_list->replays[j].data()->valid = 0;
+    for (; valid_replay_count < 100; valid_replay_count++) {
+        replay_list->replays[valid_replay_count].data()->valid = 0;
         //replay_list->order[j] = 99; // push empty items to the back
     }
     replay_list->count = n;

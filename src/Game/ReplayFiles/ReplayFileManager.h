@@ -16,6 +16,7 @@ public:
 	ReplayFileManager(std::string file_path);
 	bool save_replay(std::string file_path); // return 1 means save sucessful, return -1 means error
 	bool load_replay(std::string file_path); // return 1 means load sucessful, return -1 means error
+	bool check_file_validity(ReplayFile* file);// return true if valid, false if invalid.
 	std::string build_file_name();
 	void archive_replays();
 
