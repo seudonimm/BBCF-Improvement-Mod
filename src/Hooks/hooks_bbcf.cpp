@@ -74,6 +74,10 @@ void __declspec(naked)GetGameStateMenuScreen()
 
 	MatchState::OnMatchEnd();
 
+	// shouldn't be needed, but just in case something writes replay_list to file from some odd place, make sure it's kept in the correct state
+	if (g_rep_manager.template_modified)
+		g_rep_manager.load_replay_list_default();
+
 	__asm
 	{
 		popad
@@ -701,6 +705,22 @@ void __declspec(naked)DelNetworkReqWatchReplays()
 //		jmp[DirectHookTestJmpBackAddr]
 //	}
 
+DWORD BeforeWriteReplayListDatJmpBackAddr = 0;
+void __declspec(naked)BeforeWriteReplayListDat()
+{
+	if (!g_rep_manager.template_modified) {
+		char* continue_write = GetBbcfBaseAdress() + 0x2C3F20;
+		_asm {
+			call[continue_write]
+		}
+	}
+
+	_asm {
+		jmp[BeforeWriteReplayListDatJmpBackAddr]
+	}
+	LOG_ASM(2, "BeforeWriteReplayListDat\n");
+}
+
 //}
 bool placeHooks_bbcf()
 {
@@ -799,7 +819,7 @@ bool placeHooks_bbcf()
 	
 	//DirectHookTestJmpBackAddr = HookManager::SetHook("DirectHookTest",(DWORD)(GetBbcfBaseAdress() + 0x37c3b3) , 6, DirectHookTest);
 
-
+	BeforeWriteReplayListDatJmpBackAddr = HookManager::SetHook("BeforeWriteReplayListDat", (DWORD)(GetBbcfBaseAdress() + 0x2C2AF8), 5, BeforeWriteReplayListDat);
 
 	return true;
 }

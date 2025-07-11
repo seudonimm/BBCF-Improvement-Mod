@@ -227,7 +227,7 @@ void ReplayFileManager::load_replay_list_default() {
 
 void ReplayFileManager::load_replay_list_default_repair() {
     // overwrite replay list with data from real replays, ignoring replay_list.dat
-    // doesn't modify replay_list.dat directly
+    // doesn't modify replay_list.dat directly, but sets a flag for bbcf to save it
 
     char* base = GetBbcfBaseAdress();
     ReplayList* replay_list = (ReplayList*)(base + 0xAA9808);
@@ -264,6 +264,9 @@ void ReplayFileManager::load_replay_list_default_repair() {
     view[3] = 0; // ???
 
     bbcf_sort_replay_list();
+
+    // tell bbcf to write this to file later
+    *(base + 0x1304BA4) = 1;
 }
 
 void ReplayFileManager::load_replay_list_from_archive(int page) {
