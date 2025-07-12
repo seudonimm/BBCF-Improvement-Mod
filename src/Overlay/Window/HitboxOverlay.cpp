@@ -180,9 +180,9 @@ void HitboxOverlay::DrawCollisionBoxes(ImVec2 worldPos, float rotationRad, const
 	}
 	int baddX = 0;
 	if (charObj->BoundingAddX > 0) {
-		baddY = charObj->BoundingAddX;
+		baddX = charObj->BoundingAddX;
 	}
-	const int h_len_from_origin = floor((charObj->BoundingX / 2 + (baddX)) * m_scale);
+	int h_len_from_origin = floor((charObj->BoundingX / 2 + (baddX)) * m_scale);
 	int v_len_from_origin = floor((charObj->BoundingY + baddY) * m_scale);
 	//So far only izanami was found to need this, otherwise during float BoundingAddY adds 110000 units to her collision box height
 	if (charObj->BoundingFixY > 0) {
