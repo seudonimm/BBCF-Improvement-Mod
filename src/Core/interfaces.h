@@ -90,7 +90,6 @@ struct gameVals_t
 	int* pEntityList;
 	int entityCount;
 
-	int onlineDelay;
 
 	Room* pRoom;
 	
