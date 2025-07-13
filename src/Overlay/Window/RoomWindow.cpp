@@ -41,7 +41,7 @@ void RoomWindow::Draw()
 
 		ImGui::Text("Online Input Delay");
 		ImGui::SameLine();
-		ImGui::SliderInt("##Rollback Delay", &g_gameVals.onlineDelay, 0, 5);
+		ImGui::SliderInt("##Rollback Delay", &g_gameVals.onlineDelay, 1, 5);
 		m_windowTitle = m_origWindowTitle;
 
 		return;
@@ -60,7 +60,7 @@ void RoomWindow::Draw()
 
 		ImGui::Text("Online Input Delay");
 		ImGui::SameLine();
-		ImGui::SliderInt("##Rollback Delay", &g_gameVals.onlineDelay, 0, 5);
+		ImGui::SliderInt("##Rollback Delay", &g_gameVals.onlineDelay, 1, 5);
 	}
 
 	if (isInMatch())

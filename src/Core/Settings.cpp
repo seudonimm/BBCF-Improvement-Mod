@@ -51,8 +51,8 @@ void Settings::applySettingsIni(D3DPRESENT_PARAMETERS* pPresentationParameters)
 	if (Settings::settingsIni.delaySlider > 5) {
 		g_gameVals.onlineDelay = 5;
 	}
-	else if (Settings::settingsIni.delaySlider < 0) {
-		g_gameVals.onlineDelay = 0;
+	else if (Settings::settingsIni.delaySlider < 1) {
+		g_gameVals.onlineDelay = 1;
 	}
 	else {
 		g_gameVals.onlineDelay = Settings::settingsIni.delaySlider;

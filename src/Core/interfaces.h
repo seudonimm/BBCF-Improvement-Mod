@@ -18,7 +18,6 @@
 #include "SteamApiWrapper/SteamUserStatsWrapper.h"
 #include "SteamApiWrapper/SteamUserWrapper.h"
 #include "SteamApiWrapper/SteamUtilsWrapper.h"
-#include "Settings.h"
 
 struct interfaces_t
 {
