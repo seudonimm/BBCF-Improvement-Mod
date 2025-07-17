@@ -218,16 +218,23 @@ void HitboxOverlay::DrawRangeCheckBoxes(ImVec2 worldPos, float rotationRad, cons
 	// Throw range check must reach the other player's x origin to throw
 	// Vector check box must intersect with other player's collision box to throw
 	// Prob those obs are incomplete, but that's the current progress
-	const int h_col_len = floor((charObj->BoundingX + (charObj->BoundingAddX*2)) * m_scale);
+	const int h_col_len = floor((charObj->BoundingX + (charObj->BoundingAddX * 2)) * m_scale);
 
 	const unsigned int colorGreen = 0xFF00FF00;
 	const unsigned int colorYellow = 0xFFFFFF00;
+	int vcX_1 = 0;
+	int vcX_2 = 0;
+	int vcY_1 = 0;
+	int vcY_2 = 0;
 
-	int vcX_1 = floor(floor(charObj->vectorcheckX_1 / charObj->scaleX) * m_scale);
-	int vcX_2 = floor(floor(charObj->vectorcheckX_2 / charObj->scaleX) * m_scale);
-	int vcY_1 = floor(floor(charObj->vectorcheckY_1 / charObj->scaleY) * m_scale);
-	int vcY_2 = floor(floor(charObj->vectorcheckY_2 / charObj->scaleY) * m_scale);
-
+	if (charObj->scaleX != 0) {
+		vcX_1 = floor(floor(charObj->vectorcheckX_1 / charObj->scaleX) * m_scale);
+		vcX_2 = floor(floor(charObj->vectorcheckX_2 / charObj->scaleX) * m_scale);
+	}
+	if (charObj->scaleY != 0) {
+		vcY_1 = floor(floor(charObj->vectorcheckY_1 / charObj->scaleY) * m_scale);
+		vcY_2 = floor(floor(charObj->vectorcheckY_2 / charObj->scaleY) * m_scale);
+	}
 	if (charObj->facingLeft)
 	{
 		vcX_2 = -vcX_2;
@@ -235,11 +242,11 @@ void HitboxOverlay::DrawRangeCheckBoxes(ImVec2 worldPos, float rotationRad, cons
 	}
 
 	if (charObj->vectorcheckX_1 != -1 || charObj->vectorcheckX_2 != -1 || charObj->vectorcheckY_1 != -1 || charObj->vectorcheckY_2 != -1) {
-		
+
 		if (charObj->vectorcheckX_1 == -1) {
 			vcX_1 = -40000;
 		}
-		if (charObj->vectorcheckX_2 == -1 ) {
+		if (charObj->vectorcheckX_2 == -1) {
 			vcX_2 = 40000;
 		}
 		if (charObj->vectorcheckY_1 == -1) {
@@ -259,14 +266,17 @@ void HitboxOverlay::DrawRangeCheckBoxes(ImVec2 worldPos, float rotationRad, cons
 		fixAspectRatio(tstD);
 		//RenderLine(tstA, tst2, colorGreen, 3);
 
-		RenderRect(tstA, tstB, tstC, tstD, colorGreen, m_rectThickness/2);
+		RenderRect(tstA, tstB, tstC, tstD, colorGreen, m_rectThickness / 2);
 	}
-	if (charObj->ThrowRange >0){
-		int ThrowRange = (charObj->ThrowRange / charObj->scaleX) * m_scale;
-		if (charObj->vectorcheckX_1 == -1 ) {
+	if (charObj->ThrowRange > 0) {
+		int ThrowRange = 0;
+		if (charObj->scaleX != 0) {
+			ThrowRange = (charObj->ThrowRange / charObj->scaleX) * m_scale;
+		}
+		if (charObj->vectorcheckX_1 == -1) {
 			vcY_1 = -40000;
 		}
-		if (charObj->vectorcheckX_2 == -1 ) {
+		if (charObj->vectorcheckX_2 == -1) {
 			vcY_2 = 40000;
 		}
 
@@ -279,10 +289,10 @@ void HitboxOverlay::DrawRangeCheckBoxes(ImVec2 worldPos, float rotationRad, cons
 		fixAspectRatio(trB);
 		fixAspectRatio(trC);
 		fixAspectRatio(trD);
-		RenderRect(trA, trB, trC, trD, colorYellow, m_rectThickness/2);
+		RenderRect(trA, trB, trC, trD, colorYellow, m_rectThickness / 2);
 
 
-		
+
 		int a = 0;
 	}
 }
