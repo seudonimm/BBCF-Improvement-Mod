@@ -2407,7 +2407,8 @@ void ScrWindow::DrawRoomSection() {
     if (!ImGui::CollapsingHeader("Room Settings"))
         return;
 
-    if (!g_gameVals.pRoom || g_gameVals.pRoom->roomStatus == RoomStatus_Unavailable)
+    if (!g_gameVals.pRoom || g_gameVals.pRoom->roomStatus == RoomStatus_Unavailable 
+        || !(RoomManager::GetRoomSettingsStaticBaseAdress()))
     {
         ImGui::TextUnformatted("Room is not available!");
         return;
@@ -2440,27 +2441,27 @@ void ScrWindow::DrawRoomSection() {
     {
         switch (currentItem) {
         case 0:
-            g_gameVals.pRoom->rematch = RoomRematch::RematchType_Disabled;
+            g_interfaces.pRoomManager->ChangeRematchAmnt(0);
             break;
 
         case 1:
-            g_gameVals.pRoom->rematch = RoomRematch::RematchType_Unlimited;
+            g_interfaces.pRoomManager->ChangeRematchAmnt(-1);
             break;
 
         case 2:
-            g_gameVals.pRoom->rematch = RoomRematch::RematchType_Ft2;
+            g_interfaces.pRoomManager->ChangeRematchAmnt(2);
             break;
 
         case 3:
-            g_gameVals.pRoom->rematch = RoomRematch::RematchType_Ft3;
+            g_interfaces.pRoomManager->ChangeRematchAmnt(3);
             break;
 
         case 4:
-            g_gameVals.pRoom->rematch = RoomRematch::RematchType_Ft5;
+            g_interfaces.pRoomManager->ChangeRematchAmnt(5);
             break;
 
         case 5:
-            g_gameVals.pRoom->rematch = RoomRematch::RematchType_Ft10;
+            g_interfaces.pRoomManager->ChangeRematchAmnt(10);
             break;
 
 
