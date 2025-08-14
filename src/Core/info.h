@@ -11,3 +11,4 @@
 #define MOD_LINK_GITHUB L"https://github.com/libreofficecalc/BBCF-Improvement-Mod/releases"
 #define MOD_LINK_API_GITHUB_RELEASE L"https://api.github.com/repos/libreofficecalc/BBCF-Improvement-Mod/releases"
 #define REPLAY_DB_FRONTEND L"http://50.118.225.175:2000/"
+#define RANKING_SITE L"https://bbranking.vercel.app/"

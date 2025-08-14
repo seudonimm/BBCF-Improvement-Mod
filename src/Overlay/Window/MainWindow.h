@@ -11,6 +11,8 @@ public:
 
 	~MainWindow() override = default;
 
+	static bool ranking_enabled;
+
 protected:
 	void BeforeDraw() override;
 	void Draw() override;
@@ -26,6 +28,7 @@ private:
 	void DrawAvatarSection() const;
 	void DrawFrameAdvantageSection() const;
 	void DrawControllerSettingSection() const;
+	void DrawRankedSettings() const;
 
 	const ImVec2 BTN_SIZE = ImVec2(60, 20);
 	WindowContainer* m_pWindowContainer = nullptr;

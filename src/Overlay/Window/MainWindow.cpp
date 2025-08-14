@@ -16,6 +16,8 @@
 
 #include <sstream>
 
+bool MainWindow::ranking_enabled = true;
+
 MainWindow::MainWindow(const std::string& windowTitle, bool windowClosable, WindowContainer& windowContainer, ImGuiWindowFlags windowFlags)
 	: IWindow(windowTitle, windowClosable, windowFlags), m_pWindowContainer(&windowContainer)
 {
@@ -37,14 +39,14 @@ void MainWindow::BeforeDraw()
 	ImVec2 windowSizeConstraints;
 	switch (Settings::settingsIni.menusize)
 	{
-		case 1:
-			windowSizeConstraints = ImVec2(250, 190);
-			break;
-		case 3:
-windowSizeConstraints = ImVec2(400, 230);
-break;
-		default:
-			windowSizeConstraints = ImVec2(330, 230);
+	case 1:
+		windowSizeConstraints = ImVec2(250, 190);
+		break;
+	case 3:
+		windowSizeConstraints = ImVec2(400, 230);
+		break;
+	default:
+		windowSizeConstraints = ImVec2(330, 230);
 	}
 
 	ImGui::SetNextWindowSizeConstraints(windowSizeConstraints, ImVec2(1000, 1000));
@@ -82,6 +84,7 @@ void MainWindow::Draw()
 	DrawAvatarSection();
 	DrawControllerSettingSection();
 	DrawLoadedSettingsValuesSection();
+	DrawRankedSettings();
 	DrawUtilButtons();
 
 	ImGui::VerticalSpacing(5);
@@ -413,16 +416,16 @@ void MainWindow::DrawControllerSettingSection() const {
 	if (!ImGui::CollapsingHeader("Controller Settings"))
 		return;
 	static bool controller_position_swapped = false;
-	
-	if(ImGui::Checkbox("Keyboard + Controller/ Swap controller pos", &controller_position_swapped)) {
+
+	if (ImGui::Checkbox("Keyboard + Controller/ Swap controller pos", &controller_position_swapped)) {
 		//make the battle_key_controller into a proper struck later
 		char*** battle_key_controller = (char***)(GetBbcfBaseAdress() + 0x8929c8);
-		char** menu_control_p1 = (char**)((char*)*battle_key_controller + 0x10);     
-		char** menu_control_p2 = (char**)((char*)*battle_key_controller + 0x14);    
-		char** unknown_p1 = (char**)((char*)*battle_key_controller + 0x1C);       
-		char** unknown_p2 = (char**)((char*)*battle_key_controller + 0x20);         
-		char** char_control_p1 = (char**)((char*)*battle_key_controller + 0x24);    
-		char** char_control_p2 = (char**)((char*)*battle_key_controller + 0x28);    
+		char** menu_control_p1 = (char**)((char*)*battle_key_controller + 0x10);
+		char** menu_control_p2 = (char**)((char*)*battle_key_controller + 0x14);
+		char** unknown_p1 = (char**)((char*)*battle_key_controller + 0x1C);
+		char** unknown_p2 = (char**)((char*)*battle_key_controller + 0x20);
+		char** char_control_p1 = (char**)((char*)*battle_key_controller + 0x24);
+		char** char_control_p2 = (char**)((char*)*battle_key_controller + 0x28);
 		std::swap(*menu_control_p1, *menu_control_p2);
 		std::swap(*char_control_p1, *char_control_p2);
 		std::swap(*unknown_p1, *unknown_p2);
@@ -445,7 +448,10 @@ void MainWindow::DrawLinkButtons() const
 
 	ImGui::SameLine();
 	ImGui::ButtonUrl("GitHub", MOD_LINK_GITHUB, BTN_SIZE);
-	
+
+	ImGui::SameLine();
+	ImGui::ButtonUrl("Rankings", RANKING_SITE, BTN_SIZE);
+
 }
 
 void MainWindow::DrawLoadedSettingsValuesSection() const
@@ -472,4 +478,20 @@ void MainWindow::DrawLoadedSettingsValuesSection() const
 #undef SETTING
 
 	ImGui::EndChild();
+}
+
+void MainWindow::DrawRankedSettings() const
+{
+	if (!ImGui::CollapsingHeader("Ranked Settings"))
+		return;
+	if (isInMatch())
+	{
+		ImGui::HorizontalSpacing();
+		ImGui::TextDisabled("YOU ARE IN A MATCH!");
+		return;
+	}
+	else if (ImGui::Checkbox("Ranked Enabled", &MainWindow::ranking_enabled)) {
+
+		return;
+	}
 }

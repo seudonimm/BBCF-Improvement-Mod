@@ -10,110 +10,121 @@
 #include "Core/interfaces.h"
 #include <atlstr.h>
 
+#include <Overlay/Window/MainWindow.h>
+
+
+
 #pragma comment(lib,"wininet.lib")
 
 std::string DownloadUrl(std::wstring& wUrl)
 {
-	std::string url(wUrl.begin(), wUrl.end());
+    std::string url(wUrl.begin(), wUrl.end());
 
-	HINTERNET connect = InternetOpen(L"MyBrowser", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+    HINTERNET connect = InternetOpen(L"MyBrowser", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 
-	if (!connect)
-	{
-		g_imGuiLogger->Log("[error] DownloadUrl failed. Connection Failed or Syntax error with URL\n'%s'\n", url.c_str());
-		return "";
-	}
+    if (!connect)
+    {
+        g_imGuiLogger->Log("[error] DownloadUrl failed. Connection Failed or Syntax error with URL\n'%s'\n", url.c_str());
+        return "";
+    }
 
-	HINTERNET OpenAddress = InternetOpenUrl(connect, wUrl.c_str(), NULL, 0, INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_KEEP_CONNECTION, 0);
+    HINTERNET OpenAddress = InternetOpenUrl(connect, wUrl.c_str(), NULL, 0, INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_KEEP_CONNECTION, 0);
 
-	if (!OpenAddress)
-	{
-		DWORD ErrorNum = GetLastError();
-		g_imGuiLogger->Log("[error] DownloadUrl failed. Failed to open URL\n'%s'\ncode: %d\n", url.c_str(), ErrorNum);
-		InternetCloseHandle(connect);
-		return "";
-	}
+    if (!OpenAddress)
+    {
+        DWORD ErrorNum = GetLastError();
+        g_imGuiLogger->Log("[error] DownloadUrl failed. Failed to open URL\n'%s'\ncode: %d\n", url.c_str(), ErrorNum);
+        InternetCloseHandle(connect);
+        return "";
+    }
 
-	std::string receivedData = "";
+    std::string receivedData = "";
 
-	char DataReceived[4096];
-	DWORD NumberOfBytesRead = 0;
-	while (InternetReadFile(OpenAddress, DataReceived, 4096, &NumberOfBytesRead) && NumberOfBytesRead)
-	{
-		receivedData.append(DataReceived, NumberOfBytesRead);
-	}
+    char DataReceived[4096];
+    DWORD NumberOfBytesRead = 0;
+    while (InternetReadFile(OpenAddress, DataReceived, 4096, &NumberOfBytesRead) && NumberOfBytesRead)
+    {
+        receivedData.append(DataReceived, NumberOfBytesRead);
+    }
 
-	InternetCloseHandle(OpenAddress);
-	InternetCloseHandle(connect);
+    InternetCloseHandle(OpenAddress);
+    InternetCloseHandle(connect);
 
-	return receivedData;
+    return receivedData;
 }
 
 unsigned long DownloadUrlBinary(std::wstring& wUrl, void** outBuffer)
 {
-	std::string url(wUrl.begin(), wUrl.end());
+    std::string url(wUrl.begin(), wUrl.end());
 
-	HINTERNET connect = InternetOpen(L"MyBrowser", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+    HINTERNET connect = InternetOpen(L"MyBrowser", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 
-	if (!connect)
-	{
-		g_imGuiLogger->Log(
-			"[error] DownloadUrlBinary failed. Connection Failed or Syntax error with URL\n'%s'\n",
-			url.c_str()
-		);
-		return 0;
-	}
+    if (!connect)
+    {
+        g_imGuiLogger->Log(
+            "[error] DownloadUrlBinary failed. Connection Failed or Syntax error with URL\n'%s'\n",
+            url.c_str()
+        );
+        return 0;
+    }
 
-	HINTERNET OpenAddress = InternetOpenUrl(connect, wUrl.c_str(), NULL, 0, INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_KEEP_CONNECTION, 0);
+    HINTERNET OpenAddress = InternetOpenUrl(connect, wUrl.c_str(), NULL, 0, INTERNET_FLAG_PRAGMA_NOCACHE | INTERNET_FLAG_KEEP_CONNECTION, 0);
 
-	if (!OpenAddress)
-	{
-		DWORD ErrorNum = GetLastError();
-		g_imGuiLogger->Log(
-			"[error] DownloadUrlBinary failed. Failed to open URL\n'%s'\ncode: %d\n",
-			url.c_str(), ErrorNum
-		);
-		InternetCloseHandle(connect);
-		return 0;
-	}
+    if (!OpenAddress)
+    {
+        DWORD ErrorNum = GetLastError();
+        g_imGuiLogger->Log(
+            "[error] DownloadUrlBinary failed. Failed to open URL\n'%s'\ncode: %d\n",
+            url.c_str(), ErrorNum
+        );
+        InternetCloseHandle(connect);
+        return 0;
+    }
 
-	DWORD numberOfBytesRead = 0;
-	DWORD returnedBytesRead = 0;
-	bool result = false;
+    DWORD numberOfBytesRead = 0;
+    DWORD returnedBytesRead = 0;
+    bool result = false;
     char* inspection = (char*)*outBuffer;
-	do
-	{
-		char buffer[2000];
-		result = InternetReadFile(OpenAddress, buffer, sizeof(buffer), &numberOfBytesRead);
+    do
+    {
+        char buffer[2000];
+        result = InternetReadFile(OpenAddress, buffer, sizeof(buffer), &numberOfBytesRead);
 
-		// Re-allocate memory
-		char* tempData = new char[returnedBytesRead + numberOfBytesRead];
-		memcpy(tempData, *outBuffer, returnedBytesRead);
-		memcpy(tempData + returnedBytesRead, buffer, numberOfBytesRead);
-		SAFE_DELETE_ARRAY(*outBuffer);
-		*outBuffer = tempData;
+        // Re-allocate memory
+        char* tempData = new char[returnedBytesRead + numberOfBytesRead];
+        memcpy(tempData, *outBuffer, returnedBytesRead);
+        memcpy(tempData + returnedBytesRead, buffer, numberOfBytesRead);
+        SAFE_DELETE_ARRAY(*outBuffer);
+        *outBuffer = tempData;
 
-		returnedBytesRead += numberOfBytesRead;
+        returnedBytesRead += numberOfBytesRead;
 
-	} while (result && numberOfBytesRead);
+    } while (result && numberOfBytesRead);
 
-	InternetCloseHandle(OpenAddress);
-	InternetCloseHandle(connect);
+    InternetCloseHandle(OpenAddress);
+    InternetCloseHandle(connect);
 
-	return returnedBytesRead;
+    return returnedBytesRead;
 }
 
 //int UploadReplayBinary() { return 1; }
 
 int UploadReplayBinary() {
     HINTERNET hInternet = NULL, hConnect = NULL, hRequest = NULL;
- //   const wchar_t* serverAddress = L"50.118.225.175"; // IP address
-    CA2W pszwide (g_modVals.uploadReplayDataHost.c_str());
-    const wchar_t* serverAddress = pszwide;
+    //   const wchar_t* serverAddress = L"50.118.225.175"; // IP address
+    const wchar_t* serverAddress;
+    if (MainWindow::ranking_enabled) {
+        serverAddress = L"18.219.55.213";
+    }
+    else
+    {
+        CA2W pszwide(g_modVals.uploadReplayDataHost.c_str());
+        serverAddress = pszwide;
+    }
     //INTERNET_PORT port = 5000; // Port number
     INTERNET_PORT port = g_modVals.uploadReplayDataPort;
     //const wchar_t* urlPath = L"/upload"; // Path on the server
-    CA2W pszwide2 (g_modVals.uploadReplayDataEndpoint.c_str());
+    CA2W pszwide2(g_modVals.uploadReplayDataEndpoint.c_str());
     const wchar_t* urlPath = pszwide2;
     //return 0;
     // Step 1: Open Internet session
@@ -121,15 +132,15 @@ int UploadReplayBinary() {
     if (!hInternet) {
         // std::cerr << "Failed to open internet session: " << GetLastError() << std::endl;
         DWORD error_num = GetLastError();
-        g_imGuiLogger->Log("[error] UploadReplayBinary failed. Failed to open internet session.\n\thost: '%s'\n\tendpoint: '%s'\n\tport: %d\n\terror code: %d\n", 
+        g_imGuiLogger->Log("[error] UploadReplayBinary failed. Failed to open internet session.\n\thost: '%s'\n\tendpoint: '%s'\n\tport: %d\n\terror code: %d\n",
             g_modVals.uploadReplayDataHost.c_str(),
-            g_modVals.uploadReplayDataEndpoint.c_str(), 
+            g_modVals.uploadReplayDataEndpoint.c_str(),
             g_modVals.uploadReplayDataPort,
             error_num);
         return error_num;
     }
-   //ok
-   //  Step 2: Connect to the server
+    //ok
+    //  Step 2: Connect to the server
     hConnect = InternetConnect(hInternet, serverAddress, port, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0);
     if (!hConnect) {
         //std::cerr << "Failed to connect to the server: " << GetLastError() << std::endl;
@@ -154,7 +165,7 @@ int UploadReplayBinary() {
             g_modVals.uploadReplayDataHost.c_str(),
             g_modVals.uploadReplayDataEndpoint.c_str(),
             g_modVals.uploadReplayDataPort,
-            error_num);     
+            error_num);
         return GetLastError();
     }
 
@@ -177,7 +188,7 @@ int UploadReplayBinary() {
 
 
 
-     //Get replay file data adress from memory
+    //Get replay file data adress from memory
     int bbcf_base_adress = (int)GetBbcfBaseAdress();
     //char* file_data_in_mem = (char*)(bbcf_base_adress + 0x115b478);
     char* file_data_in_mem = (char*)(bbcf_base_adress + 0x11B0348);
@@ -185,11 +196,11 @@ int UploadReplayBinary() {
     // Allocate memory for file data
     LPBYTE fileData = new BYTE[fileSize];
     // DWORD bytesRead;
-    if (! *file_data_in_mem) {
+    if (!*file_data_in_mem) {
         delete[] fileData;
         return 1;
     }
-   
+
     memcpy(fileData, file_data_in_mem, fileSize);
     //ok
     // Step 5: Send the request
@@ -221,4 +232,3 @@ int UploadReplayBinary() {
         g_modVals.uploadReplayDataPort);
     return 0;
 }
-	
