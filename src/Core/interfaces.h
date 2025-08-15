@@ -107,9 +107,11 @@ struct modValues_t {
 	int freeze_frame_keycode;
 	int step_frames_keycode;
 	int uploadReplayData;
-	std::string uploadReplayDataHost; 
+	std::string uploadReplayDataHost;
 	std::string uploadReplayDataEndpoint;
 	unsigned short uploadReplayDataPort;
+	std::string uploadRankedDataHost;
+	bool rankedEnabled = true;
 	bool uploadReplayDataVeto = false; //this refers to when other players disable replay upload
 };
 //temporary placeholders until wrappers are created / final addresses updated

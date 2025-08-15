@@ -63,6 +63,11 @@ void Settings::applySettingsIni(D3DPRESENT_PARAMETERS* pPresentationParameters)
 	//{
 	//	pPresentationParameters->FullScreen_RefreshRateInHz = 60; // savedSettings.adapterRefreshRate;
 	//}
+
+	//ranked
+	g_modVals.rankedEnabled = Settings::settingsIni.rankEnabled;
+	g_modVals.uploadRankedDataHost = Settings::settingsIni.uploadRankedDataHost;
+
 }
 
 int Settings::readSettingsFilePropertyInt(LPCWSTR key, LPCWSTR defaultVal, LPCWSTR filename)

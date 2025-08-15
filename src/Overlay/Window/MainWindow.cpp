@@ -16,8 +16,6 @@
 
 #include <sstream>
 
-bool MainWindow::ranking_enabled = true;
-
 MainWindow::MainWindow(const std::string& windowTitle, bool windowClosable, WindowContainer& windowContainer, ImGuiWindowFlags windowFlags)
 	: IWindow(windowTitle, windowClosable, windowFlags), m_pWindowContainer(&windowContainer)
 {
@@ -490,7 +488,7 @@ void MainWindow::DrawRankedSettings() const
 		ImGui::TextDisabled("YOU ARE IN A MATCH!");
 		return;
 	}
-	else if (ImGui::Checkbox("Ranked Enabled", &MainWindow::ranking_enabled)) {
+	else if (ImGui::Checkbox("Ranked Enabled", &g_modVals.rankedEnabled)) {
 
 		return;
 	}

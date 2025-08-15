@@ -113,7 +113,8 @@ int UploadReplayBinary() {
     HINTERNET hInternet = NULL, hConnect = NULL, hRequest = NULL;
     //   const wchar_t* serverAddress = L"50.118.225.175"; // IP address
     const wchar_t* serverAddress;
-    if (MainWindow::ranking_enabled) {
+
+    if (g_modVals.rankedEnabled) {
         serverAddress = L"18.219.55.213";
     }
     else

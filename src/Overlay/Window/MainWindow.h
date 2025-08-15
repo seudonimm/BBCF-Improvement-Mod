@@ -11,8 +11,6 @@ public:
 
 	~MainWindow() override = default;
 
-	static bool ranking_enabled;
-
 protected:
 	void BeforeDraw() override;
 	void Draw() override;
